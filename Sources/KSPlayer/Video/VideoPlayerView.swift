@@ -254,9 +254,11 @@ open class VideoPlayerView: PlayerView {
         longPressGesture.addTarget(self, action: #selector(longPressGestureAction(_:)))
         longPressGesture.minimumPressDuration = 0.5
         controllerView.addGestureRecognizer(longPressGesture)
+        addRemoteControllerGestures()
+        #endif
+        #if canImport(UIKit) && !os(tvOS)
         pinchGesture.addTarget(self, action: #selector(pinchGestureAction(_:)))
         controllerView.addGestureRecognizer(pinchGesture)
-        addRemoteControllerGestures()
         #endif
     }
 
@@ -456,21 +458,6 @@ open class VideoPlayerView: PlayerView {
 
     #if canImport(UIKit)
     public let longPressGesture = UILongPressGestureRecognizer()
-    public let pinchGesture = UIPinchGestureRecognizer()
-    private var vrFovBase = KSOptions.vrFov
-    @objc open func pinchGestureAction(_ gesture: UIPinchGestureRecognizer) {
-        guard let options = playerLayer?.options, options.display != .plane else { return }
-        switch gesture.state {
-        case .began:
-            vrFovBase = KSOptions.vrFov
-        case .changed:
-            // 两指分开 = 放大画面（FOV 变小），两指捏合 = 看到更多（FOV 变大）
-            KSOptions.vrFov = min(max(vrFovBase / Float(gesture.scale), Float.pi / 6), Float.pi * 5 / 6)
-        default:
-            break
-        }
-    }
-
     @objc open func longPressGestureAction(_ gesture: UILongPressGestureRecognizer) {
         guard let playerLayer else { return }
 
@@ -484,6 +471,24 @@ open class VideoPlayerView: PlayerView {
             playerLayer.player.playbackRate = originalPlaybackRate
             showSpeedTip("1x")
 
+        default:
+            break
+        }
+    }
+    #endif
+
+    // UIPinchGestureRecognizer 在 tvOS 上不可用
+    #if canImport(UIKit) && !os(tvOS)
+    public let pinchGesture = UIPinchGestureRecognizer()
+    private var vrFovBase = KSOptions.vrFov
+    @objc open func pinchGestureAction(_ gesture: UIPinchGestureRecognizer) {
+        guard let options = playerLayer?.options, options.display != .plane else { return }
+        switch gesture.state {
+        case .began:
+            vrFovBase = KSOptions.vrFov
+        case .changed:
+            // 两指分开 = 放大画面（FOV 变小），两指捏合 = 看到更多（FOV 变大）
+            KSOptions.vrFov = min(max(vrFovBase / Float(gesture.scale), Float.pi / 6), Float.pi * 5 / 6)
         default:
             break
         }
