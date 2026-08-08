@@ -119,7 +119,7 @@ var testObjects: [KSPlayerResource] = {
                 let moviesDirectory = try? FileManager.default.url(for: .moviesDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
                 options.outputURL = moviesDirectory?.appendingPathComponent("recording.mov")
                 #endif
-            } else if url.lastPathComponent == "vr.mp4" {
+            } else if url.lastPathComponent.lowercased().contains("vr") {
                 options.display = .vr
             } else if url.lastPathComponent == "mjpeg.flac" {
                 options.videoDisable = true

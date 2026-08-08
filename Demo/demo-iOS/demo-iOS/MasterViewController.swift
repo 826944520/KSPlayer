@@ -107,7 +107,11 @@ extension MasterViewController {
             else {
                 return
             }
-            let resource = KSPlayerResource(url: url)
+            let options = MEOptions()
+            if url.lastPathComponent.lowercased().contains("vr") {
+                options.display = .vr
+            }
+            let resource = KSPlayerResource(url: url, options: options)
             self?.play(resource: resource)
         }))
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))

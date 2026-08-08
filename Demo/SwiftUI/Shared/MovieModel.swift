@@ -273,7 +273,7 @@ extension KSVideoPlayerView {
 //            options.videoFilters = ["hflip", "vflip"]
 //            options.hardwareDecode = false
             options.startPlayTime = 13
-        } else if url.lastPathComponent == "vr.mp4" {
+        } else if url.lastPathComponent.lowercased().contains("vr") {
             options.display = .vr
         } else if url.lastPathComponent == "mjpeg.flac" {
 //            options.videoDisable = true
