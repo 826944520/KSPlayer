@@ -14,7 +14,7 @@ import UIKit
 
 public extension KSOptions {
     /// VR 模式的相机垂直视场角（弧度），默认 90°（比 60° 能看到更多画面）。
-    /// 注意：显示模型是进程级单例，需要在播放前设置。
+    /// 每帧读取，支持运行时连续调整（如捏合手势）。
     static var vrFov: Float = Float.pi / 2
 }
 
@@ -255,14 +255,16 @@ private class SphereDisplayModel {
 }
 
 private class VRDisplayModel: SphereDisplayModel {
-    private let modelViewProjectionMatrix: simd_float4x4
-
-    override required init() {
+    // 每帧根据当前 FOV 与屏幕尺寸计算投影矩阵，支持运行时连续调整视场角
+    private var modelViewProjectionMatrix: simd_float4x4 {
         let size = KSOptions.sceneSize
         let aspect = Float(size.width / size.height)
         let projectionMatrix = simd_float4x4(perspective: KSOptions.vrFov, aspect: aspect, nearZ: 0.1, farZ: 400.0)
         let viewMatrix = simd_float4x4(lookAt: SIMD3<Float>.zero, center: [0, 0, -1000], up: [0, 1, 0])
-        modelViewProjectionMatrix = projectionMatrix * viewMatrix
+        return projectionMatrix * viewMatrix
+    }
+
+    override required init() {
         super.init()
     }
 
@@ -276,16 +278,24 @@ private class VRDisplayModel: SphereDisplayModel {
 }
 
 private class VRBoxDisplayModel: SphereDisplayModel {
-    private let modelViewProjectionMatrixLeft: simd_float4x4
-    private let modelViewProjectionMatrixRight: simd_float4x4
-    override required init() {
+    // 每帧根据当前 FOV 与屏幕尺寸计算投影矩阵，支持运行时连续调整视场角
+    private var modelViewProjectionMatrixLeft: simd_float4x4 {
         let size = KSOptions.sceneSize
         let aspect = Float(size.width / size.height) / 2
         let viewMatrixLeft = simd_float4x4(lookAt: [-0.012, 0, 0], center: [0, 0, -1000], up: [0, 1, 0])
+        let projectionMatrix = simd_float4x4(perspective: KSOptions.vrFov, aspect: aspect, nearZ: 0.1, farZ: 400.0)
+        return projectionMatrix * viewMatrixLeft
+    }
+
+    private var modelViewProjectionMatrixRight: simd_float4x4 {
+        let size = KSOptions.sceneSize
+        let aspect = Float(size.width / size.height) / 2
         let viewMatrixRight = simd_float4x4(lookAt: [0.012, 0, 0], center: [0, 0, -1000], up: [0, 1, 0])
         let projectionMatrix = simd_float4x4(perspective: KSOptions.vrFov, aspect: aspect, nearZ: 0.1, farZ: 400.0)
-        modelViewProjectionMatrixLeft = projectionMatrix * viewMatrixLeft
-        modelViewProjectionMatrixRight = projectionMatrix * viewMatrixRight
+        return projectionMatrix * viewMatrixRight
+    }
+
+    override required init() {
         super.init()
     }
 
