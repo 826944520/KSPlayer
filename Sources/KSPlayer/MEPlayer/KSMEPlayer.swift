@@ -242,9 +242,7 @@ extension KSMEPlayer: MEPlayerDelegate {
             playableTime = currentPlaybackTime + loadingState.loadedTime
         }
         if loadState == .playable {
-            // 队列可播时长低于触发水位就进入缓冲态（mpv cache-pause 思路），
-            // 避免队列还剩少量帧时"逐帧等网络"的微停顿
-            if !loadingState.isEndOfFile, loadingState.loadedTime < options.bufferTriggerDuration, options.preferredForwardBufferDuration != 0 {
+            if !loadingState.isEndOfFile, loadingState.frameCount == 0, loadingState.packetCount == 0, options.preferredForwardBufferDuration != 0 {
                 loadState = .loading
                 if playbackState == .playing {
                     runOnMainThread { [weak self] in

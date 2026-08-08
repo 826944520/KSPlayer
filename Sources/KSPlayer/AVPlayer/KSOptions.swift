@@ -20,9 +20,6 @@ open class KSOptions {
     public var preferredForwardBufferDuration = KSOptions.preferredForwardBufferDuration
     /// 最大缓存视频时间
     public var maxBufferDuration = KSOptions.maxBufferDuration
-    /// 缓冲触发水位（秒）：队列可播时长低于该值时进入缓冲态，攒够恢复水位再播。
-    /// 低于 mpv 的 cache-pause 思路，把"逐帧等网络的微停顿"变成一次明确的缓冲。
-    public var bufferTriggerDuration = KSOptions.bufferTriggerDuration
     /// 是否开启秒开
     public var isSecondOpen = KSOptions.isSecondOpen
     /// 开启精确seek
@@ -470,11 +467,9 @@ public extension KSOptions {
     static var firstPlayerType: MediaPlayerProtocol.Type = KSAVPlayer.self
     static var secondPlayerType: MediaPlayerProtocol.Type? = KSMEPlayer.self
     /// 最低缓存视频时间
-    static var preferredForwardBufferDuration = 5.0
+    static var preferredForwardBufferDuration = 3.0
     /// 最大缓存视频时间
     static var maxBufferDuration = 30.0
-    /// 缓冲触发水位（秒）
-    static var bufferTriggerDuration = 0.5
     /// 是否开启秒开
     static var isSecondOpen = false
     /// 开启精确seek
