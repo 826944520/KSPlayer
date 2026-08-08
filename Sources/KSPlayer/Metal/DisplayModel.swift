@@ -12,6 +12,12 @@ import simd
 import UIKit
 #endif
 
+public extension KSOptions {
+    /// VR 模式的相机垂直视场角（弧度），默认 90°（比 60° 能看到更多画面）。
+    /// 注意：显示模型是进程级单例，需要在播放前设置。
+    static var vrFov: Float = Float.pi / 2
+}
+
 extension DisplayEnum {
     private static var planeDisplay = PlaneDisplayModel()
     private static var vrDiaplay = VRDisplayModel()
@@ -254,7 +260,7 @@ private class VRDisplayModel: SphereDisplayModel {
     override required init() {
         let size = KSOptions.sceneSize
         let aspect = Float(size.width / size.height)
-        let projectionMatrix = simd_float4x4(perspective: Float.pi / 3, aspect: aspect, nearZ: 0.1, farZ: 400.0)
+        let projectionMatrix = simd_float4x4(perspective: KSOptions.vrFov, aspect: aspect, nearZ: 0.1, farZ: 400.0)
         let viewMatrix = simd_float4x4(lookAt: SIMD3<Float>.zero, center: [0, 0, -1000], up: [0, 1, 0])
         modelViewProjectionMatrix = projectionMatrix * viewMatrix
         super.init()
@@ -277,7 +283,7 @@ private class VRBoxDisplayModel: SphereDisplayModel {
         let aspect = Float(size.width / size.height) / 2
         let viewMatrixLeft = simd_float4x4(lookAt: [-0.012, 0, 0], center: [0, 0, -1000], up: [0, 1, 0])
         let viewMatrixRight = simd_float4x4(lookAt: [0.012, 0, 0], center: [0, 0, -1000], up: [0, 1, 0])
-        let projectionMatrix = simd_float4x4(perspective: Float.pi / 3, aspect: aspect, nearZ: 0.1, farZ: 400.0)
+        let projectionMatrix = simd_float4x4(perspective: KSOptions.vrFov, aspect: aspect, nearZ: 0.1, farZ: 400.0)
         modelViewProjectionMatrixLeft = projectionMatrix * viewMatrixLeft
         modelViewProjectionMatrixRight = projectionMatrix * viewMatrixRight
         super.init()
