@@ -20,6 +20,9 @@ class MEOptions: KSOptions {
     #endif
     override init() {
         super.init()
+        // 经典抗网络抖动方案：FFmpeg 本地缓存 + 加深缓冲水位（断线重连默认已开启）
+        cache = true
+        preferredForwardBufferDuration = 5.0
     }
 
     override func process(assetTrack: some MediaPlayerTrack) {

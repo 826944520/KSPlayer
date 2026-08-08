@@ -94,7 +94,14 @@ class CustomVideoPlayerView: VideoPlayerView {
     }
 }
 
-class MEOptions: KSOptions {}
+class MEOptions: KSOptions {
+    override init() {
+        super.init()
+        // 经典抗网络抖动方案：FFmpeg 本地缓存 + 加深缓冲水位（断线重连默认已开启）
+        cache = true
+        preferredForwardBufferDuration = 5.0
+    }
+}
 
 var testObjects: [KSPlayerResource] = {
     var objects = [KSPlayerResource]()
