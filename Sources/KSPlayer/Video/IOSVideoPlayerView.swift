@@ -272,10 +272,16 @@ open class IOSVideoPlayerView: VideoPlayerView {
     }
 
     open func judgePanGesture() {
-        if landscapeButton.isSelected || UIDevice.current.userInterfaceIdiom == .pad {
-            panGesture.isEnabled = isPlayed && !replayButton.isSelected
+        if playerLayer?.options.display == .plane {
+            if landscapeButton.isSelected || UIDevice.current.userInterfaceIdiom == .pad {
+                panGesture.isEnabled = isPlayed && !replayButton.isSelected
+            } else {
+                panGesture.isEnabled = toolBar.playButton.isSelected
+            }
         } else {
-            panGesture.isEnabled = toolBar.playButton.isSelected
+            // VR/全景模式下拖动手势用于旋转视角，禁用调音量/亮度/快进的手势
+            panGesture.isEnabled = false
+            longPressGesture.isEnabled = false
         }
     }
 }

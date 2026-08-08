@@ -431,6 +431,27 @@ open class VideoPlayerView: PlayerView {
         }
     }
 
+    // VR/全景模式下，把拖动手势转发给显示模型来旋转视角。
+    // controllerView 盖在视频画面之上，触摸事件不会到达 MetalPlayView，
+    // 所以在这里通过响应链转发。
+    #if canImport(UIKit)
+    override public func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if let options = playerLayer?.options, options.display != .plane, let touch = touches.first {
+            options.display.touchesMoved(touch: touch)
+        } else {
+            super.touchesMoved(touches, with: event)
+        }
+    }
+    #else
+    override public func touchesMoved(with event: NSEvent) {
+        if let options = playerLayer?.options, options.display != .plane, let touch = event.allTouches().first {
+            options.display.touchesMoved(touch: touch)
+        } else {
+            super.touchesMoved(with: event)
+        }
+    }
+    #endif
+
     #if canImport(UIKit)
     public let longPressGesture = UILongPressGestureRecognizer()
     @objc open func longPressGestureAction(_ gesture: UILongPressGestureRecognizer) {
