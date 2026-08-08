@@ -7,17 +7,19 @@ on:
       - '*'
 
 jobs:
-  buidJob:
-    name: buid
+  build:
+    name: Build & Test
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@main
         with:
           submodules: recursive
-#      https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md#xcode
       - name: Set up Xcode
         run: |
-          sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer
+          XCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)
+          if [ -n "$XCODE_APP" ]; then
+            sudo xcode-select -s "/Applications/$XCODE_APP/Contents/Developer"
+          fi
           xcode-select -p
           xcodebuild -version
       - name: Build macOS
@@ -30,3 +32,49 @@ jobs:
         run: swift build --sdk `xcrun -sdk xrsimulator -show-sdk-path` -Xswiftc -target -Xswiftc x86_64-apple-xros1.0-simulator
       - name: Test
         run: swift test -v
+
+  build-ipa:
+    name: Build unsigned IPA
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@main
+        with:
+          submodules: recursive
+      - name: Set up Xcode
+        run: |
+          XCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)
+          if [ -n "$XCODE_APP" ]; then
+            sudo xcode-select -s "/Applications/$XCODE_APP/Contents/Developer"
+          fi
+          xcode-select -p
+          xcodebuild -version
+      - name: Checkout FFmpegKit
+        # Demo/Podfile references FFmpegKit via `:path => '../FFmpegKit'`,
+        # so it must be cloned as a sibling of this repo.
+        run: git clone --depth 1 --branch main https://github.com/kingslay/FFmpegKit.git ../FFmpegKit
+      - name: Install CocoaPods dependencies
+        working-directory: Demo
+        run: pod install
+      - name: Build app (unsigned)
+        working-directory: Demo
+        run: |
+          xcodebuild -workspace Demo.xcworkspace \
+            -scheme demo-iOS \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+      - name: Package IPA
+        working-directory: Demo
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/demo-iOS.app Payload/
+          zip -qry demo-iOS-unsigned.ipa Payload
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-iOS-unsigned-ipa
+          path: Demo/demo-iOS-unsigned.ipa
