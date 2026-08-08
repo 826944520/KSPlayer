@@ -49,9 +49,9 @@ jobs:
           xcode-select -p
           xcodebuild -version
       - name: Checkout FFmpegKit
-        # Demo/Podfile references FFmpegKit via `:path => '../FFmpegKit'`,
-        # so it must be cloned as a sibling of this repo.
-        run: git clone --depth 1 --branch main https://github.com/kingslay/FFmpegKit.git ../FFmpegKit
+        # Demo/Podfile resolves `:path => '../FFmpegKit'` relative to Demo/,
+        # i.e. the repo root. Clone inside the repo so the path matches.
+        run: git clone --depth 1 --branch main https://github.com/kingslay/FFmpegKit.git FFmpegKit
       - name: Install CocoaPods dependencies
         working-directory: Demo
         run: pod install
