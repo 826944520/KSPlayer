@@ -78,8 +78,8 @@ protocol MEFrame: ObjectQueueItem {
 
 // for MEPlayer
 public extension KSOptions {
-    /// 开启VR模式的陀飞轮
-    static var enableSensor = true
+    /// 开启VR模式的陀螺仪（默认关闭，开启后每帧用设备姿态覆盖手指旋转）
+    static var enableSensor = false
     static var stackSize = 65536
     static var isClearVideoWhereReplace = true
     static var audioPlayerType: AudioOutput.Type = AudioEnginePlayer.self
