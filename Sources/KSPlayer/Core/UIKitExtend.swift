@@ -37,8 +37,11 @@ public class KSSlider: UXSlider {
     }
 
     override open func thumbRect(forBounds bounds: CGRect, trackRect rect: CGRect, value: Float) -> CGRect {
-        let rect = super.thumbRect(forBounds: bounds, trackRect: rect, value: value)
-        return rect.insetBy(dx: -20, dy: -20)
+        var rect = super.thumbRect(forBounds: bounds, trackRect: rect, value: value)
+        // iOS 26 起轨道线按 bounds 垂直居中绘制，而控制球仍按返回矩形定位；
+        // 纵向 inset 会把球顶离轨道线，这里把球矩形重新居中，只横向扩大触摸命中区
+        rect.origin.y = (bounds.height - rect.height) / 2
+        return rect.insetBy(dx: -20, dy: 0)
     }
 
     // MARK: - handle UI slider actions
