@@ -8,6 +8,11 @@
 import AVFoundation
 import CoreMedia
 import CoreServices
+public extension KSOptions {
+    /// 平面视频平铺填满屏幕（等比裁切，类似 VLC 的 fill 模式）；默认留边
+    static var fillScreen = false
+}
+
 #if canImport(UIKit)
 import UIKit
 
@@ -17,10 +22,22 @@ public extension KSOptions {
         UIApplication.shared.connectedScenes.first as? UIWindowScene
     }
 
+    /// 播放视图实际显示尺寸，由 MetalPlayView 渲染时更新；兜底取 window 尺寸
+    @MainActor
+    private static var playerViewSize = CGSize.zero
+
     @MainActor
     static var sceneSize: CGSize {
-        let window = windowScene?.windows.first
-        return window?.bounds.size ?? .zero
+        get {
+            if playerViewSize != .zero {
+                return playerViewSize
+            }
+            let window = windowScene?.windows.first
+            return window?.bounds.size ?? .zero
+        }
+        set {
+            playerViewSize = newValue
+        }
     }
 }
 #else
@@ -30,8 +47,20 @@ import SwiftUI
 public typealias UIView = NSView
 public typealias UIPasteboard = NSPasteboard
 public extension KSOptions {
+    @MainActor
+    private static var playerViewSize = CGSize.zero
+
+    @MainActor
     static var sceneSize: CGSize {
-        NSScreen.main?.frame.size ?? .zero
+        get {
+            if playerViewSize != .zero {
+                return playerViewSize
+            }
+            return NSScreen.main?.frame.size ?? .zero
+        }
+        set {
+            playerViewSize = newValue
+        }
     }
 }
 #endif

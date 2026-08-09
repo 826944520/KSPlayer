@@ -23,6 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UISplitViewControllerDele
         KSOptions.isAutoPlay = true
         KSOptions.isSecondOpen = true
         KSOptions.isAccurateSeek = true
+        KSOptions.fillScreen = true
 //        KSOptions.isLoopPlay = true
         if UIDevice.current.userInterfaceIdiom == .phone {
             window.rootViewController = UINavigationController(rootViewController: MasterViewController())

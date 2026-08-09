@@ -76,6 +76,9 @@ public final class MetalPlayView: UIView, VideoOutput {
         addSubview(displayView)
         addSubview(metalView)
         metalView.isHidden = true
+        // 初始化时同步一次 contentMode → videoGravity，否则停在 AVSampleBufferDisplayLayer 默认的 resizeAspect
+        // 默认等比留边（商业播放器惯例）；KSOptions.fillScreen = true 时平铺填满（等比裁切）
+        contentMode = KSOptions.fillScreen ? .scaleAspectFill : .scaleAspectFit
         //        displayLink = CADisplayLink(block: renderFrame)
         displayLink = CADisplayLink(target: self, selector: #selector(renderFrame))
         // 一定要用common。不然在视频上面操作view的话，那就会卡顿了。
@@ -207,7 +210,9 @@ extension MetalPlayView {
                         size = CGSize(width: par.width, height: par.height * sar.height / sar.width)
                     }
                 } else {
-                    size = KSOptions.sceneSize
+                    size = bounds.size
+                    // 记录实际显示尺寸，供 VR 投影矩阵适配（避免留边/畸变）
+                    KSOptions.sceneSize = bounds.size
                 }
                 checkFormatDescription(pixelBuffer: pixelBuffer)
                 #if !os(tvOS)
