@@ -13,6 +13,12 @@ import simd
 
 class MetalRender {
     static let device = MTLCreateSystemDefaultDevice()!
+    // CVMetalTextureCache 复用 IOSurface 纹理内存，避免每帧 makeTexture 导致 GPU 内存压力
+    private static let textureCache: CVMetalTextureCache? = {
+        var cache: CVMetalTextureCache?
+        CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, MetalRender.device, nil, &cache)
+        return cache
+    }()
     static let library: MTLLibrary = {
         var library: MTLLibrary!
         library = device.makeDefaultLibrary()
@@ -91,7 +97,11 @@ class MetalRender {
 
     @MainActor
     func draw(pixelBuffer: PixelBufferProtocol, display: DisplayEnum = .plane, drawable: CAMetalDrawable) {
-        let inputTextures = pixelBuffer.textures()
+        guard let cvPixelBuffer = pixelBuffer.cvPixelBuffer else {
+            return
+        }
+        // cvTextures 需存活到 waitUntilCompleted 之后，否则 MTLTexture 底层数据可能被回收
+        let (inputTextures, cvTextures) = MetalRender.textures(pixelBuffer: cvPixelBuffer)
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture
         guard !inputTextures.isEmpty, let commandBuffer = commandQueue?.makeCommandBuffer(), let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
             return
@@ -155,17 +165,26 @@ class MetalRender {
         // swftlint:enable force_try
     }
 
-    static func texture(pixelBuffer: CVPixelBuffer) -> [MTLTexture] {
-        guard let iosurface = CVPixelBufferGetIOSurface(pixelBuffer)?.takeUnretainedValue() else {
-            return []
+    /// 用 CVMetalTextureCache 创建纹理（复用 IOSurface 内存）。
+    /// 返回的 cvTextures 必须存活到 GPU 命令完成之后，否则 MTLTexture 可能失效。
+    static func textures(pixelBuffer: CVPixelBuffer) -> ([MTLTexture], [CVMetalTexture]) {
+        guard let textureCache else {
+            return ([], [])
         }
         let formats = KSOptions.pixelFormat(planeCount: pixelBuffer.planeCount, bitDepth: pixelBuffer.bitDepth)
-        return (0 ..< pixelBuffer.planeCount).compactMap { index in
+        var textures = [MTLTexture]()
+        var cvTextures = [CVMetalTexture]()
+        for index in 0 ..< pixelBuffer.planeCount {
             let width = pixelBuffer.widthOfPlane(at: index)
             let height = pixelBuffer.heightOfPlane(at: index)
-            let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: formats[index], width: width, height: height, mipmapped: false)
-            return device.makeTexture(descriptor: descriptor, iosurface: iosurface, plane: index)
+            var cvTexture: CVMetalTexture?
+            let result = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault, textureCache, pixelBuffer, nil, formats[index], width, height, index, &cvTexture)
+            if result == kCVReturnSuccess, let cvTexture, let texture = CVMetalTextureGetTexture(cvTexture) {
+                textures.append(texture)
+                cvTextures.append(cvTexture)
+            }
         }
+        return (textures, cvTextures)
     }
 
     static func textures(formats: [MTLPixelFormat], widths: [Int], heights: [Int], buffers: [MTLBuffer?], lineSizes: [Int]) -> [MTLTexture] {

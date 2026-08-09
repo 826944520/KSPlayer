@@ -155,7 +155,8 @@ extension CVPixelBuffer: PixelBufferProtocol {
     }
 
     public func textures() -> [MTLTexture] {
-        MetalRender.texture(pixelBuffer: self)
+        guard let cvPixelBuffer = cvPixelBuffer else { return [] }
+        return MetalRender.textures(pixelBuffer: cvPixelBuffer).0
     }
 
     public func matche(formatDescription: CMVideoFormatDescription) -> Bool {
