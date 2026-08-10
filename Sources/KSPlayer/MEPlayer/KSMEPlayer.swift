@@ -241,10 +241,14 @@ extension KSMEPlayer: MEPlayerDelegate {
         } else {
             playableTime = currentPlaybackTime + loadingState.loadedTime
         }
+        // 缓冲容量对应的时间。高分辨率视频（如 8K）受内存预算限制容量很小，
+        // 阈值必须相对容量缩放，否则会死锁（永远装不满 2 秒）或装满即再入缓冲的振荡
+        let bufferTime = Double(max(loadingState.frameMaxCount, 1)) / Double(max(loadingState.fps, 1))
         if loadState == .playable {
             let frameTime = Double(loadingState.frameCount) / Double(max(loadingState.fps, 1))
-            // mpv 双阈值迟滞：帧时间 < 0.5s 入缓冲，≥ 2.0s 出缓冲
-            if !loadingState.isEndOfFile, frameTime < 0.5, options.preferredForwardBufferDuration != 0 {
+            // mpv 双阈值迟滞：帧时间 < 0.5s 入缓冲（容量不足 0.5s 时取容量一半）
+            let enterThreshold = min(0.5, bufferTime * 0.5)
+            if !loadingState.isEndOfFile, frameTime < enterThreshold, options.preferredForwardBufferDuration != 0 {
                 loadState = .loading
                 if playbackState == .playing {
                     runOnMainThread { [weak self] in
@@ -260,7 +264,9 @@ extension KSMEPlayer: MEPlayerDelegate {
                 }
             }
             let frameTime = Double(loadingState.frameCount) / Double(max(loadingState.fps, 1))
-            if loadingState.isPlayable, frameTime >= 2.0 {
+            // 出缓冲：帧时间 ≥ 2.0s；容量不足 2s 时装满即出
+            let exitThreshold = min(2.0, bufferTime)
+            if loadingState.isPlayable, frameTime >= exitThreshold {
                 loadState = .playable
                 if playbackState == .playing {
                     runOnMainThread { [weak self] in

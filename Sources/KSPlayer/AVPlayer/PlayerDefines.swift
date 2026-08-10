@@ -220,6 +220,7 @@ public struct LoadingState {
     public let progress: TimeInterval
     public let packetCount: Int
     public let frameCount: Int
+    public let frameMaxCount: Int
     public let isEndOfFile: Bool
     public let isPlayable: Bool
     public let isFirst: Bool

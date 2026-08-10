@@ -173,6 +173,7 @@ open class KSOptions {
         let loadedTime = capacitys.map(\.loadedTime).min() ?? 0
         // 取视频轨帧率做时间基准，纯音频则 fallback 到 24
         let fps = capacitys.first(where: { $0.mediaType == .video })?.fps ?? capacitys.first?.fps ?? 24
+        let frameMaxCount = capacitys.map(\.frameMaxCount).min() ?? 0
         let progress = preferredForwardBufferDuration == 0 ? 100 : loadedTime * 100.0 / preferredForwardBufferDuration
         let isPlayable = capacitys.allSatisfy { capacity in
             if capacity.isEndOfFile && capacity.packetCount == 0 {
@@ -200,7 +201,7 @@ open class KSOptions {
             return capacity.loadedTime >= self.preferredForwardBufferDuration
         }
         return LoadingState(loadedTime: loadedTime, progress: progress, packetCount: packetCount,
-                            frameCount: frameCount, isEndOfFile: isEndOfFile, isPlayable: isPlayable,
+                            frameCount: frameCount, frameMaxCount: frameMaxCount, isEndOfFile: isEndOfFile, isPlayable: isPlayable,
                             isFirst: isFirst, isSeek: isSeek, fps: fps)
     }
 
@@ -238,10 +239,14 @@ open class KSOptions {
         nil
     }
 
-    open func videoFrameMaxCount(fps: Float, naturalSize _: CGSize, isLive: Bool) -> UInt8 {
+    open func videoFrameMaxCount(fps: Float, naturalSize: CGSize, isLive: Bool) -> UInt8 {
         if isLive { return 4 }
-        // ~2 秒解码帧缓冲，吸收网络恢复延迟，上限 240 避 UInt8 溢出
-        return UInt8(min(fps * 2.0, 240))
+        // 目标 ~2 秒解码帧缓冲，但受内存预算约束：10bit 按每像素 2 字节估算，
+        // 8K 一帧约 66MB，若盲目取 fps*2 帧，缓冲可超 4GB 被 iOS Jetsam 静默杀进程（无崩溃日志）
+        let frameBytes = Double(naturalSize.width) * Double(naturalSize.height) * 2
+        let maxFrames = frameBytes > 0 ? 1_000_000_000 / frameBytes : 240
+        // 下限 4 帧避免 0/异常尺寸，上限 240 避 UInt8 溢出
+        return UInt8(min(max(Double(fps) * 2.0, 4), maxFrames, 240))
     }
 
     open func audioFrameMaxCount(fps: Float, channelCount: Int) -> UInt8 {

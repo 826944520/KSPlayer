@@ -739,9 +739,11 @@ extension MEPlayerItem: CodecCapacityDelegate {
             isFirst = false
             isSeek = false
             let frameTime = Double(loadingState.frameCount) / Double(max(loadingState.fps, 1))
-            // 帧时间 < 2s 时强制恢复读线程，不等 loadedTime 落到 maxBufferDuration/2
-            // 避免 packet 缓冲还充足但解码帧已快空的死区
-            if frameTime < 2.0 {
+            // 帧时间不足缓冲容量时强制恢复读线程，不等 loadedTime 落到 maxBufferDuration/2
+            // 避免 packet 缓冲还充足但解码帧已快空的死区。
+            // 阈值与容量挂钩（min(2s, 容量)）：8K 等小容量缓冲若用固定 2s，读线程永不暂停，packet 队列会无限增长
+            let bufferTime = Double(max(loadingState.frameMaxCount, 1)) / Double(max(loadingState.fps, 1))
+            if frameTime < min(2.0, bufferTime) {
                 resume()
             } else if loadingState.loadedTime > options.maxBufferDuration {
                 adaptableVideo(loadingState: loadingState)
