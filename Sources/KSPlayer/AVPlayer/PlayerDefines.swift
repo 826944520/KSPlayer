@@ -224,6 +224,7 @@ public struct LoadingState {
     public let isPlayable: Bool
     public let isFirst: Bool
     public let isSeek: Bool
+    public let fps: Float
 }
 
 public let KSPlayerErrorDomain = "KSPlayerErrorDomain"

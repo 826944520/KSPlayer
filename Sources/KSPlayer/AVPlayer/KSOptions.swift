@@ -171,6 +171,8 @@ open class KSOptions {
         let frameCount = capacitys.map(\.frameCount).min() ?? 0
         let isEndOfFile = capacitys.allSatisfy(\.isEndOfFile)
         let loadedTime = capacitys.map(\.loadedTime).min() ?? 0
+        // 取视频轨帧率做时间基准，纯音频则 fallback 到 24
+        let fps = capacitys.first(where: { $0.mediaType == .video })?.fps ?? capacitys.first?.fps ?? 24
         let progress = preferredForwardBufferDuration == 0 ? 100 : loadedTime * 100.0 / preferredForwardBufferDuration
         let isPlayable = capacitys.allSatisfy { capacity in
             if capacity.isEndOfFile && capacity.packetCount == 0 {
@@ -199,7 +201,7 @@ open class KSOptions {
         }
         return LoadingState(loadedTime: loadedTime, progress: progress, packetCount: packetCount,
                             frameCount: frameCount, isEndOfFile: isEndOfFile, isPlayable: isPlayable,
-                            isFirst: isFirst, isSeek: isSeek)
+                            isFirst: isFirst, isSeek: isSeek, fps: fps)
     }
 
     open func adaptable(state: VideoAdaptationState?) -> (Int64, Int64)? {
@@ -236,8 +238,10 @@ open class KSOptions {
         nil
     }
 
-    open func videoFrameMaxCount(fps _: Float, naturalSize _: CGSize, isLive: Bool) -> UInt8 {
-        isLive ? 4 : 16
+    open func videoFrameMaxCount(fps: Float, naturalSize _: CGSize, isLive: Bool) -> UInt8 {
+        if isLive { return 4 }
+        // ~2 秒解码帧缓冲，吸收网络恢复延迟，上限 240 避 UInt8 溢出
+        return UInt8(min(fps * 2.0, 240))
     }
 
     open func audioFrameMaxCount(fps: Float, channelCount: Int) -> UInt8 {

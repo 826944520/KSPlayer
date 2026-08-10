@@ -242,7 +242,9 @@ extension KSMEPlayer: MEPlayerDelegate {
             playableTime = currentPlaybackTime + loadingState.loadedTime
         }
         if loadState == .playable {
-            if !loadingState.isEndOfFile, loadingState.frameCount == 0, loadingState.packetCount == 0, options.preferredForwardBufferDuration != 0 {
+            let frameTime = Double(loadingState.frameCount) / Double(max(loadingState.fps, 1))
+            // mpv 双阈值迟滞：帧时间 < 0.5s 入缓冲，≥ 2.0s 出缓冲
+            if !loadingState.isEndOfFile, frameTime < 0.5, options.preferredForwardBufferDuration != 0 {
                 loadState = .loading
                 if playbackState == .playing {
                     runOnMainThread { [weak self] in
@@ -257,22 +259,30 @@ extension KSMEPlayer: MEPlayerDelegate {
                     videoOutput?.readNextFrame()
                 }
             }
-            var progress = 100
-            if loadingState.isPlayable {
+            let frameTime = Double(loadingState.frameCount) / Double(max(loadingState.fps, 1))
+            if loadingState.isPlayable, frameTime >= 2.0 {
                 loadState = .playable
+                if playbackState == .playing {
+                    runOnMainThread { [weak self] in
+                        self?.bufferingProgress = 100
+                    }
+                }
             } else {
-                if loadingState.progress.isInfinite {
+                var progress = 100
+                if loadingState.isPlayable {
+                    progress = 100
+                } else if loadingState.progress.isInfinite {
                     progress = 100
                 } else if loadingState.progress.isNaN {
                     progress = 0
                 } else {
                     progress = min(100, Int(loadingState.progress))
                 }
-            }
-            if playbackState == .playing {
-                runOnMainThread { [weak self] in
-                    // 在主线程更新进度
-                    self?.bufferingProgress = progress
+                if playbackState == .playing {
+                    runOnMainThread { [weak self] in
+                        // 在主线程更新进度
+                        self?.bufferingProgress = progress
+                    }
                 }
             }
         }
