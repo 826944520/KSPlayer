@@ -76,9 +76,23 @@ public final class MetalPlayView: UIView, VideoOutput {
         addSubview(displayView)
         addSubview(metalView)
         metalView.isHidden = true
-        // 初始化时同步一次 contentMode → videoGravity，否则停在 AVSampleBufferDisplayLayer 默认的 resizeAspect
+        // 初始化时手动同步 contentMode → videoGravity / metalView.contentMode。
+        // 注意: didSet 在 init() 阶段不会触发，所以必须在此处显式设置，否则
+        // AVSampleBufferDisplayLayer 永远停留默认 resizeAspect（两侧留边）。
         // 默认等比留边（商业播放器惯例）；KSOptions.fillScreen = true 时平铺填满（等比裁切）
-        contentMode = KSOptions.fillScreen ? .scaleAspectFill : .scaleAspectFit
+        let mode = KSOptions.fillScreen ? UIViewContentMode.scaleAspectFill : .scaleAspectFit
+        contentMode = mode
+        metalView.contentMode = mode
+        switch mode {
+        case .scaleToFill:
+            displayView.displayLayer.videoGravity = .resize
+        case .scaleAspectFit, .center:
+            displayView.displayLayer.videoGravity = .resizeAspect
+        case .scaleAspectFill:
+            displayView.displayLayer.videoGravity = .resizeAspectFill
+        default:
+            break
+        }
         //        displayLink = CADisplayLink(block: renderFrame)
         displayLink = CADisplayLink(target: self, selector: #selector(renderFrame))
         // 一定要用common。不然在视频上面操作view的话，那就会卡顿了。
