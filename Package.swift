@@ -4,7 +4,8 @@ import PackageDescription
 let package = Package(
     name: "KSPlayer",
     defaultLocalization: "en",
-    platforms: [.iOS(.v26)],
+    platforms: [.macOS(.v10_15), .macCatalyst(.v14), .iOS(.v26), .tvOS(.v13),
+                .visionOS(.v1)],
     products: [
         .library(
             name: "KSPlayer",
