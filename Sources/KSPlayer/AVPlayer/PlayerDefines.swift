@@ -383,10 +383,6 @@ open class AbstractAVIOContext {
         size
     }
 
-    
-     #define SEEK_CUR        1       
-     #define SEEK_END        2       
-     */
     open func seek(offset: Int64, whence _: Int32) -> Int64 {
         offset
     }

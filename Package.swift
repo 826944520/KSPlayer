@@ -21,7 +21,7 @@ let package = Package(
             ],
             resources: [.process("Metal/Shaders.metal")],
             swiftSettings: [
-                .enableExperimentalFeature("StrictConcurrency"),
+                .swiftLanguageMode(.v5),
             ]
         ),
         .target(
