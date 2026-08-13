@@ -29,22 +29,9 @@ extension UnsafeMutablePointer where Pointee == AVCodecContext {
                     if deviceCtx == nil {
                         break
                     }
-                    // 只要有hw_device_ctx就可以了。不需要hw_frames_ctx
+
                     ctx.pointee.hw_device_ctx = deviceCtx
-//                    var framesCtx = av_hwframe_ctx_alloc(deviceCtx)
-//                    if let framesCtx {
-//                        let framesCtxData = UnsafeMutableRawPointer(framesCtx.pointee.data)
-//                            .bindMemory(to: AVHWFramesContext.self, capacity: 1)
-//                        framesCtxData.pointee.format = AV_PIX_FMT_VIDEOTOOLBOX
-//                        framesCtxData.pointee.sw_format = ctx.pointee.pix_fmt.bestPixelFormat
-//                        framesCtxData.pointee.width = ctx.pointee.width
-//                        framesCtxData.pointee.height = ctx.pointee.height
-//                    }
-//                    if av_hwframe_ctx_init(framesCtx) != 0 {
-//                        av_buffer_unref(&framesCtx)
-//                        break
-//                    }
-//                    ctx.pointee.hw_frames_ctx = framesCtx
+
                     return fmt[i]
                 }
                 i += 1
@@ -120,32 +107,7 @@ extension AVCodecParameters {
     }
 }
 
-/**
- Clients who specify AVVideoColorPropertiesKey must specify a color primary, transfer function, and Y'CbCr matrix.
- Most clients will want to specify HD, which consists of:
 
- AVVideoColorPrimaries_ITU_R_709_2
- AVVideoTransferFunction_ITU_R_709_2
- AVVideoYCbCrMatrix_ITU_R_709_2
-
- If you require SD colorimetry use:
-
- AVVideoColorPrimaries_SMPTE_C
- AVVideoTransferFunction_ITU_R_709_2
- AVVideoYCbCrMatrix_ITU_R_601_4
-
- If you require wide gamut HD colorimetry, you can use:
-
- AVVideoColorPrimaries_P3_D65
- AVVideoTransferFunction_ITU_R_709_2
- AVVideoYCbCrMatrix_ITU_R_709_2
-
- If you require 10-bit wide gamut HD colorimetry, you can use:
-
- AVVideoColorPrimaries_P3_D65
- AVVideoTransferFunction_ITU_R_2100_HLG
- AVVideoYCbCrMatrix_ITU_R_709_2
- */
 extension AVColorPrimaries {
     var colorPrimaries: CFString? {
         switch self {
@@ -255,7 +217,7 @@ extension AVPixelFormat {
         }
     }
 
-    // videotoolbox_best_pixel_format
+
     var bestPixelFormat: AVPixelFormat {
         if let desc = av_pix_fmt_desc_get(self) {
             if desc.pointee.flags & UInt64(AV_PIX_FMT_FLAG_ALPHA) != 0 {
@@ -277,19 +239,17 @@ extension AVPixelFormat {
         }
     }
 
-    // swiftlint:disable cyclomatic_complexity
-    // avfoundation.m
+
     func osType(fullRange: Bool = false) -> OSType? {
         switch self {
         case AV_PIX_FMT_MONOBLACK: return kCVPixelFormatType_1Monochrome
-//        case AV_PIX_FMT_PAL8: return kCVPixelFormatType_32RGBA
+
         case AV_PIX_FMT_GRAY8: return kCVPixelFormatType_OneComponent8
         case AV_PIX_FMT_RGB555BE: return kCVPixelFormatType_16BE555
         case AV_PIX_FMT_RGB555LE: return kCVPixelFormatType_16LE555
         case AV_PIX_FMT_RGB565BE: return kCVPixelFormatType_16BE565
         case AV_PIX_FMT_RGB565LE: return kCVPixelFormatType_16LE565
-//             PixelBufferPool 无法支持24BGR
-//        case AV_PIX_FMT_BGR24: return kCVPixelFormatType_24BGR
+
         case AV_PIX_FMT_RGB24: return kCVPixelFormatType_24RGB
         case AV_PIX_FMT_0RGB: return kCVPixelFormatType_32ARGB
         case AV_PIX_FMT_ARGB: return kCVPixelFormatType_32ARGB
@@ -300,7 +260,7 @@ extension AVPixelFormat {
         case AV_PIX_FMT_RGBA: return kCVPixelFormatType_32RGBA
         case AV_PIX_FMT_BGR48BE, AV_PIX_FMT_BGR48LE: return kCVPixelFormatType_48RGB
         case AV_PIX_FMT_NV12: return fullRange ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange : kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
-        //  AVSampleBufferDisplayLayer不能显示 kCVPixelFormatType_420YpCbCr8PlanarFullRange,所以换成是kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+
         case AV_PIX_FMT_YUV420P, AV_PIX_FMT_YUVJ420P: return fullRange ? kCVPixelFormatType_420YpCbCr8BiPlanarFullRange : kCVPixelFormatType_420YpCbCr8Planar
         case AV_PIX_FMT_P010BE, AV_PIX_FMT_P010LE, AV_PIX_FMT_YUV420P10BE, AV_PIX_FMT_YUV420P10LE: return fullRange ? kCVPixelFormatType_420YpCbCr10BiPlanarFullRange : kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
         case AV_PIX_FMT_UYVY422: return kCVPixelFormatType_422YpCbCr8
@@ -320,7 +280,7 @@ extension AVPixelFormat {
             return nil
         }
     }
-    // swiftlint:enable cyclomatic_complexity
+
 }
 
 extension AVCodecID {
@@ -483,64 +443,63 @@ public extension NSError {
 }
 
 public extension AVError {
-    /// Resource temporarily unavailable
+
     static let tryAgain = AVError(code: swift_AVERROR(EAGAIN))
-    /// Invalid argument
+
     static let invalidArgument = AVError(code: swift_AVERROR(EINVAL))
-    /// Cannot allocate memory
+
     static let outOfMemory = AVError(code: swift_AVERROR(ENOMEM))
-    /// The value is out of range
+
     static let outOfRange = AVError(code: swift_AVERROR(ERANGE))
-    /// The value is not valid
+
     static let invalidValue = AVError(code: swift_AVERROR(EINVAL))
-    /// Function not implemented
+
     static let noSystem = AVError(code: swift_AVERROR(ENOSYS))
 
-    /// Bitstream filter not found
+
     static let bitstreamFilterNotFound = AVError(code: swift_AVERROR_BSF_NOT_FOUND)
-    /// Internal bug, also see `bug2`
+
     static let bug = AVError(code: swift_AVERROR_BUG)
-    /// Buffer too small
+
     static let bufferTooSmall = AVError(code: swift_AVERROR_BUFFER_TOO_SMALL)
-    /// Decoder not found
+
     static let decoderNotFound = AVError(code: swift_AVERROR_DECODER_NOT_FOUND)
-    /// Demuxer not found
+
     static let demuxerNotFound = AVError(code: swift_AVERROR_DEMUXER_NOT_FOUND)
-    /// Encoder not found
+
     static let encoderNotFound = AVError(code: swift_AVERROR_ENCODER_NOT_FOUND)
-    /// End of file
+
     static let eof = AVError(code: swift_AVERROR_EOF)
-    /// Immediate exit was requested; the called function should not be restarted
+
     static let exit = AVError(code: swift_AVERROR_EXIT)
-    /// Generic error in an external library
+
     static let external = AVError(code: swift_AVERROR_EXTERNAL)
-    /// Filter not found
+
     static let filterNotFound = AVError(code: swift_AVERROR_FILTER_NOT_FOUND)
-    /// Invalid data found when processing input
+
     static let invalidData = AVError(code: swift_AVERROR_INVALIDDATA)
-    /// Muxer not found
+
     static let muxerNotFound = AVError(code: swift_AVERROR_MUXER_NOT_FOUND)
-    /// Option not found
+
     static let optionNotFound = AVError(code: swift_AVERROR_OPTION_NOT_FOUND)
-    /// Not yet implemented in FFmpeg, patches welcome
+
     static let patchWelcome = AVError(code: swift_AVERROR_PATCHWELCOME)
-    /// Protocol not found
+
     static let protocolNotFound = AVError(code: swift_AVERROR_PROTOCOL_NOT_FOUND)
-    /// Stream not found
+
     static let streamNotFound = AVError(code: swift_AVERROR_STREAM_NOT_FOUND)
-    /// This is semantically identical to `bug`. It has been introduced in Libav after our `bug` and
-    /// with a modified value.
+
     static let bug2 = AVError(code: swift_AVERROR_BUG2)
-    /// Unknown error, typically from an external library
+
     static let unknown = AVError(code: swift_AVERROR_UNKNOWN)
-    ///  Requested feature is flagged experimental. Set strict_std_compliance if you really want to use it.
+
     static let experimental = AVError(code: swift_AVERROR_EXPERIMENTAL)
-    /// Input changed between calls. Reconfiguration is required. (can be OR-ed with `outputChanged`)
+
     static let inputChanged = AVError(code: swift_AVERROR_INPUT_CHANGED)
-    /// Output changed between calls. Reconfiguration is required. (can be OR-ed with `inputChanged`)
+
     static let outputChanged = AVError(code: swift_AVERROR_OUTPUT_CHANGED)
 
-    /* HTTP & RTSP errors */
+    
     static let httpBadRequest = AVError(code: swift_AVERROR_HTTP_BAD_REQUEST)
     static let httpUnauthorized = AVError(code: swift_AVERROR_HTTP_UNAUTHORIZED)
     static let httpForbidden = AVError(code: swift_AVERROR_HTTP_FORBIDDEN)

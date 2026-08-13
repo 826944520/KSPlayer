@@ -1,9 +1,5 @@
-//
-//  File.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 #if canImport(UIKit)
 import UIKit
 #else
@@ -39,10 +35,6 @@ extension UIView {
 }
 
 protocol KSSliderDelegate: AnyObject {
-    /**
-     call when slider action trigged
-     - parameter value:      progress
-     - parameter event:       action
-     */
+    
     func slider(value: Double, event: ControlEvents)
 }

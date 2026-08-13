@@ -1,9 +1,5 @@
-//
-//  Filter.swift
-//  KSPlayer
-//
-//  Created by kintan on 2021/8/7.
-//
+
+
 
 import Foundation
 import Libavfilter
@@ -56,9 +52,7 @@ class MEFilter {
         if let ctx = params.hw_frames_ctx {
             let framesCtxData = UnsafeMutableRawPointer(ctx.pointee.data).bindMemory(to: AVHWFramesContext.self, capacity: 1)
             inputs.pointee.filter_ctx.pointee.hw_device_ctx = framesCtxData.pointee.device_ref
-//                    outputs.pointee.filter_ctx.pointee.hw_device_ctx = framesCtxData.pointee.device_ref
-//                    bufferSrcContext?.pointee.hw_device_ctx = framesCtxData.pointee.device_ref
-//                    bufferSinkContext?.pointee.hw_device_ctx = framesCtxData.pointee.device_ref
+
         }
         ret = avfilter_graph_config(graph, nil)
         guard ret >= 0 else { return false }
@@ -76,7 +70,7 @@ class MEFilter {
         let bufferSink = avfilter_get_by_name(bufferName + "sink")
         ret = avfilter_graph_create_filter(&bufferSinkContext, bufferSink, "ksplayer_\(bufferName)sink", nil, nil, graph)
         guard ret >= 0 else { return false }
-        //        av_opt_set_int_list(bufferSinkContext, "pix_fmts", [AV_PIX_FMT_GRAY8, AV_PIX_FMT_NONE] AV_PIX_FMT_NONE,AV_OPT_SEARCH_CHILDREN)
+
         var inputs = avfilter_inout_alloc()
         var outputs = avfilter_inout_alloc()
         outputs?.pointee.name = strdup("in")
@@ -88,7 +82,7 @@ class MEFilter {
         inputs?.pointee.pad_idx = 0
         inputs?.pointee.next = nil
         let filterNb = Int(graph.pointee.nb_filters)
-        ret = avfilter_graph_parse_ptr(graph, filters, &inputs, &outputs, nil)
+        ret = avfilter_graph_parse2(graph, filters, &inputs, &outputs)
         guard ret >= 0 else {
             avfilter_inout_free(&inputs)
             avfilter_inout_free(&outputs)
@@ -141,9 +135,9 @@ class MEFilter {
             return
         }
         while av_buffersink_get_frame_flags(bufferSinkContext, inputFrame, 0) >= 0 {
-//                timebase = Timebase(av_buffersink_get_time_base(bufferSinkContext))
+
             completionHandler(inputFrame)
-            // 一定要加av_frame_unref，不然会内存泄漏。
+
             av_frame_unref(inputFrame)
         }
     }

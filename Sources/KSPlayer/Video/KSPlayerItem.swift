@@ -1,10 +1,5 @@
-//
-//  KSPlayerItem.swift
-//  Pods
-//
-//  Created by kintan on 16/5/21.
-//
-//
+
+
 
 import AVFoundation
 import Foundation
@@ -21,14 +16,7 @@ public class KSPlayerResource: Equatable, Hashable {
     public let subtitleDataSouce: SubtitleDataSouce?
     public var nowPlayingInfo: KSNowPlayableMetadata?
     public let extinf: [String: String]?
-    /**
-     Player recource item with url, used to play single difinition video
-
-     - parameter name:      video name
-     - parameter url:       video url
-     - parameter cover:     video cover, will show before playing, and hide when play
-     - parameter subtitleURLs: video subtitles
-     */
+    
     public convenience init(url: URL, options: KSOptions = KSOptions(), name: String = "", cover: URL? = nil, subtitleURLs: [URL]? = nil, extinf: [String: String]? = nil) {
         let definition = KSPlayerResourceDefinition(url: url, definition: "", options: options)
         let subtitleDataSouce: URLSubtitleDataSouce?
@@ -41,14 +29,7 @@ public class KSPlayerResource: Equatable, Hashable {
         self.init(name: name, definitions: [definition], cover: cover, subtitleDataSouce: subtitleDataSouce, extinf: extinf)
     }
 
-    /**
-     Play resouce with multi definitions
-
-     - parameter name:        video name
-     - parameter definitions: video definitions
-     - parameter cover:       video cover
-     - parameter subtitle:   video subtitle
-     */
+    
     public init(name: String, definitions: [KSPlayerResourceDefinition], cover: URL? = nil, subtitleDataSouce: SubtitleDataSouce? = nil, extinf: [String: String]? = nil) {
         self.name = name
         self.cover = cover
@@ -79,13 +60,7 @@ public struct KSPlayerResourceDefinition: Hashable {
         self.init(url: url, definition: url.lastPathComponent)
     }
 
-    /**
-     Video recource item with defination name and specifying options
-
-     - parameter url:        video url
-     - parameter definition: url deifination
-     - parameter options:    specifying options for the initialization of the AVURLAsset
-     */
+    
     public init(url: URL, definition: String, options: KSOptions = KSOptions()) {
         self.url = url
         self.definition = definition

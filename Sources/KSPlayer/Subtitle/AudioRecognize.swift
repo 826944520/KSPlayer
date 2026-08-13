@@ -1,9 +1,5 @@
-//
-//  AudioRecognize.swift
-//  KSPlayer
-//
-//  Created by kintan on 2023/9/23.
-//
+
+
 
 import Foundation
 

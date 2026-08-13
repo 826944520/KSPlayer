@@ -1,9 +1,5 @@
-//
-//  MotionSensor.swift
-//  KSPlayer-iOS
-//
-//  Created by kintan on 2020/1/13.
-//
+
+
 
 #if canImport(UIKit) && canImport(CoreMotion)
 import CoreMotion

@@ -1,9 +1,5 @@
-//
-//  PlayerTransitionAnimator.swift
-//  KSPlayer
-//
-//  Created by kintan on 2021/8/20.
-//
+
+
 
 #if canImport(UIKit)
 import UIKit

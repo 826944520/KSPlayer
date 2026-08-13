@@ -1,10 +1,5 @@
-//
-//  KSSubtitle.swift
-//  Pods
-//
-//  Created by kintan on 2017/4/2.
-//
-//
+
+
 
 import CoreFoundation
 import CoreGraphics
@@ -130,9 +125,7 @@ public protocol SubtitleInfo: KSSubtitleProtocol, AnyObject, Hashable, Identifia
     var subtitleID: String { get }
     var name: String { get }
     var delay: TimeInterval { get set }
-    //    var userInfo: NSMutableDictionary? { get set }
-    //    var subtitleDataSouce: SubtitleDataSouce? { get set }
-//    var comment: String? { get }
+
     var isEnabled: Bool { get set }
 }
 
@@ -153,7 +146,7 @@ public class KSSubtitle {
 }
 
 extension KSSubtitle: KSSubtitleProtocol {
-    /// Search for target group for time
+
     public func search(for time: TimeInterval) -> [SubtitlePart] {
         var result = [SubtitlePart]()
         for part in parts {
@@ -201,9 +194,7 @@ public extension KSSubtitle {
         }
     }
 
-//    public static func == (lhs: KSURLSubtitle, rhs: KSURLSubtitle) -> Bool {
-//        lhs.url == rhs.url
-//    }
+
 }
 
 public protocol NumericComparable {
@@ -293,7 +284,7 @@ open class SubtitleModel: ObservableObject {
     public private(set) var subtitleInfos = [any SubtitleInfo]()
     @Published
     public private(set) var parts = [SubtitlePart]()
-    public var subtitleDelay = 0.0 // s
+    public var subtitleDelay = 0.0
     public var url: URL? {
         didSet {
             subtitleInfos.removeAll()
@@ -304,7 +295,7 @@ open class SubtitleModel: ObservableObject {
             for datasouce in subtitleDataSouces {
                 addSubtitle(dataSouce: datasouce)
             }
-            // 要用async，不能在更新UI的时候，修改Publishe变量
+
             DispatchQueue.main.async { [weak self] in
                 self?.parts = []
                 self?.selectedSubtitleInfo = nil
@@ -342,7 +333,7 @@ open class SubtitleModel: ObservableObject {
                 }
             }
         }
-        // swiftUI不会判断是否相等。所以需要这边判断下。
+
         if newParts != parts {
             for part in newParts {
                 if let text = part.text as? NSMutableAttributedString {

@@ -1,9 +1,5 @@
-//
-//  DisplayModel.swift
-//  KSPlayer-iOS
-//
-//  Created by kintan on 2020/1/11.
-//
+
+
 
 import Foundation
 import Metal
@@ -13,8 +9,7 @@ import UIKit
 #endif
 
 public extension KSOptions {
-    /// VR 模式的相机垂直视场角（弧度），默认 90°（比 60° 能看到更多画面）。
-    /// 每帧读取，支持运行时连续调整（如捏合手势）。
+
     static var vrFov: Float = Float.pi / 2
 }
 
@@ -255,7 +250,7 @@ private class SphereDisplayModel {
 }
 
 private class VRDisplayModel: SphereDisplayModel {
-    // 每帧根据当前 FOV 与屏幕尺寸计算投影矩阵，支持运行时连续调整视场角
+
     private var modelViewProjectionMatrix: simd_float4x4 {
         let size = KSOptions.sceneSize
         let aspect = Float(size.width / size.height)
@@ -278,7 +273,7 @@ private class VRDisplayModel: SphereDisplayModel {
 }
 
 private class VRBoxDisplayModel: SphereDisplayModel {
-    // 每帧根据当前 FOV 与屏幕尺寸计算投影矩阵，支持运行时连续调整视场角
+
     private var modelViewProjectionMatrixLeft: simd_float4x4 {
         let size = KSOptions.sceneSize
         let aspect = Float(size.width / size.height) / 2

@@ -1,9 +1,5 @@
-//
-//  KSParseProtocol.swift
-//  KSPlayer-7de52535
-//
-//  Created by kintan on 2018/8/7.
-//
+
+
 import Foundation
 import SwiftUI
 #if !canImport(UIKit)
@@ -79,9 +75,7 @@ public class AssParse: KSParseProtocol {
         return true
     }
 
-    // Dialogue: 0,0:12:37.73,0:12:38.83,Aki Default,,0,0,0,,{\be8}原来如此
-    // ffmpeg 软解的字幕
-    // 875,,Default,NTP,0000,0000,0000,!Effect,- 你们两个别冲这么快\\N- 我会取消所有行程尽快赶过去
+
     public func parsePart(scanner: Scanner) -> SubtitlePart? {
         let isDialogue = scanner.scanString("Dialogue") != nil
         var dic = [String: String]()
@@ -142,7 +136,7 @@ public struct ASSStyle {
     let textPosition: TextPosition
 }
 
-// swiftlint:disable cyclomatic_complexity
+
 extension String {
     func build(textPosition: inout TextPosition, attributed: [NSAttributedString.Key: Any]? = nil) -> NSAttributedString {
         let lineCodes = splitStyle()
@@ -223,8 +217,7 @@ extension String {
                     if char == "1" {
                         attributes[.foregroundColor] = color
                     } else if char == "2" {
-                        // 还不知道这个要设置到什么颜色上
-//                        attributes[.backgroundColor] = color
+
                     } else if char == "3" {
                         attributes[.strokeColor] = color
                     } else if char == "4" {
@@ -237,7 +230,7 @@ extension String {
                 break
             }
         }
-        // Apply font attributes if available
+
         if let fontName, let fontSize {
             let font = UIFont(name: fontName, size: CGFloat(fontSize)) ?? UIFont.systemFont(ofSize: CGFloat(fontSize))
             attributes[.font] = font
@@ -263,13 +256,13 @@ public extension [String: String] {
             }
             attributes[.font] = font
         }
-        // 创建字体样式
+
         if let assColor = self["PrimaryColour"] {
             attributes[.foregroundColor] = UIColor(assColor: assColor)
         }
-        // 还不知道这个要设置到什么颜色上
+
         if let assColor = self["SecondaryColour"] {
-//            attributes[.backgroundColor] = UIColor(assColor: assColor)
+
         }
         if self["Bold"] == "1" {
             attributes[.expansion] = 1
@@ -284,16 +277,9 @@ public extension [String: String] {
             attributes[.strikethroughStyle] = NSUnderlineStyle.single.rawValue
         }
 
-//        if let scaleX = self["ScaleX"].flatMap(Double.init), scaleX != 100 {
-//            attributes[.expansion] = scaleX / 100.0
-//        }
-//        if let scaleY = self["ScaleY"].flatMap(Double.init), scaleY != 100 {
-//            attributes[.baselineOffset] = scaleY - 100.0
-//        }
 
-//        if let spacing = self["Spacing"].flatMap(Double.init) {
-//            attributes[.kern] = CGFloat(spacing)
-//        }
+
+
 
         if self["BorderStyle"] == "1" {
             if let strokeWidth = self["Outline"].flatMap(Double.init), strokeWidth > 0 {
@@ -326,7 +312,7 @@ public extension [String: String] {
         }
         return ASSStyle(attrs: attributes, textPosition: textPosition)
     }
-    // swiftlint:enable cyclomatic_complexity
+
 }
 
 public class VTTParse: KSParseProtocol {
@@ -340,10 +326,7 @@ public class VTTParse: KSParseProtocol {
         }
     }
 
-    /**
-     00:00.430 --> 00:03.380
-     简中封装 by Q66
-     */
+    
     public func parsePart(scanner: Scanner) -> SubtitlePart? {
         var timeStrs: String?
         repeat {
@@ -385,11 +368,7 @@ public class SrtParse: KSParseProtocol {
         return result
     }
 
-    /**
-     45
-     00:02:52,184 --> 00:02:53,617
-     {\an4}慢慢来
-     */
+    
     public func parsePart(scanner: Scanner) -> SubtitlePart? {
         var decimal: String?
         repeat {
@@ -397,7 +376,7 @@ public class SrtParse: KSParseProtocol {
             _ = scanner.scanCharacters(from: .newlines)
         } while decimal.flatMap(Int.init) == nil
         let startString = scanner.scanUpToString("-->")
-        // skip spaces and newlines by default.
+
         _ = scanner.scanString("-->")
         if let startString,
            let endString = scanner.scanUpToCharacters(from: .newlines)

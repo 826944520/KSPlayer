@@ -1,9 +1,5 @@
-//
-//  KSVideoPlayer.swift
-//  KSPlayer
-//
-//  Created by kintan on 2023/2/11.
-//
+
+
 
 import Foundation
 import SwiftUI
@@ -42,7 +38,7 @@ extension KSVideoPlayer: UIViewRepresentable {
         updateView(view, context: context)
     }
 
-    // iOS tvOS真机先调用onDisappear在调用dismantleUIView，但是模拟器就反过来了。
+
     public static func dismantleUIView(_: UIViewType, coordinator: Coordinator) {
         coordinator.resetPlayer()
     }
@@ -56,7 +52,7 @@ extension KSVideoPlayer: UIViewRepresentable {
         updateView(view, context: context)
     }
 
-    // macOS先调用onDisappear在调用dismantleNSView
+
     public static func dismantleNSView(_ view: NSViewType, coordinator: Coordinator) {
         coordinator.resetPlayer()
         view.window?.aspectRatio = CGSize(width: 16, height: 9)
@@ -116,7 +112,7 @@ extension KSVideoPlayer: UIViewRepresentable {
 
         public var subtitleModel = SubtitleModel()
         public var timemodel = ControllerTimeModel()
-        // 在SplitView模式下，第二次进入会先调用makeUIView。然后在调用之前的dismantleUIView.所以如果进入的是同一个View的话，就会导致playerLayer被清空了。最准确的方式是在onDisappear清空playerLayer
+
         public var playerLayer: KSPlayerLayer? {
             didSet {
                 oldValue?.delegate = nil
@@ -188,7 +184,7 @@ extension KSVideoPlayer: UIViewRepresentable {
             isMaskShow = show
             if show {
                 delayHide?.cancel()
-                // 播放的时候才自动隐藏
+
                 guard state == .bufferFinished else { return }
                 if autoHide {
                     delayHide = DispatchWorkItem { [weak self] in
@@ -206,10 +202,7 @@ extension KSVideoPlayer: UIViewRepresentable {
             if let window = playerLayer?.player.view?.window {
                 if !window.styleMask.contains(.fullScreen) {
                     window.standardWindowButton(.closeButton)?.superview?.superview?.isHidden = !show
-                    //                    window.standardWindowButton(.zoomButton)?.isHidden = !show
-                    //                    window.standardWindowButton(.closeButton)?.isHidden = !show
-                    //                    window.standardWindowButton(.miniaturizeButton)?.isHidden = !show
-                    //                    window.titleVisibility = show ? .visible : .hidden
+
                 }
             }
             #endif
@@ -223,7 +216,7 @@ extension KSVideoPlayer.Coordinator: KSPlayerLayerDelegate {
         if state == .readyToPlay {
             playbackRate = layer.player.playbackRate
             if let subtitleDataSouce = layer.player.subtitleDataSouce {
-                // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。
+
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) { [weak self] in
                     guard let self else { return }
                     self.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
@@ -293,7 +286,7 @@ public extension KSVideoPlayer {
         return self
     }
 
-    /// Playing to the end.
+
     func onFinish(_ handler: @escaping (KSPlayerLayer, Error?) -> Void) -> Self {
         coordinator.onFinish = handler
         return self
@@ -304,7 +297,7 @@ public extension KSVideoPlayer {
         return self
     }
 
-    /// Playback status changes, such as from play to pause.
+
     func onStateChanged(_ handler: @escaping (KSPlayerLayer, KSPlayerState) -> Void) -> Self {
         coordinator.onStateChanged = handler
         return self
@@ -326,9 +319,9 @@ extension View {
     }
 }
 
-/// 这是一个频繁变化的model。View要少用这个
+
 public class ControllerTimeModel: ObservableObject {
-    // 改成int才不会频繁更新
+
     @Published
     public var currentTime = 0
     @Published

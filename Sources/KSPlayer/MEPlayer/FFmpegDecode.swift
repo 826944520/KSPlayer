@@ -1,9 +1,5 @@
-//
-//  FFmpegDecode.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 
 import AVFoundation
 import Foundation
@@ -38,7 +34,7 @@ class FFmpegDecode: DecodeProtocol {
         guard let codecContext, avcodec_send_packet(codecContext, packet.corePacket) == 0 else {
             return
         }
-        // 需要avcodec_send_packet之后，properties的值才会变成FF_CODEC_PROPERTY_CLOSED_CAPTIONS
+
         if packet.assetTrack.mediaType == .video {
             if Int32(codecContext.pointee.properties) & FF_CODEC_PROPERTY_CLOSED_CAPTIONS != 0, packet.assetTrack.closedCaptionsTrack == nil {
                 var codecpar = AVCodecParameters()
@@ -61,7 +57,7 @@ class FFmpegDecode: DecodeProtocol {
                 var displayData: MasteringDisplayMetadata?
                 var contentData: ContentLightMetadata?
                 var ambientViewingEnvironment: AmbientViewingEnvironment?
-                // filter之后，side_data信息会丢失，所以放在这里
+
                 if inputFrame.pointee.nb_side_data > 0 {
                     for i in 0 ..< inputFrame.pointee.nb_side_data {
                         if let sideData = inputFrame.pointee.side_data[Int(i)]?.pointee {
@@ -93,15 +89,15 @@ class FFmpegDecode: DecodeProtocol {
                                 }
                             } else if sideData.type == AV_FRAME_DATA_DOVI_RPU_BUFFER {
                                 let data = sideData.data.withMemoryRebound(to: [UInt8].self, capacity: 1) { $0 }
-                            } else if sideData.type == AV_FRAME_DATA_DOVI_METADATA { // AVDOVIMetadata
+                            } else if sideData.type == AV_FRAME_DATA_DOVI_METADATA {
                                 let data = sideData.data.withMemoryRebound(to: AVDOVIMetadata.self, capacity: 1) { $0 }
                                 let header = av_dovi_get_header(data)
                                 let mapping = av_dovi_get_mapping(data)
                                 let color = av_dovi_get_color(data)
-//                                frame.corePixelBuffer?.transferFunction = kCVImageBufferTransferFunction_ITU_R_2020
-                            } else if sideData.type == AV_FRAME_DATA_DYNAMIC_HDR_PLUS { // AVDynamicHDRPlus
+
+                            } else if sideData.type == AV_FRAME_DATA_DYNAMIC_HDR_PLUS {
                                 let data = sideData.data.withMemoryRebound(to: AVDynamicHDRPlus.self, capacity: 1) { $0 }.pointee
-                            } else if sideData.type == AV_FRAME_DATA_DYNAMIC_HDR_VIVID { // AVDynamicHDRVivid
+                            } else if sideData.type == AV_FRAME_DATA_DYNAMIC_HDR_VIVID {
                                 let data = sideData.data.withMemoryRebound(to: AVDynamicHDRVivid.self, capacity: 1) { $0 }.pointee
                             } else if sideData.type == AV_FRAME_DATA_MASTERING_DISPLAY_METADATA {
                                 let data = sideData.data.withMemoryRebound(to: AVMasteringDisplayMetadata.self, capacity: 1) { $0 }.pointee
@@ -146,7 +142,7 @@ class FFmpegDecode: DecodeProtocol {
                             }
                         }
                         frame.timebase = filter.timebase
-                        //                frame.timebase = Timebase(avframe.pointee.time_base)
+
                         frame.size = packet.size
                         frame.position = packet.position
                         frame.duration = avframe.pointee.duration
@@ -187,7 +183,7 @@ class FFmpegDecode: DecodeProtocol {
 
     func doFlushCodec() {
         bestEffortTimestamp = Int64(0)
-        // seek之后要清空下，不然解码可能还会有缓存，导致返回的数据是之前seek的。
+
         avcodec_flush_buffers(codecContext)
     }
 

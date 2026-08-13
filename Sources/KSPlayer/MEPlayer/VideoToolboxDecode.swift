@@ -1,9 +1,5 @@
-//
-//  VideoToolboxDecode.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/10.
-//
+
+
 
 import FFmpegKit
 import Libavformat
@@ -29,7 +25,7 @@ class VideoToolboxDecode: DecodeProtocol {
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
         if needReconfig {
-            // 解决从后台切换到前台，解码失败的问题
+
             session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
             doFlushCodec()
             needReconfig = false
@@ -56,7 +52,7 @@ class VideoToolboxDecode: DecodeProtocol {
                         if packet.isKeyFrame {
                             completionHandler(.failure(NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)))
                         } else {
-                            // 解决从后台切换到前台，解码失败的问题
+
                             self.needReconfig = true
                         }
                     }
@@ -84,7 +80,7 @@ class VideoToolboxDecode: DecodeProtocol {
                 if packet.isKeyFrame {
                     throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
                 } else {
-                    // 解决从后台切换到前台，解码失败的问题
+
                     needReconfig = true
                 }
             }
@@ -124,7 +120,7 @@ class DecompressionSession {
             VTRegisterSupplementalVideoDecoderIfAvailable(formatDescription.mediaSubType.rawValue)
         }
         #endif
-//        VTDecompressionSessionCanAcceptFormatDescription(<#T##session: VTDecompressionSession##VTDecompressionSession#>, formatDescription: <#T##CMFormatDescription#>)
+
         let attributes: NSMutableDictionary = [
             kCVPixelBufferPixelFormatTypeKey: pixelFormatType,
             kCVPixelBufferMetalCompatibilityKey: true,
@@ -133,9 +129,9 @@ class DecompressionSession {
             kCVPixelBufferIOSurfacePropertiesKey: NSDictionary(),
         ]
         var session: VTDecompressionSession?
-        // swiftlint:disable line_length
+
         let status = VTDecompressionSessionCreate(allocator: kCFAllocatorDefault, formatDescription: formatDescription, decoderSpecification: CMFormatDescriptionGetExtensions(formatDescription), imageBufferAttributes: attributes, outputCallback: nil, decompressionSessionOut: &session)
-        // swiftlint:enable line_length
+
         guard status == noErr, let decompressionSession = session else {
             return nil
         }
@@ -186,7 +182,7 @@ extension CMFormatDescription {
     private func createSampleBuffer(data: UnsafeMutablePointer<UInt8>?, size: Int) throws -> CMSampleBuffer {
         var blockBuffer: CMBlockBuffer?
         var sampleBuffer: CMSampleBuffer?
-        // swiftlint:disable line_length
+
         var status = CMBlockBufferCreateWithMemoryBlock(allocator: kCFAllocatorDefault, memoryBlock: data, blockLength: size, blockAllocator: kCFAllocatorNull, customBlockSource: nil, offsetToData: 0, dataLength: size, flags: 0, blockBufferOut: &blockBuffer)
         if status == noErr {
             status = CMSampleBufferCreate(allocator: kCFAllocatorDefault, dataBuffer: blockBuffer, dataReady: true, makeDataReadyCallback: nil, refcon: nil, formatDescription: self, sampleCount: 1, sampleTimingEntryCount: 0, sampleTimingArray: nil, sampleSizeEntryCount: 0, sampleSizeArray: nil, sampleBufferOut: &sampleBuffer)
@@ -195,7 +191,7 @@ extension CMFormatDescription {
             }
         }
         throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
-        // swiftlint:enable line_length
+
     }
 }
 

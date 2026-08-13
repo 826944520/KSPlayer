@@ -1,9 +1,5 @@
-//
-//  Model.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 
 import AVFoundation
 import CoreMedia
@@ -12,7 +8,7 @@ import Libavcodec
 import UIKit
 #endif
 
-// MARK: enum
+
 
 enum MESourceState {
     case idle
@@ -26,7 +22,7 @@ enum MESourceState {
     case failed
 }
 
-// MARK: delegate
+
 
 public protocol OutputRenderSourceDelegate: AnyObject {
     func getVideoOutputRender(force: Bool) -> VideoVTBFrame?
@@ -47,13 +43,13 @@ protocol MEPlayerDelegate: AnyObject {
     func sourceDidChange(oldBitRate: Int64, newBitrate: Int64)
 }
 
-// MARK: protocol
+
 
 public protocol ObjectQueueItem {
     var timebase: Timebase { get }
     var timestamp: Int64 { get set }
     var duration: Int64 { get set }
-    // byte position
+
     var position: Int64 { get set }
     var size: Int32 { get set }
 }
@@ -74,11 +70,11 @@ protocol MEFrame: ObjectQueueItem {
     var timebase: Timebase { get set }
 }
 
-// MARK: model
 
-// for MEPlayer
+
+
 public extension KSOptions {
-    /// 开启VR模式的陀螺仪（默认关闭，开启后每帧用设备姿态覆盖手指旋转）
+
     static var enableSensor = false
     static var stackSize = 65536
     static var isClearVideoWhereReplace = true
@@ -399,8 +395,7 @@ public final class AudioFrame: MEFrame {
             }
         }
         var sampleBuffer: CMSampleBuffer?
-        // 因为sampleRate跟timescale没有对齐，所以导致杂音。所以要让duration为invalid
-//        let duration = CMTime(value: CMTimeValue(sampleCount), timescale: CMTimeScale(audioFormat.sampleRate))
+
         let duration = CMTime.invalid
         let timing = CMSampleTimingInfo(duration: duration, presentationTimeStamp: cmtime, decodeTimeStamp: .invalid)
         let sampleSizeEntryCount: CMItemCount
@@ -419,7 +414,7 @@ public final class AudioFrame: MEFrame {
 
 public final class VideoVTBFrame: MEFrame {
     public var timebase = Timebase.defaultValue
-    // 交叉视频的duration会不准，直接减半了
+
     public var duration: Int64 = 0
     public var position: Int64 = 0
     public var timestamp: Int64 = 0
@@ -485,7 +480,7 @@ public struct ContentLightMetadata {
     let MaxFALL: UInt16
 }
 
-// https://developer.apple.com/documentation/technotes/tn3145-hdr-video-metadata
+
 public struct AmbientViewingEnvironment {
     let ambient_illuminance: UInt32
     let ambient_light_x: UInt16

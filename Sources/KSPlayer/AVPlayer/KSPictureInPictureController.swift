@@ -1,9 +1,5 @@
-//
-//  KSPictureInPictureController.swift
-//  KSPlayer
-//
-//  Created by kintan on 2023/1/28.
-//
+
+
 
 import AVKit
 
@@ -41,7 +37,7 @@ public class KSPictureInPictureController: AVPictureInPictureController {
                         navigationController.viewControllers = viewControllers
                     }
                     if viewControllers.firstIndex(of: viewController) == nil {
-                        // 新的swiftUI push之后。view会变成是emptyView。所以页面就空白了。
+
                         navigationController.pushViewController(viewController, animated: true)
                     }
                 } else {
@@ -62,7 +58,7 @@ public class KSPictureInPictureController: AVPictureInPictureController {
         delegate = view
         guard KSOptions.isPipPopViewController else {
             #if canImport(UIKit)
-            // 直接退到后台
+
             runOnMainThread {
                 UIControl().sendAction(#selector(URLSessionTask.suspend), to: UIApplication.shared, for: nil)
             }

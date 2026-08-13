@@ -1,9 +1,5 @@
-//
-//  Resample.swift
-//  KSPlayer-iOS
-//
-//  Created by kintan on 2020/1/27.
-//
+
+
 
 import AVFoundation
 import CoreGraphics
@@ -110,8 +106,7 @@ class VideoSwresample: FrameChange {
         } else {
             let dstFormat = dstFormat ?? format.bestPixelFormat
             pixelFormatType = dstFormat.osType()!
-//            imgConvertCtx = sws_getContext(width, height, self.format, width, height, dstFormat, SWS_FAST_BILINEAR, nil, nil, nil)
-            // AV_PIX_FMT_VIDEOTOOLBOX格式是无法进行swscale的
+
             imgConvertCtx = sws_getCachedContext(imgConvertCtx, width, height, self.format, dstWidth, dstHeight, dstFormat, SWS_FAST_BILINEAR, nil, nil, nil)
         }
         pool = CVPixelBufferPool.create(width: dstWidth, height: dstHeight, bytesPerRowAlignment: linesize, pixelFormatType: pixelFormatType)
@@ -130,7 +125,7 @@ class VideoSwresample: FrameChange {
             pbuf.yCbCrMatrix = frame.colorspace.ycbcrMatrix
             pbuf.colorPrimaries = frame.color_primaries.colorPrimaries
             pbuf.transferFunction = frame.color_trc.transferFunction
-            // vt_pixbuf_set_colorspace
+
             if pbuf.transferFunction == kCVImageBufferTransferFunction_UseGamma {
                 let gamma = NSNumber(value: frame.color_trc == AVCOL_TRC_GAMMA22 ? 2.2 : 2.8)
                 CVBufferSetAttachment(pbuf, kCVImageBufferGammaLevelKey, gamma, .shouldPropagate)
@@ -256,7 +251,7 @@ class AudioSwresample: FrameChange {
         var frameBuffer = Array(tuple: avframe.pointee.data).map { UnsafePointer<UInt8>($0) }
         let channels = descriptor.outChannel.nb_channels
         var bufferSize = [Int32(0)]
-        // 返回值是有乘以声道，所以不用返回值
+
         _ = av_samples_get_buffer_size(&bufferSize, channels, outSamples, descriptor.audioFormat.sampleFormat, 1)
         let frame = AudioFrame(dataSize: Int(bufferSize[0]), audioFormat: descriptor.audioFormat)
         frame.numberOfSamples = UInt32(swr_convert(swrContext, &frame.data, outSamples, &frameBuffer, numberOfSamples))
@@ -269,7 +264,7 @@ class AudioSwresample: FrameChange {
 }
 
 public class AudioDescriptor: Equatable {
-//    static let defaultValue = AudioDescriptor()
+
     public let sampleRate: Int32
     public private(set) var audioFormat: AVAudioFormat
     fileprivate(set) var channel: AVChannelLayout
@@ -370,7 +365,7 @@ public class AudioDescriptor: Equatable {
             commonFormat = .pcmFormatFloat32
         }
         return AVAudioFormat(commonFormat: commonFormat, sampleRate: Double(sampleRate), interleaved: interleaved, channelLayout: AVAudioChannelLayout(layoutTag: layoutTag)!)
-        //        AVAudioChannelLayout(layout: outChannel.layoutTag.channelLayout)
+
     }
 
     public func updateAudioFormat() {

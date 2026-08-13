@@ -1,9 +1,5 @@
-//
-//  PixelBufferProtocol.swift
-//  KSPlayer-iOS
-//
-//  Created by kintan on 2019/12/31.
-//
+
+
 
 import AVFoundation
 import CoreVideo
@@ -231,7 +227,7 @@ class PixelBuffer: PixelBufferProtocol {
                 let contents = buffer?.contents()
                 let source = bytes[i]!
                 var j = 0
-                // 性能 while > stride(from:to:by:) > for in
+
                 while j < height {
                     contents?.advanced(by: j * size).copyMemory(from: source.advanced(by: j * byteCount), byteCount: byteCount)
                     j += 1

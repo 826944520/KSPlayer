@@ -1,9 +1,5 @@
-//
-//  MetalPlayView.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/11.
-//
+
+
 
 import AVFoundation
 import Combine
@@ -54,14 +50,12 @@ public final class MetalPlayView: UIView, VideoOutput {
     }
 
     public private(set) var pixelBuffer: PixelBufferProtocol?
-    /// 用displayLink会导致锁屏无法draw，
-    /// 用DispatchSourceTimer的话，在播放4k视频的时候repeat的时间会变长,
-    /// 用MTKView的draw(in:)也是不行，会卡顿
+
     private var displayLink: CADisplayLink!
-//    private let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
+
     public var options: KSOptions
     public weak var renderSource: OutputRenderSourceDelegate?
-    // AVSampleBufferAudioRenderer AVSampleBufferRenderSynchronizer AVSampleBufferDisplayLayer
+
     var displayView = AVSampleBufferDisplayView() {
         didSet {
             displayLayerDelegate?.change(displayLayer: displayView.displayLayer)
@@ -76,10 +70,7 @@ public final class MetalPlayView: UIView, VideoOutput {
         addSubview(displayView)
         addSubview(metalView)
         metalView.isHidden = true
-        // 初始化时手动同步 contentMode → videoGravity / metalView.contentMode。
-        // 注意: didSet 在 init() 阶段不会触发，所以必须在此处显式设置，否则
-        // AVSampleBufferDisplayLayer 永远停留默认 resizeAspect（两侧留边）。
-        // 默认等比留边（商业播放器惯例）；KSOptions.fillScreen = true 时平铺填满（等比裁切）
+
         let mode = KSOptions.fillScreen ? UIViewContentMode.scaleAspectFill : .scaleAspectFit
         contentMode = mode
         metalView.contentMode = mode
@@ -93,9 +84,9 @@ public final class MetalPlayView: UIView, VideoOutput {
         default:
             break
         }
-        //        displayLink = CADisplayLink(block: renderFrame)
+
         displayLink = CADisplayLink(target: self, selector: #selector(renderFrame))
-        // 一定要用common。不然在视频上面操作view的话，那就会卡顿了。
+
         displayLink.add(to: .main, forMode: .common)
         pause()
     }
@@ -175,9 +166,7 @@ public final class MetalPlayView: UIView, VideoOutput {
         draw(force: true)
     }
 
-//    deinit {
-//        print()
-//    }
+
 }
 
 extension MetalPlayView {
@@ -225,7 +214,7 @@ extension MetalPlayView {
                     }
                 } else {
                     size = bounds.size
-                    // 记录实际显示尺寸，供 VR 投影矩阵适配（避免留边/畸变）
+
                     KSOptions.sceneSize = bounds.size
                 }
                 checkFormatDescription(pixelBuffer: pixelBuffer)
@@ -264,9 +253,9 @@ class MetalView: UIView {
     override public class var layerClass: AnyClass { CAMetalLayer.self }
     #endif
     var metalLayer: CAMetalLayer {
-        // swiftlint:disable force_cast
+
         layer as! CAMetalLayer
-        // swiftlint:enable force_cast
+
     }
 
     init() {
@@ -276,7 +265,7 @@ class MetalView: UIView {
         #endif
         metalLayer.device = MetalRender.device
         metalLayer.framebufferOnly = true
-//        metalLayer.displaySyncEnabled = false
+
     }
 
     @available(*, unavailable)
@@ -325,9 +314,9 @@ class AVSampleBufferDisplayView: UIView {
     override public class var layerClass: AnyClass { AVSampleBufferDisplayLayer.self }
     #endif
     var displayLayer: AVSampleBufferDisplayLayer {
-        // swiftlint:disable force_cast
+
         layer as! AVSampleBufferDisplayLayer
-        // swiftlint:enable force_cast
+
     }
 
     override init(frame: CGRect) {
@@ -351,7 +340,7 @@ class AVSampleBufferDisplayView: UIView {
 
     func enqueue(imageBuffer: CVPixelBuffer, formatDescription: CMVideoFormatDescription, time: CMTime) {
         let timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: .zero, decodeTimeStamp: .invalid)
-        //        var timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: time, decodeTimeStamp: .invalid)
+
         var sampleBuffer: CMSampleBuffer?
         CMSampleBufferCreateReadyWithImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: imageBuffer, formatDescription: formatDescription, sampleTiming: [timing], sampleBufferOut: &sampleBuffer)
         if let sampleBuffer {
@@ -373,9 +362,7 @@ class AVSampleBufferDisplayView: UIView {
             if displayLayer.status == .failed {
                 KSLog("[video] AVSampleBufferDisplayLayer status failed so flush")
                 displayLayer.flush()
-                //                    if let error = displayLayer.error as NSError?, error.code == -11847 {
-                //                        displayLayer.stopRequestingMediaData()
-                //                    }
+
             }
         }
     }

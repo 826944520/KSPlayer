@@ -1,29 +1,18 @@
-//
-//  Transforms.swift
-//  MetalSpectrograph
-//
-//  Created by David Conner on 9/9/15.
-//  Copyright © 2015 Voxxel. All rights reserved.
-//
+
+
 
 import simd
 
-// swiftlint:disable identifier_name
+
 extension simd_float4x4 {
     static let identity = matrix_identity_float4x4
-    // sx  0   0   0
-    // 0   sy  0   0
-    // 0   0   sz  0
-    // 0   0   0   1
+
 
     init(scale x: Float, y: Float, z: Float) {
         self.init(diagonal: [x, y, z, 1.0])
     }
 
-    // 1   0   0   tx
-    // 0   1   0   ty
-    // 0   0   1   tz
-    // 0   0   0   1
+
     init(translate: SIMD3<Float>) {
         self.init([1, 0.0, 0.0, translate.x],
                   [0.0, 1, 0.0, translate.y],
@@ -107,4 +96,4 @@ extension simd_float4x4 {
     }
 }
 
-// swiftlint:enable identifier_name
+

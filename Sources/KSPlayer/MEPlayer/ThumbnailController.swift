@@ -1,9 +1,5 @@
-//
-//  ThumbnailController.swift
-//
-//
-//  Created by kintan on 12/27/23.
-//
+
+
 
 import AVFoundation
 import Foundation
@@ -71,14 +67,12 @@ public class ThumbnailController {
         }
         var codecContext = try videoStream.pointee.codecpar.pointee.createContext(options: nil)
         defer {
-            avcodec_close(codecContext)
             var codecContext: UnsafeMutablePointer<AVCodecContext>? = codecContext
             avcodec_free_context(&codecContext)
         }
         let thumbHeight = thumbWidth * codecContext.pointee.height / codecContext.pointee.width
         let reScale = VideoSwresample(dstWidth: thumbWidth, dstHeight: thumbHeight, isDovi: false)
-//        let duration = formatCtx.pointee.duration
-        // 因为是针对视频流来进行seek。所以不能直接取formatCtx的duration
+
         let duration = av_rescale_q(formatCtx.pointee.duration,
                                     AVRational(num: 1, den: AV_TIME_BASE), videoStream.pointee.time_base)
         let interval = duration / Int64(thumbnailCount)

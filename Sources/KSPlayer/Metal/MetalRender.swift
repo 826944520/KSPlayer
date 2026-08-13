@@ -1,9 +1,5 @@
-//
-//  MetalRender.swift
-//  KSPlayer-iOS
-//
-//  Created by kintan on 2020/1/11.
-//
+
+
 import Accelerate
 import CoreVideo
 import Foundation
@@ -13,7 +9,7 @@ import simd
 
 class MetalRender {
     static let device = MTLCreateSystemDefaultDevice()!
-    // CVMetalTextureCache 复用 IOSurface 纹理内存，避免每帧 makeTexture 导致 GPU 内存压力
+
     private static let textureCache: CVMetalTextureCache? = {
         var cache: CVMetalTextureCache?
         CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, MetalRender.device, nil, &cache)
@@ -100,7 +96,7 @@ class MetalRender {
         guard let cvPixelBuffer = pixelBuffer.cvPixelBuffer else {
             return
         }
-        // cvTextures 需存活到 waitUntilCompleted 之后，否则 MTLTexture 底层数据可能被回收
+
         let (inputTextures, cvTextures) = MetalRender.textures(pixelBuffer: cvPixelBuffer)
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture
         guard !inputTextures.isEmpty, let commandBuffer = commandQueue?.makeCommandBuffer(), let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
@@ -160,13 +156,12 @@ class MetalRender {
         vertexDescriptor.layouts[0].stride = MemoryLayout<simd_float4>.stride
         vertexDescriptor.layouts[1].stride = MemoryLayout<simd_float2>.stride
         descriptor.vertexDescriptor = vertexDescriptor
-        // swiftlint:disable force_try
+
         return try! library.device.makeRenderPipelineState(descriptor: descriptor)
-        // swftlint:enable force_try
+
     }
 
-    /// 用 CVMetalTextureCache 创建纹理（复用 IOSurface 内存）。
-    /// 返回的 cvTextures 必须存活到 GPU 命令完成之后，否则 MTLTexture 可能失效。
+
     static func textures(pixelBuffer: CVPixelBuffer) -> ([MTLTexture], [CVMetalTexture]) {
         guard let textureCache else {
             return ([], [])
@@ -199,20 +194,11 @@ class MetalRender {
     }
 }
 
-// swiftlint:disable identifier_name
-// private let kvImage_YpCbCrToARGBMatrix_ITU_R_601_4 = vImage_YpCbCrToARGBMatrix(Kr: 0.299, Kb: 0.114)
-// private let kvImage_YpCbCrToARGBMatrix_ITU_R_709_2 = vImage_YpCbCrToARGBMatrix(Kr: 0.2126, Kb: 0.0722)
+
 private let kvImage_YpCbCrToARGBMatrix_SMPTE_240M_1995 = vImage_YpCbCrToARGBMatrix(Kr: 0.212, Kb: 0.087)
 private let kvImage_YpCbCrToARGBMatrix_ITU_R_2020 = vImage_YpCbCrToARGBMatrix(Kr: 0.2627, Kb: 0.0593)
 extension vImage_YpCbCrToARGBMatrix {
-    /**
-     https://en.wikipedia.org/wiki/YCbCr
-     @textblock
-            | R |    | 1    0                                                            2-2Kr |   | Y' |
-            | G | = | 1   -Kb * (2 - 2 * Kb) / Kg   -Kr * (2 - 2 * Kr) / Kg |  | Cb |
-            | B |    | 1   2 - 2 * Kb                                                     0  |  | Cr |
-     @/textblock
-     */
+    
     init(Kr: Float, Kb: Float) {
         let Kg = 1 - Kr - Kb
         self.init(Yp: 1, Cr_R: 2 - 2 * Kr, Cr_G: -Kr * (2 - 2 * Kr) / Kg, Cb_G: -Kb * (2 - 2 * Kb) / Kg, Cb_B: 2 - 2 * Kb)
@@ -230,4 +216,4 @@ extension vImage_YpCbCrToARGBMatrix {
     }
 }
 
-// swiftlint:enable identifier_name
+

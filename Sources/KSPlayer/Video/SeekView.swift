@@ -1,9 +1,5 @@
-//
-//  SeekView.swift
-//  KSPlayer-iOS
-//
-//  Created by kintan on 2018/11/14.
-//
+
+
 #if canImport(UIKit)
 import UIKit
 #else

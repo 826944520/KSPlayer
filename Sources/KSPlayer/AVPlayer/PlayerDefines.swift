@@ -1,15 +1,11 @@
-//
-//  PlayerDefines.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 
 import AVFoundation
 import CoreMedia
 import CoreServices
 public extension KSOptions {
-    /// 平面视频平铺填满屏幕（等比裁切，类似 VLC 的 fill 模式）；默认留边
+
     static var fillScreen = false
 }
 
@@ -22,7 +18,7 @@ public extension KSOptions {
         UIApplication.shared.connectedScenes.first as? UIWindowScene
     }
 
-    /// 播放视图实际显示尺寸，由 MetalPlayView 渲染时更新；兜底取 window 尺寸
+
     @MainActor
     private static var playerViewSize = CGSize.zero
 
@@ -65,11 +61,7 @@ public extension KSOptions {
 }
 #endif
 
-// extension MediaPlayerTrack {
-//    static func == (lhs: Self, rhs: Self) -> Bool {
-//        lhs.trackID == rhs.trackID
-//    }
-// }
+
 
 public enum DynamicRange: Int32 {
     case sdr = 0
@@ -83,11 +75,11 @@ public enum DynamicRange: Int32 {
         case .sdr:
             return AVPlayer.HDRMode(rawValue: 0)
         case .hdr10:
-            return .hdr10 // 2
+            return .hdr10
         case .hlg:
-            return .hlg // 1
+            return .hlg
         case .dolbyVision:
-            return .dolbyVision // 4
+            return .dolbyVision
         }
     }
     #endif
@@ -168,9 +160,9 @@ extension DynamicRange {
 @MainActor
 public enum DisplayEnum {
     case plane
-    // swiftlint:disable identifier_name
+
     case vr
-    // swiftlint:enable identifier_name
+
     case vrBox
 }
 
@@ -199,7 +191,7 @@ public enum ClockProcessType {
     case seek
 }
 
-// 缓冲情况
+
 public protocol CapacityProtocol {
     var fps: Float { get }
     var packetCount: Int { get }
@@ -391,10 +383,9 @@ open class AbstractAVIOContext {
         size
     }
 
-    /**
-     #define SEEK_SET        0       /* set file offset to offset */
-     #define SEEK_CUR        1       /* set file offset to current plus offset */
-     #define SEEK_END        2       /* set file offset to EOF plus offset */
+    
+     #define SEEK_CUR        1       
+     #define SEEK_END        2       
      */
     open func seek(offset: Int64, whence _: Int32) -> Int64 {
         offset

@@ -1,9 +1,5 @@
-//
-//  AVFoundationExtension.swift
-//
-//
-//  Created by kintan on 2023/1/9.
-//
+
+
 
 import AVFoundation
 import CoreMedia
@@ -134,7 +130,7 @@ extension AVAudioChannelLayout {
         }
         var outChannel = AVChannelLayout()
         if let mask {
-            // 不能用AV_CHANNEL_ORDER_CUSTOM
+
             av_channel_layout_from_mask(&outChannel, mask)
         } else {
             av_channel_layout_default(&outChannel, Int32(channelCount))
@@ -213,114 +209,106 @@ let layoutMapTuple =
      (tag: kAudioChannelLayoutTag_Logic_7_1_A, mask: swift_AV_CH_LAYOUT_7POINT1),
      (tag: kAudioChannelLayoutTag_Logic_7_1_SDDS_A, mask: swift_AV_CH_LAYOUT_7POINT1_WIDE),
      (tag: kAudioChannelLayoutTag_AAC_Octagonal, mask: swift_AV_CH_LAYOUT_OCTAGONAL),
-     //     (tag: kAudioChannelLayoutTag_Logic_Atmos_5_1_2, mask: swift_AV_CH_LAYOUT_7POINT1_WIDE_BACK),
+
     ]
 
-// Some channel abbreviations used below:
-// Lss - left side surround
-// Rss - right side surround
-// Leos - Left edge of screen
-// Reos - Right edge of screen
-// Lbs - Left back surround
-// Rbs - Right back surround
-// Lt - left matrix total. for matrix encoded stereo.
-// Rt - right matrix total. for matrix encoded stereo.
+
 
 extension AudioChannelLabel {
     var avChannel: AVChannel {
         switch self {
         case kAudioChannelLabel_Left:
-            // L - left
+
             return AV_CHAN_FRONT_LEFT
         case kAudioChannelLabel_Right:
-            // R - right
+
             return AV_CHAN_FRONT_RIGHT
         case kAudioChannelLabel_Center:
-            // C - center
+
             return AV_CHAN_FRONT_CENTER
         case kAudioChannelLabel_LFEScreen:
-            // Lfe
+
             return AV_CHAN_LOW_FREQUENCY
         case kAudioChannelLabel_LeftSurround:
-            // Ls - left surround
+
             return AV_CHAN_SIDE_LEFT
         case kAudioChannelLabel_RightSurround:
-            // Rs - right surround
+
             return AV_CHAN_SIDE_RIGHT
         case kAudioChannelLabel_LeftCenter:
-            // Lc - left center
+
             return AV_CHAN_FRONT_LEFT_OF_CENTER
         case kAudioChannelLabel_RightCenter:
-            // Rc - right center
+
             return AV_CHAN_FRONT_RIGHT_OF_CENTER
         case kAudioChannelLabel_CenterSurround:
-            // Cs - center surround "Back Center" or plain "Rear Surround"
+
             return AV_CHAN_BACK_CENTER
         case kAudioChannelLabel_LeftSurroundDirect:
-            // Lsd - left surround direct
+
             return AV_CHAN_SURROUND_DIRECT_LEFT
         case kAudioChannelLabel_RightSurroundDirect:
-            // Rsd - right surround direct
+
             return AV_CHAN_SURROUND_DIRECT_RIGHT
         case kAudioChannelLabel_TopCenterSurround:
-            // Ts - top surround
+
             return AV_CHAN_TOP_CENTER
         case kAudioChannelLabel_VerticalHeightLeft:
-            // Vhl - vertical height left Top Front Left
+
             return AV_CHAN_TOP_FRONT_LEFT
         case kAudioChannelLabel_VerticalHeightCenter:
-            // Vhc - vertical height center Top Front Center
+
             return AV_CHAN_TOP_FRONT_CENTER
         case kAudioChannelLabel_VerticalHeightRight:
-            // Vhr - vertical height right Top Front right
+
             return AV_CHAN_TOP_FRONT_RIGHT
         case kAudioChannelLabel_TopBackLeft:
-            // Ltr - left top rear
+
             return AV_CHAN_TOP_BACK_LEFT
         case kAudioChannelLabel_TopBackCenter:
-            // Ctr - center top rear
+
             return AV_CHAN_TOP_BACK_CENTER
         case kAudioChannelLabel_TopBackRight:
-            // Rtr - right top rear
+
             return AV_CHAN_TOP_BACK_RIGHT
         case kAudioChannelLabel_RearSurroundLeft:
-            // Rls - rear left surround
+
             return AV_CHAN_BACK_LEFT
         case kAudioChannelLabel_RearSurroundRight:
-            // Rrs - rear right surround
+
             return AV_CHAN_BACK_RIGHT
         case kAudioChannelLabel_LeftWide:
-            // Lw - left wide
+
             return AV_CHAN_WIDE_LEFT
         case kAudioChannelLabel_RightWide:
-            // Rw - right wide
+
             return AV_CHAN_WIDE_RIGHT
         case kAudioChannelLabel_LFE2:
-            // LFE2
+
             return AV_CHAN_LOW_FREQUENCY_2
         case kAudioChannelLabel_Mono:
-            // C - center
+
             return AV_CHAN_FRONT_CENTER
         case kAudioChannelLabel_LeftTopMiddle:
-            // Ltm - left top middle
+
             return AV_CHAN_NONE
         case kAudioChannelLabel_RightTopMiddle:
-            // Rtm - right top middle
+
             return AV_CHAN_NONE
         case kAudioChannelLabel_LeftTopSurround:
-            // Lts - Left top surround
+
             return AV_CHAN_TOP_SIDE_LEFT
         case kAudioChannelLabel_RightTopSurround:
-            // Rts - Right top surround
+
             return AV_CHAN_TOP_SIDE_RIGHT
         case kAudioChannelLabel_LeftBottom:
-            // Lb - left bottom
+
             return AV_CHAN_BOTTOM_FRONT_LEFT
         case kAudioChannelLabel_RightBottom:
-            // Rb - Right bottom
+
             return AV_CHAN_BOTTOM_FRONT_RIGHT
         case kAudioChannelLabel_CenterBottom:
-            // Cb - Center bottom
+
             return AV_CHAN_BOTTOM_FRONT_CENTER
         case kAudioChannelLabel_HeadphonesLeft:
             return AV_CHAN_STEREO_LEFT

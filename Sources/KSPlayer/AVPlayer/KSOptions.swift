@@ -1,9 +1,5 @@
-//
-//  KSOptions.swift
-//  KSPlayer-tvOS
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 
 import AVFoundation
 #if os(tvOS) || os(xrOS)
@@ -15,36 +11,26 @@ import OSLog
 import UIKit
 #endif
 open class KSOptions {
-    /// 最低缓存视频时间
+
     @Published
     public var preferredForwardBufferDuration = KSOptions.preferredForwardBufferDuration
-    /// 最大缓存视频时间
+
     public var maxBufferDuration = KSOptions.maxBufferDuration
-    /// 是否开启秒开
+
     public var isSecondOpen = KSOptions.isSecondOpen
-    /// 开启精确seek
+
     public var isAccurateSeek = KSOptions.isAccurateSeek
-    /// Applies to short videos only
+
     public var isLoopPlay = KSOptions.isLoopPlay
-    /// 区间无缝循环 [lowerBound, upperBound]，单位秒（相对 file 内播放时间，不含 startTime offset）。
-    /// 非 nil 时 read thread 读到 PTS > upperBound 的 packet 即把 audio/video track 切到
-    /// `isLoopModel = true`（后续 packet 进 `loopPacketQueue`），并 `av_seek_frame` 回 lowerBound。
-    /// 当前 `packetQueue` 播完触发 `codecDidFinished` 时 swap，实现区间无 decode-forward 循环。
-    /// 复用 `isLoopPlay` 的 packet queue 双缓冲；若同时设 `isLoopPlay = true`，以 isLoopPlay 为准。
+
     public var loopRange: ClosedRange<TimeInterval>?
-    /// seek完是否自动播放
+
     public var isSeekedAutoPlay = KSOptions.isSeekedAutoPlay
-    /*
-     AVSEEK_FLAG_BACKWARD: 1
-     AVSEEK_FLAG_BYTE: 2
-     AVSEEK_FLAG_ANY: 4
-     AVSEEK_FLAG_FRAME: 8
-     */
+    
     public var seekFlags = Int32(1)
-    // ffmpeg only cache http
-    // 这个开关不能用，因为ff_tempfile: Cannot open temporary file
+
     public var cache = false
-    //  record stream
+
     public var outputURL: URL?
     public var avOptions = [String: Any]()
     public var formatContextOptions = [String: Any]()
@@ -56,7 +42,7 @@ open class KSOptions {
     public var codecLowDelay = false
     public var startPlayTime: TimeInterval = 0
     public var startPlayRate: Float = 1.0
-    public var registerRemoteControll: Bool = true // 默认支持来自系统控制中心的控制
+    public var registerRemoteControll: Bool = true
     public var referer: String? {
         didSet {
             if let referer {
@@ -73,15 +59,15 @@ open class KSOptions {
         }
     }
 
-    // audio
+
     public var audioFilters = [String]()
     public var syncDecodeAudio = false
-    // sutile
+
     public var autoSelectEmbedSubtitle = true
     public var isSeekImageSubtitle = false
-    // video
+
     public var display = DisplayEnum.plane
-    public var videoDelay = 0.0 // s
+    public var videoDelay = 0.0
     public var autoDeInterlace = false
     public var autoRotate = true
     public var destinationDynamicRange: DynamicRange?
@@ -111,41 +97,17 @@ open class KSOptions {
     public internal(set) var decodeVideoTime = 0.0
     public init() {
         formatContextOptions["user_agent"] = userAgent
-        // 参数的配置可以参考protocols.texi 和 http.c
-        // 这个一定要，不然有的流就会判断不准FieldOrder
+
         formatContextOptions["scan_all_pmts"] = 1
-        // ts直播流需要加这个才能一直直播下去，不然播放一小段就会结束了。
+
         formatContextOptions["reconnect"] = 1
         formatContextOptions["reconnect_streamed"] = 1
-        // 这个是用来开启http的链接复用（keep-alive）。vlc默认是打开的，所以这边也默认打开。
-        // 开启这个，百度网盘的视频链接无法播放
-        // formatContextOptions["multiple_requests"] = 1
-        // 下面是用来处理秒开的参数，有需要的自己打开。默认不开，不然在播放某些特殊的ts直播流会频繁卡顿。
-//        formatContextOptions["auto_convert"] = 0
-//        formatContextOptions["fps_probe_size"] = 3
-//        formatContextOptions["rw_timeout"] = 10_000_000
-//        formatContextOptions["max_analyze_duration"] = 300 * 1000
-        // 默认情况下允许所有协议，只有嵌套协议才需要指定这个协议子集，例如m3u8里面有http。
-//        formatContextOptions["protocol_whitelist"] = "file,http,https,tcp,tls,crypto,async,cache,data,httpproxy"
-        // 开启这个，纯ipv6地址会无法播放。并且有些视频结束了，但还会一直尝试重连。所以这个值默认不设置
-//        formatContextOptions["reconnect_at_eof"] = 1
-        // 开启这个，会导致tcp Failed to resolve hostname 还会一直重试
-//        formatContextOptions["reconnect_on_network_error"] = 1
-        // There is total different meaning for 'listen_timeout' option in rtmp
-        // set 'listen_timeout' = -1 for rtmp、rtsp
-//        formatContextOptions["listen_timeout"] = 3
+
         decoderOptions["threads"] = "auto"
         decoderOptions["refcounted_frames"] = "1"
     }
 
-    /**
-     you can add http-header or other options which mentions in https://developer.apple.com/reference/avfoundation/avurlasset/initialization_options
-
-     to add http-header init options like this
-     ```
-     options.appendHeader(["Referer":"https:www.xxx.com"])
-     ```
-     */
+    
     public func appendHeader(_ header: [String: String]) {
         var oldValue = avOptions["AVURLAssetHTTPHeaderFieldsKey"] as? [String: String] ?? [
             String: String
@@ -165,13 +127,13 @@ open class KSOptions {
         appendHeader(["Cookie": cookieStr])
     }
 
-    // 缓冲算法函数
+
     open func playable(capacitys: [CapacityProtocol], isFirst: Bool, isSeek: Bool) -> LoadingState {
         let packetCount = capacitys.map(\.packetCount).min() ?? 0
         let frameCount = capacitys.map(\.frameCount).min() ?? 0
         let isEndOfFile = capacitys.allSatisfy(\.isEndOfFile)
         let loadedTime = capacitys.map(\.loadedTime).min() ?? 0
-        // 取视频轨帧率做时间基准，纯音频则 fallback 到 24
+
         let fps = capacitys.first(where: { $0.mediaType == .video })?.fps ?? capacitys.first?.fps ?? 24
         let frameMaxCount = capacitys.map(\.frameMaxCount).min() ?? 0
         let progress = preferredForwardBufferDuration == 0 ? 100 : loadedTime * 100.0 / preferredForwardBufferDuration
@@ -189,7 +151,7 @@ open class KSOptions {
                 return true
             }
             if isFirst || isSeek {
-                // 让纯音频能更快的打开
+
                 if capacity.mediaType == .audio || isSecondOpen {
                     if isFirst {
                         return true
@@ -225,27 +187,22 @@ open class KSOptions {
         return nil
     }
 
-    ///  wanted video stream index, or nil for automatic selection
-    /// - Parameter : video track
-    /// - Returns: The index of the track
+
     open func wantedVideo(tracks _: [MediaPlayerTrack]) -> Int? {
         nil
     }
 
-    /// wanted audio stream index, or nil for automatic selection
-    /// - Parameter :  audio track
-    /// - Returns: The index of the track
+
     open func wantedAudio(tracks _: [MediaPlayerTrack]) -> Int? {
         nil
     }
 
     open func videoFrameMaxCount(fps: Float, naturalSize: CGSize, isLive: Bool) -> UInt8 {
         if isLive { return 4 }
-        // 目标 ~2 秒解码帧缓冲，但受内存预算约束：10bit 按每像素 2 字节估算，
-        // 8K 一帧约 66MB，若盲目取 fps*2 帧，缓冲可超 4GB 被 iOS Jetsam 静默杀进程（无崩溃日志）
+
         let frameBytes = Double(naturalSize.width) * Double(naturalSize.height) * 2
         let maxFrames = frameBytes > 0 ? 1_000_000_000 / frameBytes : 240
-        // 下限 4 帧避免 0/异常尺寸，上限 240 避 UInt8 溢出
+
         return UInt8(min(max(Double(fps) * 2.0, 4), maxFrames, 240))
     }
 
@@ -258,16 +215,12 @@ open class KSOptions {
         }
     }
 
-    /// customize dar
-    /// - Parameters:
-    ///   - sar: SAR(Sample Aspect Ratio)
-    ///   - dar: PAR(Pixel Aspect Ratio)
-    /// - Returns: DAR(Display Aspect Ratio)
+
     open func customizeDar(sar _: CGSize, par _: CGSize) -> CGSize? {
         nil
     }
 
-    // 虽然只有iOS才支持PIP。但是因为AVSampleBufferDisplayLayer能够支持HDR10+。所以默认还是推荐用AVSampleBufferDisplayLayer
+
     open func isUseDisplayLayer() -> Bool {
         display == .plane
     }
@@ -319,26 +272,16 @@ open class KSOptions {
         KSLog("sei \(string)")
     }
 
-    /**
-            在创建解码器之前可以对KSOptions和assetTrack做一些处理。例如判断fieldOrder为tt或bb的话，那就自动加videofilters
-     */
+    
     open func process(assetTrack: some MediaPlayerTrack) {
         if assetTrack.mediaType == .video {
             if [FFmpegFieldOrder.bb, .bt, .tt, .tb].contains(assetTrack.fieldOrder) {
-                // todo 先不要用yadif_videotoolbox，不然会crash。这个后续在看下要怎么解决
+
                 hardwareDecode = false
                 asynchronousDecompression = false
                 let yadif = hardwareDecode ? "yadif_videotoolbox" : "yadif"
                 var yadifMode = KSOptions.yadifMode
-//                if let assetTrack = assetTrack as? FFmpegAssetTrack {
-//                    if assetTrack.realFrameRate.num == 2 * assetTrack.avgFrameRate.num, assetTrack.realFrameRate.den == assetTrack.avgFrameRate.den {
-//                        if yadifMode == 1 {
-//                            yadifMode = 0
-//                        } else if yadifMode == 3 {
-//                            yadifMode = 2
-//                        }
-//                    }
-//                }
+
                 if KSOptions.deInterlaceAddIdet {
                     videoFilters.append("idet")
                 }
@@ -353,10 +296,7 @@ open class KSOptions {
     @MainActor
     open func updateVideo(refreshRate: Float, isDovi: Bool, formatDescription: CMFormatDescription?) {
         #if os(tvOS) || os(xrOS)
-        /**
-         快速更改preferredDisplayCriteria，会导致isDisplayModeSwitchInProgress变成true。
-         例如退出一个视频，然后在3s内重新进入的话。所以不判断isDisplayModeSwitchInProgress了
-         */
+        
         guard let displayManager = UIApplication.shared.windows.first?.avDisplayManager,
               displayManager.isDisplayCriteriaMatchingEnabled
         else {
@@ -374,7 +314,7 @@ open class KSOptions {
     open func videoClockSync(main: KSClock, nextVideoTime: TimeInterval, fps: Double, frameCount: Int) -> (Double, ClockProcessType) {
         let desire = main.getTime() - videoDelay
         let diff = nextVideoTime - desire
-//        print("[video] video diff \(diff) nextVideoTime \(nextVideoTime) main \(main.time.seconds)")
+
         if diff >= 1 / fps / 2 {
             videoClockDelayCount = 0
             return (diff, .remain)
@@ -419,7 +359,7 @@ open class KSOptions {
         #if canImport(UIKit)
         let availableHDRModes = AVPlayer.availableHDRModes
         if let preferedDynamicRange = destinationDynamicRange {
-            // value of 0 indicates that no HDR modes are supported.
+
             if availableHDRModes == AVPlayer.HDRMode(rawValue: 0) {
                 return .sdr
             } else if availableHDRModes.contains(preferedDynamicRange.hdrMode) {
@@ -428,7 +368,7 @@ open class KSOptions {
                       availableHDRModes.contains(contentRange.hdrMode)
             {
                 return contentRange
-            } else if preferedDynamicRange != .sdr { // trying update to HDR mode
+            } else if preferedDynamicRange != .sdr {
                 return availableHDRModes.dynamicRange
             }
         }
@@ -448,16 +388,7 @@ open class KSOptions {
 
     open func liveAdaptivePlaybackRate(loadingState _: LoadingState) -> Float? {
         nil
-//        if loadingState.isFirst {
-//            return nil
-//        }
-//        if loadingState.loadedTime > preferredForwardBufferDuration + 5 {
-//            return 1.2
-//        } else if loadingState.loadedTime < preferredForwardBufferDuration / 2 {
-//            return 0.8
-//        } else {
-//            return 1
-//        }
+
     }
 
     open func process(url _: URL) -> AbstractAVIOContext? {
@@ -475,28 +406,28 @@ public enum VideoInterlacingType: String {
 public extension KSOptions {
     static var firstPlayerType: MediaPlayerProtocol.Type = KSAVPlayer.self
     static var secondPlayerType: MediaPlayerProtocol.Type? = KSMEPlayer.self
-    /// 最低缓存视频时间
+
     static var preferredForwardBufferDuration = 3.0
-    /// 最大缓存视频时间
+
     static var maxBufferDuration = 30.0
-    /// 是否开启秒开
+
     static var isSecondOpen = false
-    /// 开启精确seek
+
     static var isAccurateSeek = false
-    /// Applies to short videos only
+
     static var isLoopPlay = false
-    /// 是否自动播放，默认true
+
     static var isAutoPlay = true
-    /// seek完是否自动播放
+
     static var isSeekedAutoPlay = true
     static var hardwareDecode = true
-    // 默认不用自研的硬解，因为有些视频的AVPacket的pts顺序是不对的，只有解码后的AVFrame里面的pts是对的。
+
     static var asynchronousDecompression = false
     static var isPipPopViewController = false
     static var canStartPictureInPictureAutomaticallyFromInline = true
     static var preferredFrame = true
     static var useSystemHTTPProxy = true
-    /// 日志级别
+
     static var logLevel = LogLevel.warning
     static var logger: LogHandler = OSLog(lable: "KSPlayer")
     internal static func deviceCpuCount() -> Int {
@@ -508,7 +439,7 @@ public extension KSOptions {
 
     static func setAudioSession() {
         #if os(macOS)
-//        try? AVAudioSession.sharedInstance().setRouteSharingPolicy(.longFormAudio)
+
         #else
         var category = AVAudioSession.sharedInstance().category
         if category != .playAndRecord {
@@ -549,12 +480,11 @@ public extension KSOptions {
             let minChannels = min(maximumOutputNumberOfChannels, channelCount)
             #if os(tvOS) || targetEnvironment(simulator)
             if !(isUseAudioRenderer && isSpatialAudioEnabled) {
-                // 不要用maxRouteChannelsCount来判断，有可能会不准。导致多音道设备也返回2（一开始播放一个2声道，就容易出现），也不能用outputNumberOfChannels来判断，有可能会返回2
-//                channelCount = AVAudioChannelCount(min(AVAudioSession.sharedInstance().outputNumberOfChannels, maxRouteChannelsCount))
+
                 channelCount = minChannels
             }
             #else
-            // iOS 外放是会自动有空间音频功能，但是蓝牙耳机有可能没有空间音频功能或者把空间音频给关了，。所以还是需要处理。
+
             if !isSpatialAudioEnabled {
                 channelCount = minChannels
             }
@@ -562,7 +492,7 @@ public extension KSOptions {
         } else {
             channelCount = 2
         }
-        // 不在这里设置setPreferredOutputNumberOfChannels,因为这个方法会在获取音轨信息的时候，进行调用。
+
         KSLog("[audio] outputNumberOfChannels: \(AVAudioSession.sharedInstance().outputNumberOfChannels) output channelCount: \(channelCount)")
         return channelCount
     }

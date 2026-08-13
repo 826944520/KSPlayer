@@ -1,9 +1,5 @@
-//
-//  SubtitleDataSouce.swift
-//  KSPlayer-7de52535
-//
-//  Created by kintan on 2018/8/7.
-//
+
+
 import Foundation
 
 public class EmptySubtitleInfo: SubtitleInfo {
@@ -84,7 +80,7 @@ public class PlistCacheSubtitleDataSouce: CacheSubtitleDataSouce {
     public static let singleton = PlistCacheSubtitleDataSouce()
     public var infos = [any SubtitleInfo]()
     private let srtCacheInfoPath: String
-    // 因为plist不能保存URL
+
     private var srtInfoCaches: [String: [String]]
     private init() {
         let cacheFolder = (NSTemporaryDirectory() as NSString).appendingPathComponent("KSSubtitleCache")
@@ -179,7 +175,7 @@ public class ShooterSubtitleDataSouce: FileURLSubtitleDataSouce {
         }
         infos = json.flatMap { sub in
             let filesDic = sub["Files"] as? [[String: String]]
-//                let desc = sub["Desc"] as? String ?? ""
+
             let delay = TimeInterval(sub["Delay"] as? Int ?? 0) / 1000.0
             return filesDic?.compactMap { dic in
                 if let string = dic["Link"], let url = URL(string: string) {
@@ -298,7 +294,7 @@ public class OpenSubtitleDataSouce: SearchSubtitleDataSouce {
         try await searchSubtitle(queryItems: queryItems)
     }
 
-    // https://opensubtitles.stoplight.io/docs/opensubtitles-api/a172317bd5ccc-search-for-subtitles
+
     public func searchSubtitle(queryItems: [String: String]) async throws {
         infos = [any SubtitleInfo]()
         if queryItems.isEmpty {

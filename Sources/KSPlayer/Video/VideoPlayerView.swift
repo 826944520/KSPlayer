@@ -1,10 +1,5 @@
-//
-//  VideoPlayerView.swift
-//  Pods
-//
-//  Created by kintan on 16/4/29.
-//
-//
+
+
 import AVKit
 #if canImport(UIKit)
 import UIKit
@@ -14,7 +9,7 @@ import AppKit
 import Combine
 import MediaPlayer
 
-/// internal enum to check the pan direction
+
 public enum KSPanDirection {
     case horizontal
     case vertical
@@ -28,21 +23,21 @@ public protocol LoadingIndector {
 #if canImport(UIKit)
 extension UIActivityIndicatorView: LoadingIndector {}
 #endif
-// swiftlint:disable type_body_length file_length
+
 open class VideoPlayerView: PlayerView {
     private var delayItem: DispatchWorkItem?
-    /// Gesture used to show / hide control view
+
     public let tapGesture = UITapGestureRecognizer()
     public let doubleTapGesture = UITapGestureRecognizer()
     public let panGesture = UIPanGestureRecognizer()
-    /// 滑动方向
+
     var scrollDirection = KSPanDirection.horizontal
     var tmpPanValue: Float = 0
     private var isSliderSliding = false
 
     public let bottomMaskView = LayerContainerView()
     public let topMaskView = LayerContainerView()
-    // 是否播放过
+
     private(set) var isPlayed = false
     private var cancellable: AnyCancellable?
 
@@ -78,7 +73,7 @@ open class VideoPlayerView: PlayerView {
     public var titleLabel = UILabel()
     public var subtitleLabel = UILabel()
     public var subtitleBackView = UIImageView()
-    /// Activty Indector for loading
+
     public var loadingIndector: UIView & LoadingIndector = UIActivityIndicatorView(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
     public var seekToView: UIView & SeekViewProtocol = SeekView()
     public var replayButton = UIButton()
@@ -147,7 +142,7 @@ open class VideoPlayerView: PlayerView {
         }
     }
 
-    // MARK: - Action Response
+
 
     override open func onButtonPressed(type: PlayerButtonType, button: UIButton) {
         autoFadeOutViewWithAnimation()
@@ -168,13 +163,11 @@ open class VideoPlayerView: PlayerView {
             changeAudioVideo(type, button: button)
         }
         #elseif os(macOS)
-//        if let menu = button.menu, let event = NSApplication.shared.currentEvent {
-//            NSMenu.popUpContextMenu(menu, with: event, for: button)
-//        }
+
         #endif
     }
 
-    // MARK: - setup UI
+
 
     open func setupUIComponents() {
         addSubview(contentOverlayView)
@@ -193,12 +186,12 @@ open class VideoPlayerView: PlayerView {
 
         loadingIndector.isHidden = true
         controllerView.addSubview(loadingIndector)
-        // Top views
+
         topMaskView.addSubview(navigationBar)
         navigationBar.addArrangedSubview(titleLabel)
         titleLabel.textColor = .white
         titleLabel.font = .systemFont(ofSize: 16)
-        // Bottom views
+
         bottomMaskView.addSubview(toolBar)
         toolBar.timeSlider.delegate = self
         controllerView.addSubview(seekToView)
@@ -238,7 +231,7 @@ open class VideoPlayerView: PlayerView {
         layoutIfNeeded()
     }
 
-    /// Add Customize functions here
+
     open func customizeUIComponents() {
         tapGesture.addTarget(self, action: #selector(tapGestureAction(_:)))
         tapGesture.numberOfTapsRequired = 1
@@ -289,7 +282,7 @@ open class VideoPlayerView: PlayerView {
                 buildMenusForButtons()
             }
             if let subtitleDataSouce = layer.player.subtitleDataSouce {
-                // 要延后增加内嵌字幕。因为有些内嵌字幕是放在视频流的。所以会比readyToPlay回调晚。
+
                 DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) { [weak self] in
                     guard let self else { return }
                     self.srtControl.addSubtitle(dataSouce: subtitleDataSouce)
@@ -340,7 +333,7 @@ open class VideoPlayerView: PlayerView {
         lockButton.isSelected = false
     }
 
-    // MARK: - KSSliderDelegate
+
 
     override open func slider(value: Double, event: ControlEvents) {
         if event == .valueChanged {
@@ -394,7 +387,7 @@ open class VideoPlayerView: PlayerView {
 
     open func panGestureBegan(location _: CGPoint, direction: KSPanDirection) {
         if direction == .horizontal {
-            // 给tmpPanValue初值
+
             if totalTime > 0 {
                 tmpPanValue = toolBar.timeSlider.value
             }
@@ -408,7 +401,7 @@ open class VideoPlayerView: PlayerView {
             }
             isSliderSliding = true
             if totalTime > 0 {
-                // 每次滑动需要叠加时间，通过一定的比例，使滑动一直处于统一水平
+
                 tmpPanValue += panValue(velocity: point, direction: direction, currentTime: Float(toolBar.currentTime), totalTime: Float(totalTime))
                 tmpPanValue = max(min(tmpPanValue, Float(totalTime)), 0)
                 showSeekToView(second: Double(tmpPanValue), isAdd: point.x > 0)
@@ -425,8 +418,7 @@ open class VideoPlayerView: PlayerView {
     }
 
     open func panGestureEnded() {
-        // 移动结束也需要判断垂直或者平移
-        // 比如水平移动结束时，要快进到指定位置，如果这里没有判断，当我们调节音量完之后，会出现屏幕跳动的bug
+
         if scrollDirection == .horizontal, KSOptions.enablePlaytimeGestures {
             hideSeekToView()
             isSliderSliding = false
@@ -435,9 +427,7 @@ open class VideoPlayerView: PlayerView {
         }
     }
 
-    // VR/全景模式下，把拖动手势转发给显示模型来旋转视角。
-    // controllerView 盖在视频画面之上，触摸事件不会到达 MetalPlayView，
-    // 所以在这里通过响应链转发。
+
     #if canImport(UIKit)
     override public func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let options = playerLayer?.options, options.display != .plane, let touch = touches.first {
@@ -477,7 +467,7 @@ open class VideoPlayerView: PlayerView {
     }
     #endif
 
-    // UIPinchGestureRecognizer 在 tvOS 上不可用
+
     #if canImport(UIKit) && !os(tvOS)
     public let pinchGesture = UIPinchGestureRecognizer()
     private var vrFovBase = KSOptions.vrFov
@@ -487,7 +477,7 @@ open class VideoPlayerView: PlayerView {
         case .began:
             vrFovBase = KSOptions.vrFov
         case .changed:
-            // 两指分开 = 放大画面（FOV 变小），两指捏合 = 看到更多（FOV 变大）
+
             KSOptions.vrFov = min(max(vrFovBase / Float(gesture.scale), Float.pi / 6), Float.pi * 5 / 6)
         default:
             break
@@ -499,12 +489,12 @@ open class VideoPlayerView: PlayerView {
         speedTipLabel.text = text
         speedTipLabel.isHidden = false
 
-        // 显示动画
+
         UIView.animate(withDuration: 0.2) {
             self.speedTipLabel.alpha = 1
         }
 
-        // 延迟后隐藏
+
         delayItem?.cancel()
         delayItem = DispatchWorkItem { [weak self] in
             guard let self else { return }
@@ -518,7 +508,7 @@ open class VideoPlayerView: PlayerView {
     }
 }
 
-// MARK: - Action Response
+
 
 extension VideoPlayerView {
     @available(iOS 14.0, tvOS 15.0, *)
@@ -575,7 +565,7 @@ extension VideoPlayerView {
     }
 }
 
-// MARK: - playback rate, definitions, audio and video tracks change
+
 
 public extension VideoPlayerView {
     private func changeAudioVideo(_ type: PlayerButtonType, button _: UIButton) {
@@ -676,15 +666,10 @@ public extension VideoPlayerView {
     }
 }
 
-// MARK: - seekToView
+
 
 public extension VideoPlayerView {
-    /**
-     Call when User use the slide to seek function
-
-     - parameter second:     target time
-     - parameter isAdd:         isAdd
-     */
+    
     func showSeekToView(second: TimeInterval, isAdd: Bool) {
         isMaskShow = true
         seekToView.isHidden = false
@@ -697,17 +682,17 @@ public extension VideoPlayerView {
     }
 }
 
-// MARK: - private functions
+
 
 extension VideoPlayerView {
     @objc private func panGestureAction(_ pan: UIPanGestureRecognizer) {
-        // 播放结束时，忽略手势,锁屏状态忽略手势
+
         guard !replayButton.isSelected, !isLock else { return }
-        // 根据上次和本次移动的位置，算出一个速率的point
+
         let velocityPoint = pan.velocity(in: self)
         switch pan.state {
         case .began:
-            // 使用绝对值来判断移动的方向
+
             if abs(velocityPoint.x) > abs(velocityPoint.y) {
                 scrollDirection = .horizontal
             } else {
@@ -723,7 +708,7 @@ extension VideoPlayerView {
         }
     }
 
-    /// change during playback
+
     public func updateSrt() {
         subtitleLabel.font = SubtitleModel.textFont
         if #available(macOS 11.0, iOS 14, tvOS 14, *) {
@@ -759,12 +744,10 @@ extension VideoPlayerView {
         ])
     }
 
-    /**
-     auto fade out controll view with animtion
-     */
+    
     private func autoFadeOutViewWithAnimation() {
         delayItem?.cancel()
-        // 播放的时候才自动隐藏
+
         guard toolBar.playButton.isSelected else { return }
         delayItem = DispatchWorkItem { [weak self] in
             self?.isMaskShow = false
@@ -984,38 +967,37 @@ extension VideoPlayerView {
 }
 
 public enum KSPlayerTopBarShowCase {
-    /// 始终显示
+
     case always
-    /// 只在横屏界面显示
+
     case horizantalOnly
-    /// 不显示
+
     case none
 }
 
 public extension KSOptions {
-    /// 顶部返回、标题、AirPlay按钮 显示选项，默认.Always，可选.HorizantalOnly、.None
+
     static var topBarShowInCase = KSPlayerTopBarShowCase.always
-    /// 自动隐藏操作栏的时间间隔 默认5秒
+
     static var animateDelayTimeInterval = TimeInterval(5)
-    /// 开启亮度手势 默认true
+
     static var enableBrightnessGestures = true
-    /// 开启音量手势 默认true
+
     static var enableVolumeGestures = true
-    /// 开启进度滑动手势 默认true
+
     static var enablePlaytimeGestures = true
-    /// 播放内核选择策略 先使用firstPlayer，失败了自动切换到secondPlayer，播放内核有KSAVPlayer、KSMEPlayer两个选项
-    /// 是否能后台播放视频
+
     static var canBackgroundPlay = false
 }
 
 extension UIView {
     var widthConstraint: NSLayoutConstraint? {
-        // 防止返回NSContentSizeLayoutConstraint
+
         constraints.first { $0.isMember(of: NSLayoutConstraint.self) && $0.firstAttribute == .width }
     }
 
     var heightConstraint: NSLayoutConstraint? {
-        // 防止返回NSContentSizeLayoutConstraint
+
         constraints.first { $0.isMember(of: NSLayoutConstraint.self) && $0.firstAttribute == .height }
     }
 

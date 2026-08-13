@@ -1,9 +1,5 @@
-//
-//  AirPlayView.swift
-//  KSPlayer
-//
-//  Created by kintan on 2023/5/4.
-//
+
+
 
 import AVKit
 import SwiftUI
@@ -34,11 +30,7 @@ public struct AirPlayView: UIViewRepresentable {
 }
 #endif
 public extension View {
-    /// Applies the given transform if the given condition evaluates to `true`.
-    /// - Parameters:
-    ///   - condition: The condition to evaluate.
-    ///   - transform: The transform to apply to the source `View`.
-    /// - Returns: Either the original `View` or the modified `View` if the condition is `true`.
+
     @ViewBuilder
     func `if`(_ condition: @autoclosure () -> Bool, transform: (Self) -> some View) -> some View {
         if condition() {

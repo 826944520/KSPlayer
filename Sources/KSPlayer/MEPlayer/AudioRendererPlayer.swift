@@ -1,9 +1,5 @@
-//
-//  AudioRendererPlayer.swift
-//  KSPlayer
-//
-//  Created by kintan on 2022/12/2.
-//
+
+
 
 import AVFoundation
 import Foundation
@@ -64,7 +60,7 @@ public class AudioRendererPlayer: AudioOutput {
     public func play() {
         let time: CMTime
         if #available(macOS 11.3, iOS 14.5, tvOS 14.5, *) {
-            // 判断是否有足够的缓存，有的话就用当前的时间。seek的话，需要清空缓存，这样才能取到最新的时间。
+
             if renderer.hasSufficientMediaDataForReliablePlaybackStart {
                 time = synchronizer.currentTime()
             } else {
@@ -82,7 +78,7 @@ public class AudioRendererPlayer: AudioOutput {
             }
         }
         synchronizer.setRate(playbackRate, time: time)
-        // 要手动的调用下，这样才能及时的更新音频的时间
+
         renderSource?.setAudio(time: time, position: -1)
         renderer.requestMediaDataWhenReady(on: serializationQueue) { [weak self] in
             guard let self else {

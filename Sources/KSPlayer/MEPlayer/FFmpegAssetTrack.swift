@@ -1,9 +1,5 @@
-//
-//  FFmpegAssetTrack.swift
-//  KSPlayer
-//
-//  Created by kintan on 2023/2/12.
-//
+
+
 
 import AVFoundation
 import FFmpegKit
@@ -26,13 +22,13 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     var codecpar: AVCodecParameters
     var timebase: Timebase = .defaultValue
     let bitsPerRawSample: Int32
-    // audio
+
     public let audioDescriptor: AudioDescriptor?
-    // subtitle
+
     public let isImageSubtitle: Bool
     public var delay: TimeInterval = 0
     var subtitle: SyncPlayerItemTrack<SubtitleFrame>?
-    // video
+
     public private(set) var rotation: Int16 = 0
     public var dovi: DOVIDecoderConfigurationRecord?
     public let fieldOrder: FFmpegFieldOrder
@@ -69,11 +65,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
     }
 
     convenience init?(stream: UnsafeMutablePointer<AVStream>) {
-        // `codecpar` is imported as an implicitly unwrapped optional, but
-        // FFmpeg leaves it NULL for streams it has no parser for (e.g. the
-        // `bin_data` streams present in many DVB/MPEG-TS muxes). This
-        // initialiser is already failable, so skip the stream rather than
-        // trapping — createCodec's compactMap drops it.
+
         guard let codecpar = stream.pointee.codecpar?.pointee else { return nil }
         self.init(codecpar: codecpar)
         self.stream = stream
@@ -118,21 +110,20 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
         } else {
             name = languageCode ?? codecName
         }
-        // AV_DISPOSITION_DEFAULT
+
         if mediaType == .subtitle {
             isEnabled = !isImageSubtitle || stream.pointee.disposition & AV_DISPOSITION_FORCED == AV_DISPOSITION_FORCED
             if stream.pointee.disposition & AV_DISPOSITION_HEARING_IMPAIRED == AV_DISPOSITION_HEARING_IMPAIRED {
                 name += "(hearing impaired)"
             }
         }
-        //        var buf = [Int8](repeating: 0, count: 256)
-        //        avcodec_string(&buf, buf.count, codecpar, 0)
+
     }
 
     init?(codecpar: AVCodecParameters) {
         self.codecpar = codecpar
         bitRate = codecpar.bit_rate
-        // codec_tag byte order is LSB first CMFormatDescription.MediaSubType(rawValue: codecpar.codec_tag.bigEndian)
+
         let codecType = codecpar.codec_id.mediaSubType
         var codecName = ""
         if let descriptor = avcodec_descriptor_get(codecpar.codec_id) {
@@ -199,7 +190,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                 atomsData = Data(bytes: extradata, count: Int(extradataSize))
             } else {
                 if codecType.rawValue == kCMVideoCodecType_VP9 {
-                    // ff_videotoolbox_vpcc_extradata_create
+
                     var ioContext: UnsafeMutablePointer<AVIOContext>?
                     guard avio_open_dyn_buf(&ioContext) == 0 else {
                         return nil
@@ -229,7 +220,7 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                 kCMFormatDescriptionExtension_FullRangeVideo: fullRange,
                 codecType.rawValue == kCMVideoCodecType_HEVC ? "EnableHardwareAcceleratedVideoDecoder" : "RequireHardwareAcceleratedVideoDecoder": true,
             ]
-            // kCMFormatDescriptionExtension_BitsPerComponent
+
             if let atomsData {
                 dic[kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms] = [codecType.rawValue.avc: atomsData]
             }
@@ -238,9 +229,9 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             dic[kCVImageBufferColorPrimariesKey] = codecpar.color_primaries.colorPrimaries as String?
             dic[kCVImageBufferTransferFunctionKey] = codecpar.color_trc.transferFunction as String?
             dic[kCVImageBufferYCbCrMatrixKey] = codecpar.color_space.ycbcrMatrix as String?
-            // swiftlint:disable line_length
+
             _ = CMVideoFormatDescriptionCreate(allocator: kCFAllocatorDefault, codecType: codecType.rawValue, width: codecpar.width, height: codecpar.height, extensions: dic, formatDescriptionOut: &formatDescriptionOut)
-            // swiftlint:enable line_length
+
             if let name = av_get_pix_fmt_name(format) {
                 formatName = String(cString: name)
             } else {

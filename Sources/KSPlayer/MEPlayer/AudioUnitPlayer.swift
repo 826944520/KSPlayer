@@ -1,9 +1,5 @@
-//
-//  AudioUnitPlayer.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/16.
-//
+
+
 
 import AudioToolbox
 import AVFAudio

@@ -1,9 +1,5 @@
-//
-//  KSMEPlayer.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 
 import AVFoundation
 import AVKit
@@ -64,9 +60,9 @@ public class KSMEPlayer: NSObject {
 
     @available(macOS 12.0, iOS 15.0, tvOS 15.0, *)
     public var playbackCoordinator: AVPlaybackCoordinator {
-        // swiftlint:disable force_cast
+
         _playbackCoordinator as! AVPlaybackCoordinator
-        // swiftlint:enable force_cast
+
     }
 
     public private(set) var playableTime = TimeInterval(0)
@@ -147,7 +143,7 @@ public class KSMEPlayer: NSObject {
     }
 }
 
-// MARK: - private functions
+
 
 private extension KSMEPlayer {
     func playOrPause() {
@@ -178,10 +174,7 @@ private extension KSMEPlayer {
         guard let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt else {
             return
         }
-//        let routeChangeReason = AVAudioSession.RouteChangeReason(rawValue: reason)
-//        guard [AVAudioSession.RouteChangeReason.newDeviceAvailable, .oldDeviceUnavailable, .routeConfigurationChange].contains(routeChangeReason) else {
-//            return
-//        }
+
         for track in tracks(mediaType: .audio) {
             (track as? FFmpegAssetTrack)?.audioDescriptor?.updateAudioFormat()
         }
@@ -241,18 +234,17 @@ extension KSMEPlayer: MEPlayerDelegate {
         } else {
             playableTime = currentPlaybackTime + loadingState.loadedTime
         }
-        // 缓冲容量对应的时间。高分辨率视频（如 8K）受内存预算限制容量很小，
-        // 阈值必须相对容量缩放，否则会死锁（永远装不满 2 秒）或装满即再入缓冲的振荡
+
         let bufferTime = Double(max(loadingState.frameMaxCount, 1)) / Double(max(loadingState.fps, 1))
         if loadState == .playable {
             let frameTime = Double(loadingState.frameCount) / Double(max(loadingState.fps, 1))
-            // mpv 双阈值迟滞：帧时间 < 0.5s 入缓冲（容量不足 0.5s 时取容量一半）
+
             let enterThreshold = min(0.5, bufferTime * 0.5)
             if !loadingState.isEndOfFile, frameTime < enterThreshold, options.preferredForwardBufferDuration != 0 {
                 loadState = .loading
                 if playbackState == .playing {
                     runOnMainThread { [weak self] in
-                        // 在主线程更新进度
+
                         self?.bufferingProgress = 0
                     }
                 }
@@ -264,7 +256,7 @@ extension KSMEPlayer: MEPlayerDelegate {
                 }
             }
             let frameTime = Double(loadingState.frameCount) / Double(max(loadingState.fps, 1))
-            // 出缓冲：帧时间 ≥ 2.0s；容量不足 2s 时装满即出
+
             let exitThreshold = min(2.0, bufferTime)
             if loadingState.isPlayable, frameTime >= exitThreshold {
                 loadState = .playable
@@ -286,7 +278,7 @@ extension KSMEPlayer: MEPlayerDelegate {
                 }
                 if playbackState == .playing {
                     runOnMainThread { [weak self] in
-                        // 在主线程更新进度
+
                         self?.bufferingProgress = progress
                     }
                 }
@@ -358,8 +350,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
         }
     }
 
-    /// 见 `MEPlayerItem.displayedVideoTime`——最近一帧绘制到 display layer 的 PTS，
-    /// 适合驱动需要与画面严格同步的视图（audioClock 因 buffer prefill 跑在画面之前不适用）。
+
     public var displayedVideoTime: TimeInterval { playerItem.displayedVideoTime }
 
     public var duration: TimeInterval { playerItem.duration }
@@ -498,7 +489,7 @@ extension KSMEPlayer: AVPictureInPictureSampleBufferPlaybackDelegate {
     }
 
     public func pictureInPictureControllerTimeRangeForPlayback(_: AVPictureInPictureController) -> CMTimeRange {
-        // Handle live streams.
+
         if duration == 0 {
             return CMTimeRange(start: .negativeInfinity, duration: .positiveInfinity)
         }
@@ -591,8 +582,7 @@ extension KSMEPlayer: DisplayLayerDelegate {
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             let contentSource = AVPictureInPictureController.ContentSource(sampleBufferDisplayLayer: displayLayer, playbackDelegate: self)
             _pipController = KSPictureInPictureController(contentSource: contentSource)
-            // 更改contentSource会直接crash
-//            pipController?.contentSource = contentSource
+
         }
     }
 }

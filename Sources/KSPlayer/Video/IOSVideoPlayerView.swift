@@ -1,9 +1,5 @@
-//
-//  IOSVideoPlayerView.swift
-//  Pods
-//
-//  Created by kintan on 2018/10/31.
-//
+
+
 #if canImport(UIKit) && canImport(CallKit)
 import AVKit
 import Combine
@@ -26,7 +22,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
     public var routeButton = AVRoutePickerView()
     #endif
     private let routeDetector = AVRouteDetector()
-    /// Image view to show video cover
+
     public var maskImageView = UIImageView()
     public var landscapeButton: UIControl = UIButton()
     override open var isMaskShow: Bool {
@@ -279,7 +275,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
                 panGesture.isEnabled = toolBar.playButton.isSelected
             }
         } else {
-            // VR/全景模式下拖动手势用于旋转视角，禁用调音量/亮度/快进的手势
+
             panGesture.isEnabled = false
             longPressGesture.isEnabled = false
         }
@@ -303,11 +299,11 @@ extension IOSVideoPlayerView: UIViewControllerTransitioningDelegate {
     }
 }
 
-// MARK: - private functions
+
 
 extension IOSVideoPlayerView {
     private func addNotification() {
-//        NotificationCenter.default.addObserver(self, selector: #selector(orientationChanged), name: UIApplication.didChangeStatusBarOrientationNotification, object: nil)
+
         NotificationCenter.default.addObserver(self, selector: #selector(routesAvailableDidChange), name: .AVRouteDetectorMultipleRoutesDetectedDidChange, object: nil)
     }
 
@@ -362,7 +358,7 @@ public class AirplayStatusView: UIView {
 }
 
 public extension KSOptions {
-    /// func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask
+
     static var supportedInterfaceOrientations = UIInterfaceOrientationMask.portrait
 }
 
@@ -372,7 +368,7 @@ extension UIApplication {
     }
 }
 
-// MARK: - menu
+
 
 extension IOSVideoPlayerView {
     override open var canBecomeFirstResponder: Bool {
@@ -413,8 +409,7 @@ public class MenuController {
     public init(with builder: UIMenuBuilder) {
         builder.remove(menu: .format)
         builder.insertChild(MenuController.openFileMenu(), atStartOfMenu: .file)
-//        builder.insertChild(MenuController.openURLMenu(), atStartOfMenu: .file)
-//        builder.insertChild(MenuController.navigationMenu(), atStartOfMenu: .file)
+
     }
 
     class func openFileMenu() -> UIMenu {
@@ -428,30 +423,7 @@ public class MenuController {
         return openMenu
     }
 
-//    class func openURLMenu() -> UIMenu {
-//        let openCommand = UIKeyCommand(input: "O", modifierFlags: [.command, .shift], action: #selector(IOSVideoPlayerView.openURLAction(_:)))
-//        openCommand.title = NSLocalizedString("Open URL", comment: "")
-//        let openMenu = UIMenu(title: "",
-//                              image: nil,
-//                              identifier: UIMenu.Identifier("com.example.apple-samplecode.menus.openURLMenu"),
-//                              options: .displayInline,
-//                              children: [openCommand])
-//        return openMenu
-//    }
-//    class func navigationMenu() -> UIMenu {
-//        let arrowKeyChildrenCommands = Arrows.allCases.map { arrow in
-//            UIKeyCommand(title: arrow.localizedString(),
-//                         image: nil,
-//                         action: #selector(IOSVideoPlayerView.navigationMenuAction(_:)),
-//                         input: arrow.command,
-//                         modifierFlags: .command)
-//        }
-//        return UIMenu(title: NSLocalizedString("NavigationTitle", comment: ""),
-//                      image: nil,
-//                      identifier: UIMenu.Identifier("com.example.apple-samplecode.menus.navigationMenu"),
-//                      options: [],
-//                      children: arrowKeyChildrenCommands)
-//    }
+
 
     enum Arrows: String, CaseIterable {
         case rightArrow

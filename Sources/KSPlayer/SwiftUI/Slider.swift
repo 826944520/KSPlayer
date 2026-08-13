@@ -1,9 +1,5 @@
-//
-//  Slider.swift
-//  KSPlayer
-//
-//  Created by kintan on 2023/5/4.
-//
+
+
 
 import SwiftUI
 
@@ -49,7 +45,7 @@ public struct TVOSSlide: UIViewRepresentable {
         } else {
             view.processView.tintColor = .white
         }
-        // 要加这个才会触发进度条更新
+
         let process = (value.wrappedValue - bounds.lowerBound) / (bounds.upperBound - bounds.lowerBound)
         if process != view.processView.progress {
             view.processView.progress = process
@@ -161,7 +157,7 @@ public class TVSlide: UIControl {
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.5,
                                           execute: delayItem!)
         case .cancelled, .failed:
-//            value.wrappedValue = beganValue
+
             break
         @unknown default:
             break

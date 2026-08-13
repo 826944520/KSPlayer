@@ -1,9 +1,5 @@
-//
-//  BrightnessVolume.swift
-//  KSPlayer
-//
-//  Created by kintan on 2017/11/3.
-//
+
+
 #if canImport(UIKit)
 import UIKit
 
@@ -64,7 +60,7 @@ open class BrightnessVolume {
 }
 
 public protocol BrightnessVolumeViewProtocol {
-    // type: 0 brightness type: 1 volume
+
     func setProgress(_ progress: Float, type: UInt)
     func move(to view: UIView)
 }

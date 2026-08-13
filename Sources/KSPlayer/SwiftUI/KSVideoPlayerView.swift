@@ -1,9 +1,5 @@
-//
-//  File.swift
-//  KSPlayer
-//
-//  Created by kintan on 2022/1/29.
-//
+
+
 import AVFoundation
 import MediaPlayer
 import SwiftUI
@@ -65,7 +61,7 @@ public struct KSVideoPlayerView: View {
                 HStack {
                     Spacer()
                     VideoSubtitleView(model: playerCoordinator.subtitleModel)
-                        .allowsHitTesting(false) // 禁止字幕视图交互，以免抢占视图的点击事件或其它手势事件
+                        .allowsHitTesting(false)
                     Spacer()
                 }
                 .padding()
@@ -131,13 +127,7 @@ public struct KSVideoPlayerView: View {
                 if let subtitleDataSouce {
                     playerCoordinator.subtitleModel.addSubtitle(dataSouce: subtitleDataSouce)
                 }
-                // 不要加这个，不然playerCoordinator无法释放，也可以在onDisappear调用removeMonitor释放
-                //                    #if os(macOS)
-                //                    NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
-                //                        isMaskShow = overView
-                //                        return $0
-                //                    }
-                //                    #endif
+
             }
 
         #if os(iOS) || os(xrOS)
@@ -227,7 +217,7 @@ public struct KSVideoPlayerView: View {
         VStack {
             VideoControllerView(config: playerCoordinator, subtitleModel: playerCoordinator.subtitleModel, title: $title, volumeSliderSize: playerWidth / 4)
             #if !os(xrOS)
-            // 设置opacity为0，还是会去更新View。所以只能这样了
+
             if playerCoordinator.isMaskShow {
                 VideoTimeShowView(config: playerCoordinator, model: playerCoordinator.timemodel)
                     .onAppear {
@@ -630,8 +620,7 @@ private extension SubtitlePart {
                         .offset(CGSize(width: fitRect.origin.x, height: fitRect.origin.y))
                         .frame(width: fitRect.size.width, height: fitRect.size.height)
                 }
-                // 不能加scaledToFit。不然的话图片的缩放比率会有问题。
-//                .scaledToFit()
+
                 .padding()
             } else if let text {
                 let textPosition = textPosition ?? SubtitleModel.textPosition
@@ -656,7 +645,7 @@ private extension SubtitlePart {
                     Spacer()
                 }
             } else {
-                // 需要加这个，不然图片无法清空。感觉是 swiftUI的bug。
+
                 Text("")
             }
         }
@@ -764,20 +753,4 @@ struct KSVideoPlayerView_Previews: PreviewProvider {
     }
 }
 
-// struct AVContentView: View {
-//    var body: some View {
-//        StructAVPlayerView().frame(width: UIScene.main.bounds.width, height: 400, alignment: .center)
-//    }
-// }
-//
-// struct StructAVPlayerView: UIViewRepresentable {
-//    let playerVC = AVPlayerViewController()
-//    typealias UIViewType = UIView
-//    func makeUIView(context _: Context) -> UIView {
-//        playerVC.view
-//    }
-//
-//    func updateUIView(_: UIView, context _: Context) {
-//        playerVC.player = AVPlayer(url: URL(string: "https://bitmovin-a.akamaihd.net/content/dataset/multi-codec/hevc/stream_fmp4.m3u8")!)
-//    }
-// }
+

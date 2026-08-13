@@ -1,17 +1,12 @@
-//
-//  CircularBuffer.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 
 import Foundation
 
-/// 这个是单生产者，多消费者的阻塞队列和单生产者，多消费者的阻塞环形队列。并且环形队列还要有排序的能力。
-/// 因为seek需要清空队列，所以导致他是多消费者。后续可以看下能不能改成单消费者的。
+
 public class CircularBuffer<Item: ObjectQueueItem> {
     private var _buffer = ContiguousArray<Item?>()
-//    private let semaphore = DispatchSemaphore(value: 0)
+
     private let condition = NSCondition()
     private var headIndex = UInt(0)
     private var tailIndex = UInt(0)
@@ -22,8 +17,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
     private var _count: Int { Int(tailIndex &- headIndex) }
     @inline(__always)
     public var count: Int {
-//        condition.lock()
-//        defer { condition.unlock() }
+
         Int(tailIndex &- headIndex)
     }
 
@@ -51,7 +45,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
         }
         _buffer[Int(tailIndex & mask)] = value
         if sorted {
-            // 不用sort进行排序，这个比较高效
+
             var index = tailIndex
             while index > headIndex {
                 guard let item = _buffer[Int((index - 1) & mask)] else {
@@ -68,13 +62,13 @@ public class CircularBuffer<Item: ObjectQueueItem> {
         tailIndex &+= 1
         if _count >= maxCount {
             if expanding {
-                // No more room left for another append so grow the buffer now.
+
                 _doubleCapacity()
             } else {
                 condition.wait()
             }
         } else {
-            // 只有数据了。就signal。因为有可能这是最后的数据了。
+
             if _count == 1 {
                 condition.signal()
             }
@@ -152,7 +146,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
 
     private func _doubleCapacity() {
         var newBacking: ContiguousArray<Item?> = []
-        let newCapacity = maxCount << 1 // Double the storage.
+        let newCapacity = maxCount << 1
         precondition(newCapacity > 0, "Can't double capacity of \(_buffer.count)")
         assert(newCapacity % 2 == 0)
         newBacking.reserveCapacity(newCapacity)
@@ -172,7 +166,7 @@ public class CircularBuffer<Item: ObjectQueueItem> {
 }
 
 extension FixedWidthInteger {
-    /// Returns the next power of two.
+
     @inline(__always)
     func nextPowerOf2() -> Self {
         guard self != 0 else {

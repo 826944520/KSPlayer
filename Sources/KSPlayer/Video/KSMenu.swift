@@ -1,9 +1,5 @@
-//
-//  KSMenu.swift
-//  KSPlayer
-//
-//  Created by Alanko5 on 15/12/2022.
-//
+
+
 
 #if canImport(UIKit)
 import UIKit

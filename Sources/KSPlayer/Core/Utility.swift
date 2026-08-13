@@ -1,9 +1,5 @@
-//
-//  Utility.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 
 import AVFoundation
 import CryptoKit
@@ -34,9 +30,9 @@ open class LayerContainerView: UIView {
     }
     #endif
     public var gradientLayer: CAGradientLayer {
-        // swiftlint:disable force_cast
+
         layer as! CAGradientLayer
-        // swiftlint:enable force_cast
+
     }
 }
 
@@ -77,9 +73,7 @@ public extension String {
         }
     }
 
-    /// 把字符串时间转为对应的秒
-    /// - Parameter fromStr: srt 00:02:52,184 ass 0:30:11.56 vtt 00:00.430
-    /// - Returns: 秒
+
     func parseDuration() -> TimeInterval {
         let scanner = Scanner(string: self)
 
@@ -107,7 +101,7 @@ public extension String {
 public extension UIColor {
     convenience init?(assColor: String) {
         var colorString = assColor
-        // 移除颜色字符串中的前缀 &H 和后缀 &
+
         if colorString.hasPrefix("&H") {
             colorString = String(colorString.dropFirst(2))
         }
@@ -351,7 +345,7 @@ func - (left: CGSize, right: CGSize) -> CGSize {
 
 @inline(__always)
 @preconcurrency
-// @MainActor
+
 public func runOnMainThread(block: @escaping () -> Void) {
     if Thread.isMainThread {
         block()
@@ -420,7 +414,7 @@ public extension URL {
             guard let url, let response else {
                 return
             }
-            // 下载的临时文件要马上就用。不然可能会马上被清空
+
             completion(response.suggestedFilename ?? url.lastPathComponent, url)
         }
         task.resume()
@@ -452,12 +446,7 @@ public extension Data {
 }
 
 extension Scanner {
-    /*
-     #EXTINF:-1 tvg-id="ExampleTV.ua" tvg-logo="https://image.com" group-title="test test", Example TV (720p) [Not 24/7]
-     #EXTVLCOPT:http-referrer=http://example.com/
-     #EXTVLCOPT:http-user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)
-     http://example.com/stream.m3u8
-     */
+    
     func parseM3U() -> (String, URL, [String: String])? {
         if scanString("#EXTINF:") == nil {
             _ = scanUpToCharacters(from: .newlines)
@@ -515,13 +504,13 @@ extension HTTPURLResponse {
 
 public extension Double {
     var kmFormatted: String {
-        //        return .formatted(.number.notation(.compactName))
+
         if self >= 1_000_000 {
             return String(format: "%.1fM", locale: Locale.current, self / 1_000_000)
-            //                .replacingOccurrences(of: ".0", with: "")
+
         } else if self >= 10000, self <= 999_999 {
             return String(format: "%.1fK", locale: Locale.current, self / 1000)
-            //                .replacingOccurrences(of: ".0", with: "")
+
         } else {
             return String(format: "%.0f", locale: Locale.current, self)
         }
@@ -706,14 +695,14 @@ extension CGImage {
             height = max(height, Int(rect.maxY))
         }
         let bitsPerComponent = 8
-        // RGBA(的bytes) * bitsPerComponent *width
+
         let bytesPerRow = 4 * 8 * bitsPerComponent * width
         return autoreleasepool {
             let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
             guard let context else {
                 return nil
             }
-            //            context.clear(CGRect(origin: .zero, size: CGSize(width: width, height: height)))
+
             for (rect, cgImage) in images {
                 context.draw(cgImage, in: CGRect(x: rect.origin.x, y: CGFloat(height) - rect.maxY, width: rect.width, height: rect.height))
             }
@@ -743,9 +732,9 @@ extension CGImage {
         guard let data = CFDataCreate(kCFAllocatorDefault, rgbData, linesize * height), let provider = CGDataProvider(data: data) else {
             return nil
         }
-        // swiftlint:disable line_length
+
         return CGImage(width: width, height: height, bitsPerComponent: 8, bitsPerPixel: isAlpha ? 32 : 24, bytesPerRow: linesize, space: colorSpace, bitmapInfo: bitmapInfo, provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
-        // swiftlint:enable line_length
+
     }
 }
 
@@ -776,7 +765,7 @@ public extension Either {
     init(_ right: Right) { self = .right(right) }
 }
 
-/// Allows to "box" another value.
+
 final class Box<T> {
     let value: T
 
@@ -802,11 +791,11 @@ extension Array {
         (self[0], self[1], self[2], self[3])
     }
 
-    // 归并排序才是稳定排序。系统默认是快排
+
     func mergeSortBottomUp(isOrderedBefore: (Element, Element) -> Bool) -> [Element] {
         let n = count
-        var z = [self, self] // the two working arrays
-        var d = 0 // z[d] is used for reading, z[1 - d] for writing
+        var z = [self, self]
+        var d = 0
         var width = 1
         while width < n {
             var i = 0
@@ -842,8 +831,8 @@ extension Array {
                 i += width * 2
             }
 
-            width *= 2 // in each step, the subarray to merge becomes larger
-            d = 1 - d // swap active array
+            width *= 2
+            d = 1 - d
         }
         return z[d]
     }

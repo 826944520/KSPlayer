@@ -1,9 +1,5 @@
-//
-//  MEPlayerItem.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 
 import AVFoundation
 import FFmpegKit
@@ -24,7 +20,7 @@ public final class MEPlayerItem: Sendable {
     private var readOperation: BlockOperation?
     private var closeOperation: BlockOperation?
     private var seekingCompletionHandler: ((Bool) -> Void)?
-    // 没有音频数据可以渲染
+
     private var isAudioStalled = true
     private var audioClock = KSClock()
     private var videoClock = KSClock()
@@ -45,10 +41,7 @@ public final class MEPlayerItem: Sendable {
         state == .seeking ? seekTime : (mainClock().time - startTime).seconds
     }
 
-    /// 最近一帧绘制到 display layer 的 PTS——即画面上正在显示的那一帧。每次
-    /// `setVideo(time:position:)` 渲染时更新；暂停 / stall 时无新帧绘制即冻结在最后一帧。
-    /// 与 `currentPlaybackTime` 的差别：后者跟 audioClock，而 audioClock 在 prefill /
-    /// cold-start / seek 后会瞬间被推到音频 buffer 头，跑在画面之前。
+
     public var displayedVideoTime: TimeInterval {
         state == .seeking ? seekTime : (videoClock.time - startTime).seconds
     }
@@ -89,7 +82,7 @@ public final class MEPlayerItem: Sendable {
     }
 
     lazy var dynamicInfo = DynamicInfo { [weak self] in
-        // metadata可能会实时变化。所以把它放在DynamicInfo里面
+
         toDictionary(self?.formatCtx?.pointee.metadata)
     } bytesRead: { [weak self] in
         self?.formatCtx?.pointee.pb?.pointee.bytes_read ?? 0
@@ -120,7 +113,7 @@ public final class MEPlayerItem: Sendable {
                     }
                 }
             }
-            // 找不到解码器
+
             if log.hasPrefix("parser not found for codec") {
                 KSLog(level: .error, log)
             }
@@ -166,7 +159,7 @@ public final class MEPlayerItem: Sendable {
     }
 }
 
-// MARK: private functions
+
 
 extension MEPlayerItem {
     private func openThread() {
@@ -191,14 +184,11 @@ extension MEPlayerItem {
             }
         }
         formatCtx.pointee.interrupt_callback = interruptCB
-        // avformat_close_input这个函数会调用io_close2。但是自定义协议是不会调用io_close2这个函数
-//        formatCtx.pointee.io_close2 = { _, _ -> Int32 in
-//            0
-//        }
+
         setHttpProxy()
         var avOptions = options.formatContextOptions.avOptions
         if let pb = options.process(url: url) {
-            // 如果要自定义协议的话，那就用avio_alloc_context，对formatCtx.pointee.pb赋值
+
             formatCtx.pointee.pb = pb.getContext()
         }
         let urlString: String
@@ -236,7 +226,7 @@ extension MEPlayerItem {
             avformat_close_input(&self.formatCtx)
             return
         }
-        // FIXME: hack, ffplay maybe should not use avio_feof() to test for the end
+
         formatCtx.pointee.pb?.pointee.eof_reached = 0
         let flags = formatCtx.pointee.iformat.pointee.flags
         maxFrameDuration = flags & AVFMT_TS_DISCONT == AVFMT_TS_DISCONT ? 10.0 : 3600.0
@@ -290,8 +280,7 @@ extension MEPlayerItem {
         let formatName = outputFormatCtx.pointee.oformat.pointee.name.flatMap { String(cString: $0) }
         for i in 0 ..< Int(formatCtx.pointee.nb_streams) {
             if let inputStream = formatCtx.pointee.streams[i] {
-                // Same NULL-codecpar hazard as FFmpegAssetTrack.init(stream:);
-                // this loop also visits every stream in the container.
+
                 guard let inputCodecpar = inputStream.pointee.codecpar else { continue }
                 let codecType = inputCodecpar.pointee.codec_type
                 if [AVMEDIA_TYPE_AUDIO, AVMEDIA_TYPE_VIDEO, AVMEDIA_TYPE_SUBTITLE].contains(codecType) {
@@ -417,7 +406,7 @@ extension MEPlayerItem {
         }), first.codecpar.codec_id != AV_CODEC_ID_NONE {
             first.isEnabled = true
             options.process(assetTrack: first)
-            // 音频要比较所有的音轨，因为truehd的fps是1200，跟其他的音轨差距太大了
+
             let fps = audios.map(\.nominalFrameRate).max() ?? 44
             let frameCapacity = options.audioFrameMaxCount(fps: fps, channelCount: Int(first.audioDescriptor?.audioFormat.channelCount ?? 2))
             let track = options.syncDecodeAudio ? SyncPlayerItemTrack<AudioFrame>(mediaType: .audio, frameCapacity: frameCapacity, options: options) : AsyncPlayerItemTrack<AudioFrame>(mediaType: .audio, frameCapacity: frameCapacity, options: options)
@@ -491,13 +480,10 @@ extension MEPlayerItem {
                 }
                 let seekMin = increase > 0 ? timeStamp - increase + 2 : Int64.min
                 let seekMax = increase < 0 ? timeStamp - increase - 2 : Int64.max
-                // can not seek to key frame
+
                 let seekStartTime = CACurrentMediaTime()
                 var result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
-//                var result = av_seek_frame(formatCtx, -1, timeStamp, seekFlags)
-                // When seeking before the beginning of the file, and seeking fails,
-                // try again without the backwards flag to make it seek to the
-                // beginning.
+
                 if result < 0, seekFlags & AVSEEK_FLAG_BACKWARD == AVSEEK_FLAG_BACKWARD {
                     KSLog("seek to \(seekToTime) failed. seekFlags remove BACKWARD")
                     options.seekFlags &= ~AVSEEK_FLAG_BACKWARD
@@ -561,18 +547,11 @@ extension MEPlayerItem {
             }
             let first = assetTracks.first { $0.trackID == corePacket.pointee.stream_index }
             if let first, first.isEnabled {
-                // 区间无缝循环触发（与下方 isLoopPlay EOF 触发平行）：
-                // packet PTS 越过 loopRange.upperBound 即把 audio/video track 切到 loopModel，
-                // av_seek_frame 回 lowerBound——后续 packet 进 loopPacketQueue，等当前
-                // packetQueue 播完由 codecDidFinished swap，实现区间无 decode-forward 循环。
-                //
-                // 触发判断只看 audio/video 的 isLoopModel：subtitle 用 SyncPlayerItemTrack，
-                // 没有 loopPacketQueue 与 swap，其 isLoopModel 一旦被置 true 也没有路径翻回 false——
-                // 用 allPlayerItemTracks.allSatisfy 会让带内嵌字幕的视频在第二圈无法重触发。
+
                 if let loopRange = options.loopRange,
                    !options.isLoopPlay,
                    first.mediaType == .video || first.mediaType == .audio,
-                   corePacket.pointee.pts != .min,  // AV_NOPTS_VALUE
+                   corePacket.pointee.pts != .min,
                    audioTrack?.isLoopModel != true,
                    videoTrack?.isLoopModel != true
                 {
@@ -583,7 +562,7 @@ extension MEPlayerItem {
                         videoTrack?.isLoopModel = true
                         let target = startTime + CMTime(seconds: loopRange.lowerBound, preferredTimescale: CMTimeScale(AV_TIME_BASE))
                         _ = av_seek_frame(formatCtx, -1, target.value, AVSEEK_FLAG_BACKWARD)
-                        return readResult  // 当前 packet 已越界，丢弃；下一次 read 从 lowerBound 关键帧开始
+                        return readResult
                     }
                 }
                 packet.assetTrack = first
@@ -611,7 +590,7 @@ extension MEPlayerItem {
                     state = .finished
                 }
             } else {
-                //                        if IS_AVERROR_INVALIDDATA(readResult)
+
                 error = .init(errorCode: .readFrame, avErrorCode: readResult)
             }
         }
@@ -632,7 +611,7 @@ extension MEPlayerItem {
     }
 }
 
-// MARK: MediaPlayback
+
 
 extension MEPlayerItem: MediaPlayback {
     var seekable: Bool {
@@ -666,18 +645,17 @@ extension MEPlayerItem: MediaPlayback {
         state = .closed
         av_packet_free(&outputPacket)
         stopRecord()
-        // 故意循环引用。等结束了。才释放
+
         let closeOperation = BlockOperation {
             Thread.current.name = (self.operationQueue.name ?? "") + "_close"
             self.allPlayerItemTracks.forEach { $0.shutdown() }
             KSLog("清空formatCtx")
-            // 自定义的协议才会av_class为空
+
             if let formatCtx = self.formatCtx, (formatCtx.pointee.flags & AVFMT_FLAG_CUSTOM_IO) != 0, let opaque = formatCtx.pointee.pb.pointee.opaque {
                 let value = Unmanaged<AbstractAVIOContext>.fromOpaque(opaque).takeRetainedValue()
                 value.close()
             }
-            // 不要自己来释放pb。不然第二次播放同一个url会出问题
-//            self.formatCtx?.pointee.pb = nil
+
             self.formatCtx?.pointee.interrupt_callback.opaque = nil
             self.formatCtx?.pointee.interrupt_callback.callback = nil
             avformat_close_input(&self.formatCtx)
@@ -739,9 +717,7 @@ extension MEPlayerItem: CodecCapacityDelegate {
             isFirst = false
             isSeek = false
             let frameTime = Double(loadingState.frameCount) / Double(max(loadingState.fps, 1))
-            // 帧时间不足缓冲容量时强制恢复读线程，不等 loadedTime 落到 maxBufferDuration/2
-            // 避免 packet 缓冲还充足但解码帧已快空的死区。
-            // 阈值与容量挂钩（min(2s, 容量)）：8K 等小容量缓冲若用固定 2s，读线程永不暂停，packet 队列会无限增长
+
             let bufferTime = Double(max(loadingState.frameMaxCount, 1)) / Double(max(loadingState.fps, 1))
             if frameTime < min(2.0, bufferTime) {
                 resume()
@@ -763,26 +739,15 @@ extension MEPlayerItem: CodecCapacityDelegate {
         }
         let allSatisfy = videoAudioTracks.allSatisfy { $0.isEndOfFile && $0.frameCount == 0 && $0.packetCount == 0 }
         if allSatisfy {
-            // 区间循环 swap：当前 iteration 的 packet/frame 全播完，把 loopPacketQueue 切换为活动 queue。
-            // 与 isLoopPlay 整文件循环的差异：
-            // 1. 不调 delegate?.sourceDidFinished()——避免上层把 playbackState 翻成 .finished
-            // 2. 不停 capacity timer（timer.fireDate = .distantFuture）——下一圈仍要继续工作
-            // 3. 设 track.seekTime 让 decoder 丢弃 loopPacketQueue 头部不需要的预滚帧
-            //
-            // 判断条件用 audioTrack?.isLoopModel / videoTrack?.isLoopModel 而非 options.loopRange != nil：
-            // 调用方中途清空 loopRange 时，若刚好处于"trigger 已发生 swap 还没发生"窗口内，
-            // tracks 仍处 loopModel——此时若不走本分支，会掉到下方 delegate?.sourceDidFinished()
-            // 把 playbackState 置为 .finished，且无法通过 play() 恢复（所有 track 已 EOF 无帧可解）。
+
             if !options.isLoopPlay && (audioTrack?.isLoopModel == true || videoTrack?.isLoopModel == true) {
                 isAudioStalled = audioTrack == nil
                 let trimSec: TimeInterval
                 if let loopRange = options.loopRange {
-                    // 仍在循环：trim 到 lowerBound（AVSEEK_FLAG_BACKWARD 落到 ≤ lowerBound 的关键帧，
-                    // 不设 seekTime decoder 会把 lowerBound 之前的内容也播出来）
+
                     trimSec = loopRange.lowerBound + startTime.seconds
                 } else {
-                    // 已退出循环：trim 到当前播放点，让 decoder 跳过 loopPacketQueue 里
-                    // lowerBound→当前位置 的预读，从当前位置接续往后播（避免回跳到 lowerBound）
+
                     trimSec = currentPlaybackTime + startTime.seconds
                 }
                 audioTrack?.seekTime = trimSec
@@ -845,7 +810,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
     }
 
     public func setVideo(time: CMTime, position: Int64) {
-//        print("[video] video interval \(CACurrentMediaTime() - videoClock.lastMediaTime) video diff \(time.seconds - videoClock.time.seconds)")
+
         videoClock.time = time
         videoClock.position = position
         videoDisplayCount += 1
@@ -858,8 +823,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
     }
 
     public func setAudio(time: CMTime, position: Int64) {
-//        print("[audio] setAudio: \(time.seconds)")
-        // 切换到主线程的话，那播放起来会更顺滑
+
         runOnMainThread {
             self.audioClock.time = time
             self.audioClock.position = position
@@ -932,7 +896,7 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
 
 extension AbstractAVIOContext {
     func getContext() -> UnsafeMutablePointer<AVIOContext> {
-        // 需要持有ioContext，不然会被释放掉,等到shutdown在清空
+
         avio_alloc_context(av_malloc(Int(bufferSize)), bufferSize, writable ? 1 : 0, Unmanaged.passRetained(self).toOpaque()) { opaque, buffer, size -> Int32 in
             let value = Unmanaged<AbstractAVIOContext>.fromOpaque(opaque!).takeUnretainedValue()
             let ret = value.read(buffer: buffer, size: size)

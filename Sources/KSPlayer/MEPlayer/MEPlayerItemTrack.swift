@@ -1,23 +1,19 @@
-//
-//  Decoder.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 import AVFoundation
 import CoreMedia
 import Libavformat
 
 protocol PlayerItemTrackProtocol: CapacityProtocol, AnyObject {
     init(mediaType: AVFoundation.AVMediaType, frameCapacity: UInt8, options: KSOptions)
-    // 是否无缝循环
+
     var isLoopModel: Bool { get set }
     var isEndOfFile: Bool { get set }
     var delegate: CodecCapacityDelegate? { get set }
     func decode()
     func seek(time: TimeInterval)
     func putPacket(packet: Packet)
-//    func getOutputRender<Frame: ObjectQueueItem>(where predicate: ((Frame) -> Bool)?) -> Frame?
+
     func shutdown()
 }
 
@@ -53,13 +49,13 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         self.options = options
         self.mediaType = mediaType
         description = mediaType.rawValue
-        // 默认缓存队列大小跟帧率挂钩,经测试除以4，最优
+
         if mediaType == .audio {
             outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), expanding: false)
         } else if mediaType == .video {
             outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true, expanding: false)
         } else {
-            // 有的图片字幕不按顺序来输出，所以要排序下。
+
             outputRenderQueue = CircularBuffer(initialCapacity: Int(frameCapacity), sorted: true)
         }
     }
@@ -128,23 +124,20 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         }
         lastPacketBytes += packet.size
         let decoder = decoderMap.value(for: packet.assetTrack.trackID, default: makeDecode(assetTrack: packet.assetTrack))
-//        var startTime = CACurrentMediaTime()
+
         decoder.decodeFrame(from: packet) { [weak self] result in
             guard let self else {
                 return
             }
             do {
-//                if packet.assetTrack.mediaType == .video {
-//                    print("[video] decode time: \(CACurrentMediaTime()-startTime)")
-//                    startTime = CACurrentMediaTime()
-//                }
+
                 let frame = try result.get()
                 if self.state == .flush || self.state == .closed {
                     return
                 }
                 if self.seekTime > 0 {
                     let timestamp = frame.timestamp + frame.duration
-//                    KSLog("seektime \(self.seekTime), frame \(frame.seconds), mediaType \(packet.assetTrack.mediaType)")
+
                     if timestamp <= 0 || frame.timebase.cmtime(for: timestamp).seconds < self.seekTime {
                         return
                     } else {
@@ -179,7 +172,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
 final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
     private let operationQueue = OperationQueue()
     private var decodeOperation: BlockOperation!
-    // 无缝播放使用的PacketQueue
+
     private var loopPacketQueue: CircularBuffer<Packet>?
     var packetQueue = CircularBuffer<Packet>()
     override var packetCount: Int { packetQueue.count }

@@ -1,9 +1,5 @@
-//
-//  PlayerView.swift
-//  VoiceNote
-//
-//  Created by kintan on 2018/8/16.
-//
+
+
 
 #if canImport(UIKit)
 import UIKit
@@ -33,7 +29,7 @@ public protocol PlayerControllerDelegate: AnyObject {
     func playerController(finish error: Error?)
     func playerController(maskShow: Bool)
     func playerController(action: PlayerButtonType)
-    // `bufferedCount: 0` indicates first time loading
+
     func playerController(bufferedCount: Int, consumeTime: TimeInterval)
     func playerController(seek: TimeInterval)
 }
@@ -49,7 +45,7 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     public weak var delegate: ControllerDelegate?
     public let toolBar = PlayerToolBar()
     public let srtControl = SubtitleModel()
-    // Listen to play time change
+
     public var playTimeDidChange: ((TimeInterval, TimeInterval) -> Void)?
     public var backBlock: (() -> Void)?
     public convenience init() {
@@ -154,7 +150,7 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
         playerLayer = KSPlayerLayer(url: url, options: options)
     }
 
-    // MARK: - KSSliderDelegate
+
 
     open func slider(value: Double, event: ControlEvents) {
         if event == .valueChanged {
@@ -166,7 +162,7 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
         }
     }
 
-    // MARK: - KSPlayerLayerDelegate
+
 
     open func player(layer: KSPlayerLayer, state: KSPlayerState) {
         delegate?.playerController(state: state)

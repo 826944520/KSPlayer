@@ -1,10 +1,5 @@
-//
-//  KSPlayerLayerView.swift
-//  Pods
-//
-//  Created by kintan on 16/4/28.
-//
-//
+
+
 import AVFoundation
 import AVKit
 import MediaPlayer
@@ -14,15 +9,7 @@ import UIKit
 import AppKit
 #endif
 
-/**
- Player status emun
- - setURL:      set url
- - readyToPlay:    player ready to play
- - buffering:      player buffering
- - bufferFinished: buffer finished
- - playedToTheEnd: played to the End
- - error:          error with playing
- */
+
 public enum KSPlayerState: CustomStringConvertible {
     case initialized
     case preparing
@@ -79,7 +66,7 @@ open class KSPlayerLayer: NSObject {
                 }
 
                 if isPipActive {
-                    // 一定要async才不会pip之后就暂停播放
+
                     DispatchQueue.main.async { [weak self] in
                         guard let self else { return }
                         pipController.start(view: self)
@@ -129,13 +116,12 @@ open class KSPlayerLayer: NSObject {
         didSet {
             let firstPlayerType: MediaPlayerProtocol.Type
             if isWirelessRouteActive {
-                // airplay的话，默认使用KSAVPlayer
+
                 firstPlayerType = KSAVPlayer.self
             } else if options.display != .plane {
-                // AR模式只能用KSMEPlayer
-                // swiftlint:disable force_cast
+
                 firstPlayerType = NSClassFromString("KSPlayer.KSMEPlayer") as! MediaPlayerProtocol.Type
-                // swiftlint:enable force_cast
+
             } else {
                 firstPlayerType = KSOptions.firstPlayerType
             }
@@ -158,7 +144,7 @@ open class KSPlayerLayer: NSObject {
         }
     }
 
-    /// 播发器的几种状态
+
 
     public private(set) var state = KSPlayerState.initialized {
         willSet {
@@ -178,7 +164,7 @@ open class KSPlayerLayer: NSObject {
         }
         self.delegate?.player(layer: self, currentTime: self.player.currentPlaybackTime, totalTime: self.player.duration)
         if self.player.playbackState == .playing, self.player.loadState == .playable, self.state == .buffering {
-            // 一个兜底保护，正常不能走到这里
+
             self.state = .bufferFinished
         }
         if self.player.isPlaying {
@@ -198,10 +184,9 @@ open class KSPlayerLayer: NSObject {
         self.delegate = delegate
         let firstPlayerType: MediaPlayerProtocol.Type
         if options.display != .plane {
-            // AR模式只能用KSMEPlayer
-            // swiftlint:disable force_cast
+
             firstPlayerType = NSClassFromString("KSPlayer.KSMEPlayer") as! MediaPlayerProtocol.Type
-            // swiftlint:enable force_cast
+
         } else {
             firstPlayerType = KSOptions.firstPlayerType
         }
@@ -349,7 +334,7 @@ open class KSPlayerLayer: NSObject {
     }
 }
 
-// MARK: - MediaPlayerDelegate
+
 
 extension KSPlayerLayer: MediaPlayerDelegate {
     public func readyToPlay(player: some MediaPlayerProtocol) {
@@ -469,7 +454,7 @@ extension KSPlayerLayer: MediaPlayerDelegate {
     }
 }
 
-// MARK: - AVPictureInPictureControllerDelegate
+
 
 @available(tvOS 14.0, *)
 extension KSPlayerLayer: AVPictureInPictureControllerDelegate {
@@ -482,7 +467,7 @@ extension KSPlayerLayer: AVPictureInPictureControllerDelegate {
     }
 }
 
-// MARK: - private functions
+
 
 extension KSPlayerLayer {
     open func prepareToPlay() {
@@ -598,7 +583,7 @@ extension KSPlayerLayer {
             return .success
         }
         remoteCommand.changeShuffleModeCommand.isEnabled = false
-        // remoteCommand.changeShuffleModeCommand.addTarget {})
+
         remoteCommand.changePlaybackRateCommand.supportedPlaybackRates = [0.5, 1, 1.5, 2]
         remoteCommand.changePlaybackRateCommand.addTarget { [weak self] event in
             guard let self, let event = event as? MPChangePlaybackRateCommandEvent else {
@@ -691,7 +676,7 @@ extension KSPlayerLayer {
             pause()
 
         case .ended:
-            // An interruption ended. Resume playback, if appropriate.
+
 
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)

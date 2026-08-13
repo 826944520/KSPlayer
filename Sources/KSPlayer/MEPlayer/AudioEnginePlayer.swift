@@ -1,9 +1,5 @@
-//
-//  AudioEnginePlayer.swift
-//  KSPlayer
-//
-//  Created by kintan on 2018/3/11.
-//
+
+
 
 import AVFoundation
 import CoreAudio
@@ -105,10 +101,7 @@ public class AudioEnginePlayer: AudioOutput {
     private var sourceNode: AVAudioSourceNode?
     private var sourceNodeAudioFormat: AVAudioFormat?
 
-//    private let reverb = AVAudioUnitReverb()
-//    private let nbandEQ = AVAudioUnitEQ()
-//    private let distortion = AVAudioUnitDistortion()
-//    private let delay = AVAudioUnitDelay()
+
     private let timePitch = AVAudioUnitTimePitch()
     private var sampleSize = UInt32(MemoryLayout<Float>.size)
     private var currentRenderReadOffset = UInt32(0)
@@ -193,12 +186,12 @@ public class AudioEnginePlayer: AudioOutput {
         if audioFormat.channelCount > 2 {
             nodes.append(engine.outputNode)
         }
-        // 一定要传入format，这样多音轨音响才不会有问题。
+
         engine.connect(nodes: nodes, format: audioFormat)
         engine.prepare()
         if isRunning {
             try? engine.start()
-            // 从多声道切换到2声道马上调用start会不生效。需要异步主线程才可以
+
             DispatchQueue.main.async { [weak self] in
                 self?.play()
             }
@@ -228,7 +221,7 @@ public class AudioEnginePlayer: AudioOutput {
     public func flush() {
         currentRender = nil
         #if !os(macOS)
-        // 这个要在主线程执行，如果在音频的线程，那就会有中断杂音
+
         outputLatency = AVAudioSession.sharedInstance().outputLatency
         #endif
     }
@@ -245,25 +238,7 @@ public class AudioEnginePlayer: AudioOutput {
         }, Unmanaged.passUnretained(self).toOpaque())
     }
 
-//    private func addRenderCallback(audioUnit: AudioUnit, streamDescription: UnsafePointer<AudioStreamBasicDescription>) {
-//        _ = AudioUnitSetProperty(audioUnit,
-//                                 kAudioUnitProperty_StreamFormat,
-//                                 kAudioUnitScope_Input,
-//                                 0,
-//                                 streamDescription,
-//                                 UInt32(MemoryLayout<AudioStreamBasicDescription>.size))
-//        var inputCallbackStruct = AURenderCallbackStruct()
-//        inputCallbackStruct.inputProcRefCon = Unmanaged.passUnretained(self).toOpaque()
-//        inputCallbackStruct.inputProc = { refCon, _, _, _, inNumberFrames, ioData in
-//            guard let ioData else {
-//                return noErr
-//            }
-//            let `self` = Unmanaged<AudioEnginePlayer>.fromOpaque(refCon).takeUnretainedValue()
-//            self.audioPlayerShouldInputData(ioData: UnsafeMutableAudioBufferListPointer(ioData), numberOfFrames: inNumberFrames)
-//            return noErr
-//        }
-//        _ = AudioUnitSetProperty(audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &inputCallbackStruct, UInt32(MemoryLayout<AURenderCallbackStruct>.size))
-//    }
+
 
     private func audioPlayerShouldInputData(ioData: UnsafeMutableAudioBufferListPointer, numberOfFrames: UInt32) {
         var ioDataWriteOffset = 0
@@ -316,8 +291,7 @@ public class AudioEnginePlayer: AudioOutput {
             if currentPreparePosition > 0 {
                 var time = currentRender.timebase.cmtime(for: currentPreparePosition)
                 if outputLatency != 0 {
-                    /// AVSampleBufferAudioRenderer不需要处理outputLatency。其他音频输出的都要处理。
-                    /// 没有蓝牙的话，outputLatency为0.015，有蓝牙耳机的话为0.176
+
                     time = time - CMTime(seconds: outputLatency, preferredTimescale: time.timescale)
                 }
                 renderSource?.setAudio(time: time, position: currentRender.position)

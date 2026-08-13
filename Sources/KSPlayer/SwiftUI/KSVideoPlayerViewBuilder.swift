@@ -1,9 +1,5 @@
-//
-//  KSVideoPlayerViewBuilder.swift
-//
-//
-//  Created by Ian Magallan Bosch on 17.03.24.
-//
+
+
 
 import SwiftUI
 
@@ -12,7 +8,7 @@ enum KSVideoPlayerViewBuilder {
     @MainActor
     static func playbackControlView(config: KSVideoPlayer.Coordinator, spacing: CGFloat? = nil) -> some View {
         HStack(spacing: spacing) {
-            // Playback controls don't need spacers for visionOS, since the controls are laid out in a HStack.
+
             #if os(xrOS)
             backwardButton(config: config)
             playButton(config: config)
@@ -46,7 +42,7 @@ enum KSVideoPlayerViewBuilder {
             let info = config.subtitleModel.subtitleInfos.first { $0.subtitleID == value }
             config.subtitleModel.selectedSubtitleInfo = info
             if let info = info as? MediaPlayerTrack {
-                // 因为图片字幕想要实时的显示，那就需要seek。所以需要走select track
+
                 config.playerLayer?.player.select(track: info)
             }
         }) {
@@ -63,7 +59,7 @@ enum KSVideoPlayerViewBuilder {
     static func playbackRateButton(playbackRate: Binding<Float>) -> some View {
         MenuView(selection: playbackRate) {
             ForEach([0.5, 1.0, 1.25, 1.5, 2.0] as [Float]) { value in
-                // 需要有一个变量text。不然会自动帮忙加很多0
+
                 let text = "\(value) x"
                 Text(text).tag(value)
             }
@@ -98,7 +94,7 @@ enum KSVideoPlayerViewBuilder {
         } label: {
             Image(systemName: "info.circle.fill")
         }
-        // iOS 模拟器加keyboardShortcut会导致KSVideoPlayer.Coordinator无法释放。真机不会有这个问题
+
         #if !os(tvOS)
         .keyboardShortcut("i", modifiers: [.command])
         #endif

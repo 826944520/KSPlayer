@@ -59,9 +59,9 @@ public final class KSAVPlayerView: UIView {
     override public class var layerClass: AnyClass { AVPlayerLayer.self }
     #endif
     fileprivate var playerLayer: AVPlayerLayer {
-        // swiftlint:disable force_cast
+
         layer as! AVPlayerLayer
-        // swiftlint:enable force_cast
+
     }
 }
 
@@ -260,7 +260,7 @@ extension KSAVPlayer {
                 error = NSError(errorCode: .videoTracksUnplayable)
                 return
             }
-            // 默认选择第一个声道
+
             item.tracks.filter { $0.assetTrack?.mediaType.rawValue == AVMediaType.audio.rawValue }.dropFirst().forEach { $0.isEnabled = false }
             duration = item.duration.seconds
             let estimatedDataRates = item.tracks.compactMap { $0.assetTrack?.estimatedDataRate }
@@ -340,13 +340,13 @@ extension KSAVPlayer {
         }
         loadedTimeRangesObservation = playerItem.observe(\.loadedTimeRanges) { [weak self] item, _ in
             guard let self else { return }
-            // 计算缓冲进度
+
             self.updatePlayableDuration(item: item)
         }
 
         let changeHandler: (AVPlayerItem, NSKeyValueObservedChange<Bool>) -> Void = { [weak self] _, _ in
             guard let self else { return }
-            // 在主线程更新进度
+
             if playerItem.isPlaybackBufferEmpty {
                 self.loadState = .loading
             } else if playerItem.isPlaybackLikelyToKeepUp || playerItem.isPlaybackBufferFull {
@@ -368,7 +368,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
             if shouldSeekTo > 0 {
                 return TimeInterval(shouldSeekTo)
             } else {
-                // 防止卡主
+
                 return isReadyToPlay ? player.currentTime().seconds : 0
             }
         }
@@ -550,14 +550,14 @@ class AVMediaPlayerTrack: MediaPlayerTrack {
         #else
         isPlayable = track.assetTrack?.isPlayable ?? false
         #endif
-        // swiftlint:disable force_cast
+
         if let first = track.assetTrack?.formatDescriptions.first {
             formatDescription = first as! CMFormatDescription
         } else {
             formatDescription = nil
         }
         bitDepth = formatDescription?.bitDepth ?? 0
-        // swiftlint:enable force_cast
+
         description = (formatDescription?.mediaSubType ?? .boxed).rawValue.string
         #if os(xrOS)
         Task {

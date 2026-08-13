@@ -1,9 +1,5 @@
-//
-//  MediaPlayerProtocol.swift
-//  KSPlayer-tvOS
-//
-//  Created by kintan on 2018/3/9.
-//
+
+
 
 import AVFoundation
 import Foundation
@@ -73,7 +69,7 @@ public protocol MediaPlayerProtocol: MediaPlayback {
     var loadState: MediaLoadState { get }
     var isPlaying: Bool { get }
     var seekable: Bool { get }
-    //    var numberOfBytesTransferred: Int64 { get }
+
     var isMuted: Bool { get set }
     var allowsExternalPlayback: Bool { get set }
     var usesExternalPlaybackWhileExternalScreenIsActive: Bool { get set }
@@ -108,7 +104,7 @@ public extension MediaPlayerProtocol {
 public protocol MediaPlayerDelegate: AnyObject {
     func readyToPlay(player: some MediaPlayerProtocol)
     func changeLoadState(player: some MediaPlayerProtocol)
-    // 缓冲加载进度，0-100
+
     func changeBuffering(player: some MediaPlayerProtocol, progress: Int)
     func playBack(player: some MediaPlayerProtocol, loopCount: Int)
     func finish(player: some MediaPlayerProtocol, error: Error?)
@@ -130,9 +126,7 @@ public protocol MediaPlayerTrack: AnyObject, CustomStringConvertible {
     var formatDescription: CMFormatDescription? { get }
 }
 
-// public extension MediaPlayerTrack: Identifiable {
-//    var id: Int32 { trackID }
-// }
+
 
 public enum MediaPlaybackState: Int {
     case idle
@@ -149,7 +143,7 @@ public enum MediaLoadState: Int {
     case playable
 }
 
-// swiftlint:disable identifier_name
+
 public struct DOVIDecoderConfigurationRecord {
     public let dv_version_major: UInt8
     public let dv_version_minor: UInt8
@@ -164,10 +158,10 @@ public struct DOVIDecoderConfigurationRecord {
 public enum FFmpegFieldOrder: UInt8 {
     case unknown = 0
     case progressive
-    case tt // < Top coded_first, top displayed first
-    case bb // < Bottom coded first, bottom displayed first
-    case tb // < Top coded first, bottom displayed first
-    case bt // < Bottom coded first, top displayed first
+    case tt
+    case bb
+    case tb
+    case bt
 }
 
 extension FFmpegFieldOrder: CustomStringConvertible {
@@ -187,7 +181,7 @@ extension FFmpegFieldOrder: CustomStringConvertible {
     }
 }
 
-// swiftlint:enable identifier_name
+
 public extension MediaPlayerTrack {
     var language: String? {
         languageCode.flatMap {
@@ -241,9 +235,9 @@ public extension CMFormatDescription {
         let contentRange: DynamicRange
         if codecType.string == "dvhe" || codecType == kCMVideoCodecType_DolbyVisionHEVC {
             contentRange = .dolbyVision
-        } else if bitDepth == 10 || transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ as String { /// HDR
+        } else if bitDepth == 10 || transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ as String {
             contentRange = .hdr10
-        } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG as String { /// HLG
+        } else if transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG as String {
             contentRange = .hlg
         } else {
             contentRange = .sdr
