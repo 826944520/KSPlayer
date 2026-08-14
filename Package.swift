@@ -30,7 +30,10 @@ let package = Package(
         .testTarget(
             name: "KSPlayerTests",
             dependencies: [
-                "KSPlayer",
+                // Depends on the FFmpegKit binaries only, not on KSPlayer, so the
+                // version gate runs and fails cleanly even if KSPlayer itself does
+                // not compile for the macOS host. The build-ios job covers KSPlayer
+                // compile coverage.
                 .product(name: "Libavcodec", package: "FFmpegKit"),
                 .product(name: "Libavformat", package: "FFmpegKit"),
                 .product(name: "Libavfilter", package: "FFmpegKit"),

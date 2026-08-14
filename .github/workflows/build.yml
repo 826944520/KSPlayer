@@ -47,5 +47,7 @@ jobs:
           else
             echo "::warning::version_major.h not found under .build/checkouts/FFmpegKit"
           fi
+      - name: Build test target (macOS host)
+        run: swift build --target KSPlayerTests
       - name: swift test (runs FFmpegVersionTest — runtime version gate)
         run: swift test
