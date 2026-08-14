@@ -27,6 +27,20 @@ let package = Package(
         .target(
             name: "DisplayCriteria"
         ),
+        .testTarget(
+            name: "KSPlayerTests",
+            dependencies: [
+                "KSPlayer",
+                .product(name: "Libavcodec", package: "FFmpegKit"),
+                .product(name: "Libavformat", package: "FFmpegKit"),
+                .product(name: "Libavfilter", package: "FFmpegKit"),
+                .product(name: "Libavutil", package: "FFmpegKit"),
+            ],
+            path: "Tests/KSPlayerTests",
+            swiftSettings: [
+                .swiftLanguageMode(.v5),
+            ]
+        ),
     ]
 )
 

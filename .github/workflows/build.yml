@@ -7,8 +7,8 @@ on:
       - '*'
 
 jobs:
-  build:
-    name: Build iOS
+  build-ios:
+    name: Build iOS Simulator
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@main
@@ -22,3 +22,30 @@ jobs:
           xcodebuild -version
       - name: Build iOS Simulator
         run: swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator
+
+  test-macos:
+    name: FFmpeg version gate (macOS host)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@main
+      - name: Set up Xcode
+        run: |
+          XCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)
+          if [ -n "$XCODE_APP" ]; then
+            sudo xcode-select -s "/Applications/$XCODE_APP/Contents/Developer"
+          fi
+          xcode-select -p
+          xcodebuild -version
+      - name: Resolve package
+        run: swift package resolve
+      - name: Print resolved FFmpeg version (header-level)
+        run: |
+          HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavcodec.xcframework -name version_major.h 2>/dev/null | head -1)
+          if [ -n "$HDR" ]; then
+            echo "Resolved FFmpegKit Libavcodec version_major.h ($HDR):"
+            grep -E 'LIBAVCODEC_VERSION_MAJOR|LIBAVCODEC_VERSION_MINOR|LIBAVCODEC_VERSION_MICRO' "$HDR"
+          else
+            echo "::warning::version_major.h not found under .build/checkouts/FFmpegKit"
+          fi
+      - name: swift test (runs FFmpegVersionTest — runtime version gate)
+        run: swift test
