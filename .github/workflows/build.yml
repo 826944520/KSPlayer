@@ -1,3 +1,5 @@
+name: build
+
 on:
   push:
     branches:
@@ -8,26 +10,11 @@ on:
 
 jobs:
   build-ios:
-    name: Build iOS Simulator
+    name: Build iOS Simulator + FFmpeg version gate
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@main
-      - name: Set up Xcode
-        run: |
-          XCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)
-          if [ -n "$XCODE_APP" ]; then
-            sudo xcode-select -s "/Applications/$XCODE_APP/Contents/Developer"
-          fi
-          xcode-select -p
-          xcodebuild -version
-      - name: Build iOS Simulator
-        run: swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator
+      - uses: actions/checkout@v4
 
-  test-macos:
-    name: FFmpeg version gate (macOS host)
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@main
       - name: Set up Xcode
         run: |
           XCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)
@@ -36,18 +23,35 @@ jobs:
           fi
           xcode-select -p
           xcodebuild -version
+
       - name: Resolve package
         run: swift package resolve
-      - name: Print resolved FFmpeg version (header-level)
+
+      - name: FFmpeg version gate (header-level, resolved FFmpegKit checkout)
         run: |
-          HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavcodec.xcframework -name version_major.h 2>/dev/null | head -1)
-          if [ -n "$HDR" ]; then
-            echo "Resolved FFmpegKit Libavcodec version_major.h ($HDR):"
-            grep -E 'LIBAVCODEC_VERSION_MAJOR|LIBAVCODEC_VERSION_MINOR|LIBAVCODEC_VERSION_MICRO' "$HDR"
-          else
-            echo "::warning::version_major.h not found under .build/checkouts/FFmpegKit"
+          set -e
+          # FFmpegKit is resolved under .build/checkouts/FFmpegKit. The version_major.h
+          # lives INSIDE the committed xcframework binary, so this checks the actual
+          # linked binary version, not just the "n8.1" label.
+          AVC_HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavcodec.xcframework -name version_major.h -path '*ios-arm64*' 2>/dev/null | head -1)
+          AVF_HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavformat.xcframework -name version_major.h -path '*ios-arm64*' 2>/dev/null | head -1)
+          AVFILTER_HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavfilter.xcframework -name version_major.h -path '*ios-arm64*' 2>/dev/null | head -1)
+          echo "avcodec header:   $AVC_HDR"
+          echo "avformat header:  $AVF_HDR"
+          echo "avfilter header:  $AVFILTER_HDR"
+          if [ -z "$AVC_HDR" ] || [ -z "$AVF_HDR" ] || [ -z "$AVFILTER_HDR" ]; then
+            echo "::error::version_major.h not found — FFmpegKit xcframeworks missing the ios-arm64 slice"
+            exit 1
           fi
-      - name: Build test target (macOS host)
-        run: swift build --target KSPlayerTests
-      - name: swift test (runs FFmpegVersionTest — runtime version gate)
-        run: swift test
+          AVC=$(grep -E '^#define LIBAVCODEC_VERSION_MAJOR' "$AVC_HDR" | grep -oE '[0-9]+')
+          AVF=$(grep -E '^#define LIBAVFORMAT_VERSION_MAJOR' "$AVF_HDR" | grep -oE '[0-9]+')
+          AVFILTER=$(grep -E '^#define LIBAVFILTER_VERSION_MAJOR' "$AVFILTER_HDR" | grep -oE '[0-9]+')
+          echo "LIBAVCODEC_VERSION_MAJOR=$AVC  (expect 62)"
+          echo "LIBAVFORMAT_VERSION_MAJOR=$AVF  (expect 62)"
+          echo "LIBAVFILTER_VERSION_MAJOR=$AVFILTER  (expect 11)"
+          [ "$AVC" = "62" ] || { echo "::error::FFmpeg avcodec major != 62 (got $AVC); FFmpegKit binaries are not 8.x. Run the rebuild-ffmpeg workflow on the FFmpegKit repo."; exit 1; }
+          [ "$AVF" = "62" ] || { echo "::error::FFmpeg avformat major != 62 (got $AVF)"; exit 1; }
+          [ "$AVFILTER" = "11" ] || { echo "::error::FFmpeg avfilter major != 11 (got $AVFILTER)"; exit 1; }
+
+      - name: Build iOS Simulator
+        run: swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator

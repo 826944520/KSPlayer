@@ -4,8 +4,7 @@ import PackageDescription
 let package = Package(
     name: "KSPlayer",
     defaultLocalization: "en",
-    platforms: [.macOS(.v10_15), .macCatalyst(.v14), .iOS(.v26), .tvOS(.v13),
-                .visionOS(.v1)],
+    platforms: [.iOS(.v26)],
     products: [
         .library(
             name: "KSPlayer",
@@ -30,10 +29,12 @@ let package = Package(
         .testTarget(
             name: "KSPlayerTests",
             dependencies: [
-                // Depends on the FFmpegKit binaries only, not on KSPlayer, so the
-                // version gate runs and fails cleanly even if KSPlayer itself does
-                // not compile for the macOS host. The build-ios job covers KSPlayer
-                // compile coverage.
+                // Links the FFmpegKit binaries only (not KSPlayer), so the runtime
+                // version gate in FFmpegVersionTest can run standalone. CI does not
+                // execute this test (FFmpegKit is now iOS-only, so there is no macOS
+                // host slice to run `swift test` natively); CI instead enforces the
+                // version via the header-level gate in .github/workflows/build.yml.
+                // This target remains for local iOS-Simulator runs via xcodebuild.
                 .product(name: "Libavcodec", package: "FFmpegKit"),
                 .product(name: "Libavformat", package: "FFmpegKit"),
                 .product(name: "Libavfilter", package: "FFmpegKit"),
