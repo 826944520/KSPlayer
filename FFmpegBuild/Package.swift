@@ -16,8 +16,11 @@ let package = Package(
     ],
     targets: [
         .plugin(
+            // No explicit `path:` — a plugin target resolves by default to
+            // `Plugins/<name>` (tools-5.9, matching the upstream fork's declaration;
+            // passing `path:` here breaks manifest parsing with "argument 'capability'
+            // must precede argument 'path'").
             name: "BuildFFmpeg",
-            path: "Plugins/BuildFFmpeg",
             capability: .command(
                 intent: .custom(
                     verb: "BuildFFmpeg",
