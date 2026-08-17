@@ -54,4 +54,11 @@ jobs:
           [ "$AVFILTER" = "9" ] || { echo "::error::FFmpeg avfilter major != 9 (got $AVFILTER)"; exit 1; }
 
       - name: Build iOS Simulator
-        run: swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator
+        run: |
+          set -o pipefail
+          if ! swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` \
+            -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator 2>&1 | tee /tmp/build.log; then
+            echo "::error::=== swift build FAILED — last 120 lines ==="
+            tail -120 /tmp/build.log | sed 's/^/::error::/'
+            exit 1
+          fi
