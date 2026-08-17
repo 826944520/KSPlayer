@@ -89,7 +89,9 @@ jobs:
             echo "No changes to commit (binaries already up to date)."
           else
             git commit -m "Rebuild FFmpeg 9.0 xcframeworks (ios + isimulator)"
-            git push
+            # workflow_dispatch leaves a detached HEAD (checkout@v4 at github.sha),
+            # so push explicitly to the dispatch ref instead of a tracking branch.
+            git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
           fi
 
   verify:
@@ -98,6 +100,10 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # github.sha is the dispatch-time commit; the rebuild job pushed the new
+          # xcframeworks AFTER that, so re-checkout the branch tip at run time.
+          ref: ${{ github.ref }}
 
       - name: Set up Xcode
         run: |
