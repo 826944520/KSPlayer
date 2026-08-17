@@ -1,0 +1,32 @@
+// swift-tools-version:5.9
+import PackageDescription
+
+// Minimal self-contained package whose only purpose is to host the BuildFFmpeg
+// command plugin. `swift package --disable-sandbox BuildFFmpeg platforms=ios,isimulator ...`
+// rebuilds FFmpeg 9.0 + its dependencies into xcframeworks under Sources/, which
+// the rebuild-ffmpeg workflow then stages into the main package's Sources/.
+//
+// tools-version stays 5.9 because the rebuild runs on a macos-14 (Xcode 15.4 /
+// Swift 5.10) runner, which cannot parse tools-version 6.x manifests.
+let package = Package(
+    name: "FFmpegBuild",
+    platforms: [.macOS(.v10_15)],
+    products: [
+        .plugin(name: "BuildFFmpeg", targets: ["BuildFFmpeg"]),
+    ],
+    targets: [
+        .plugin(
+            name: "BuildFFmpeg",
+            path: "Plugins/BuildFFmpeg",
+            capability: .command(
+                intent: .custom(
+                    verb: "BuildFFmpeg",
+                    description: "Rebuild FFmpeg 9.0 xcframeworks for iOS (device + simulator)"
+                ),
+                permissions: [
+                    .writeToPackageDirectory(reason: "Write built xcframeworks to Sources/"),
+                ]
+            )
+        )
+    ]
+)

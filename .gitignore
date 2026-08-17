@@ -4,4 +4,6 @@
 xcuserdata
 .swiftpm
 Script
-FFmpegKit
+.Script
+/FFmpegBuild/.build
+/FFmpegBuild/Sources

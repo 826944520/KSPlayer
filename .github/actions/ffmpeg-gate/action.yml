@@ -1,0 +1,48 @@
+name: FFmpeg version gate
+description: Assert the committed FFmpeg xcframeworks are 9.0 (avcodec/avformat 63, avfilter 12)
+
+inputs:
+  expected-avcodec:
+    description: Expected LIBAVCODEC_VERSION_MAJOR
+    required: false
+    default: "63"
+  expected-avformat:
+    description: Expected LIBAVFORMAT_VERSION_MAJOR
+    required: false
+    default: "63"
+  expected-avfilter:
+    description: Expected LIBAVFILTER_VERSION_MAJOR
+    required: false
+    default: "12"
+
+runs:
+  using: composite
+  steps:
+    - name: Assert FFmpeg 9.0 version_major headers
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Reads the version_major.h that lives INSIDE each committed xcframework's
+        # ios-arm64 slice, so this checks the actual linked binary version — not the
+        # "n9.0" label that only tells the rebuild plugin which tag to clone.
+        libs=(Libavcodec Libavformat Libavfilter)
+        declares=(LIBAVCODEC_VERSION_MAJOR LIBAVFORMAT_VERSION_MAJOR LIBAVFILTER_VERSION_MAJOR)
+        expected=("${{ inputs.expected-avcodec }}" "${{ inputs.expected-avformat }}" "${{ inputs.expected-avfilter }}")
+
+        for i in "${!libs[@]}"; do
+          lib="${libs[$i]}"
+          hdr=$(find "Sources/$lib.xcframework" -path '*/ios-arm64/*' -name version_major.h 2>/dev/null | head -1)
+          if [ -z "$hdr" ]; then
+            echo "::error::version_major.h not found under Sources/$lib.xcframework (missing ios-arm64 slice). Run the rebuild-ffmpeg workflow."
+            exit 1
+          fi
+          major=$(grep -E "^#define ${declares[$i]}" "$hdr" | grep -oE '[0-9]+' | head -1)
+          echo "Sources/$lib.xcframework: ${declares[$i]}=$major (expect ${expected[$i]})"
+          if [ "$major" != "${expected[$i]}" ]; then
+            echo "::error::$lib is not FFmpeg 9.0 (${declares[$i]}=$major, expect ${expected[$i]}). Run the rebuild-ffmpeg workflow to rebuild and commit the xcframeworks."
+            exit 1
+          fi
+        done
+
+        echo "FFmpeg version gate passed: avcodec/avformat ${expected[0]}, avfilter ${expected[2]}"

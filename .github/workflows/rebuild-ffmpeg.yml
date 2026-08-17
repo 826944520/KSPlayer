@@ -1,0 +1,118 @@
+name: rebuild-ffmpeg
+
+# Manual-only rebuild of the vendored FFmpeg 9.0 xcframeworks.
+#
+# Why two jobs: a push made with GITHUB_TOKEN does NOT re-trigger `on: push`
+# workflows (build.yml), so this workflow verifies the rebuild itself in the
+# `verify` job after the `rebuild` job commits and pushes the new binaries.
+#
+# The `rebuild` job runs on macos-14 (Xcode 15) rather than macos-latest: the
+# gmp/nettle/gnutls/libass autotools stack breaks against the much newer SDKs
+# shipped with Xcode 26 runners. The `verify` job needs macos-latest for the
+# iOS 26 simulator SDK.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    name: Rebuild FFmpeg 9.0 xcframeworks (ios + isimulator)
+    runs-on: macos-14
+    timeout-minutes: 360
+    env:
+      PKG_CONFIG_PATH: /usr/local/opt/libxml2/lib/pkgconfig
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          brew install pkg-config nasm meson cmake texinfo autoconf automake libtool bison wget libtasn1 libxml2
+
+      - name: Export keg-only pkg-config paths
+        run: |
+          # libxml2 is keg-only in Homebrew; FFmpeg's configure finds it via pkg-config.
+          echo "PKG_CONFIG_PATH=$(brew --prefix)/opt/libxml2/lib/pkgconfig" >> "$GITHUB_ENV"
+
+      - name: Preflight FFmpeg 9.0 configure (fail fast in ~2min)
+        run: |
+          set -euo pipefail
+          PRE="$RUNNER_TEMP/ffmpeg-preflight"
+          rm -rf "$PRE"
+          git clone --depth 1 --branch n9.0 https://github.com/FFmpeg/FFmpeg.git "$PRE"
+          cd "$PRE"
+          # Representative subset of the vendored plugin's configure flags, to catch
+          # flags/options FFmpeg 9.0 removed (and a missing libxml2) before the ~1h build.
+          ./configure --disable-doc --disable-programs --enable-static --disable-shared \
+            --disable-hwaccel=av1_vulkan,hevc_vulkan,h264_vulkan \
+            --enable-filter=yadif_videotoolbox --enable-filter=scale_vt --enable-filter=transpose_vt \
+            --enable-decoder=h264 --enable-decoder=av1 \
+            --enable-muxer=mov --enable-demuxer=mov \
+            --enable-libxml2
+
+      - name: Rebuild FFmpeg 9.0 xcframeworks
+        run: |
+          cd FFmpegBuild
+          swift package --disable-sandbox BuildFFmpeg \
+            platforms=ios,isimulator \
+            enable-gmp enable-nettle enable-gnutls \
+            enable-libdav1d enable-libfreetype enable-libfribidi enable-libharfbuzz enable-libass \
+            enable-FFmpeg
+
+      - name: Stage xcframeworks into main package Sources/
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE"
+          # Explicit list (15) — Libavdevice is deliberately not vendored.
+          for LIB in Libavcodec Libavfilter Libavformat Libavutil Libswresample Libswscale \
+                     libdav1d libfreetype libfribidi libharfbuzz libass gmp nettle hogweed gnutls; do
+            [ -d "FFmpegBuild/Sources/$LIB.xcframework" ] || {
+              echo "::error::FFmpegBuild/Sources/$LIB.xcframework not produced by the plugin"; exit 1
+            }
+            rm -rf "Sources/$LIB.xcframework"
+            cp -R "FFmpegBuild/Sources/$LIB.xcframework" Sources/
+          done
+
+      - name: FFmpeg version gate (before commit)
+        uses: ./.github/actions/ffmpeg-gate
+
+      - name: Commit and push rebuilt xcframeworks
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config http.postBuffer 524288000
+          git add Sources/*.xcframework
+          if git diff --cached --quiet; then
+            echo "No changes to commit (binaries already up to date)."
+          else
+            git commit -m "Rebuild FFmpeg 9.0 xcframeworks (ios + isimulator)"
+            git push
+          fi
+
+  verify:
+    name: Verify rebuilt FFmpeg (gate + iOS Simulator build)
+    needs: rebuild
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        run: |
+          XCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)
+          if [ -n "$XCODE_APP" ]; then
+            sudo xcode-select -s "/Applications/$XCODE_APP/Contents/Developer"
+          fi
+          xcode-select -p
+          xcodebuild -version
+
+      - name: Resolve package
+        run: swift package resolve
+
+      - name: FFmpeg version gate (63/63/12)
+        uses: ./.github/actions/ffmpeg-gate
+
+      - name: Build iOS Simulator
+        run: swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator
