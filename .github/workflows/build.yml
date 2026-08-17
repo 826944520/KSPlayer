@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-ios:
-    name: Build iOS Simulator + FFmpeg 9.0 version gate
+    name: Build iOS Simulator + FFmpeg version gate
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,11 +24,34 @@ jobs:
           xcode-select -p
           xcodebuild -version
 
-      - name: Resolve package (fully offline — FFmpeg 9.0 xcframeworks vendored in Sources/)
+      - name: Resolve package
         run: swift package resolve
 
-      - name: FFmpeg version gate (committed xcframeworks, 63/63/12)
-        uses: ./.github/actions/ffmpeg-gate
+      - name: FFmpeg version gate (header-level, resolved FFmpegKit checkout)
+        run: |
+          set -e
+          # kingslay/FFmpegKit 6.1.4 is resolved under .build/checkouts/FFmpegKit.
+          # version_major.h lives INSIDE the committed xcframework binary, so this
+          # checks the actually-linked binary version, not the "n6.1.4" tag label.
+          AVC_HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavcodec.xcframework -name version_major.h -path '*ios-arm64*' 2>/dev/null | head -1)
+          AVF_HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavformat.xcframework -name version_major.h -path '*ios-arm64*' 2>/dev/null | head -1)
+          AVFILTER_HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavfilter.xcframework -name version_major.h -path '*ios-arm64*' 2>/dev/null | head -1)
+          echo "avcodec header:   $AVC_HDR"
+          echo "avformat header:  $AVF_HDR"
+          echo "avfilter header:  $AVFILTER_HDR"
+          if [ -z "$AVC_HDR" ] || [ -z "$AVF_HDR" ] || [ -z "$AVFILTER_HDR" ]; then
+            echo "::error::version_major.h not found — FFmpegKit xcframeworks missing the ios-arm64 slice"
+            exit 1
+          fi
+          AVC=$(grep -E '^#define LIBAVCODEC_VERSION_MAJOR' "$AVC_HDR" | grep -oE '[0-9]+' | head -1)
+          AVF=$(grep -E '^#define LIBAVFORMAT_VERSION_MAJOR' "$AVF_HDR" | grep -oE '[0-9]+' | head -1)
+          AVFILTER=$(grep -E '^#define LIBAVFILTER_VERSION_MAJOR' "$AVFILTER_HDR" | grep -oE '[0-9]+' | head -1)
+          echo "LIBAVCODEC_VERSION_MAJOR=$AVC  (expect 60)"
+          echo "LIBAVFORMAT_VERSION_MAJOR=$AVF  (expect 60)"
+          echo "LIBAVFILTER_VERSION_MAJOR=$AVFILTER  (expect 9)"
+          [ "$AVC" = "60" ] || { echo "::error::FFmpeg avcodec major != 60 (got $AVC)"; exit 1; }
+          [ "$AVF" = "60" ] || { echo "::error::FFmpeg avformat major != 60 (got $AVF)"; exit 1; }
+          [ "$AVFILTER" = "9" ] || { echo "::error::FFmpeg avfilter major != 9 (got $AVFILTER)"; exit 1; }
 
       - name: Build iOS Simulator
         run: swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator
