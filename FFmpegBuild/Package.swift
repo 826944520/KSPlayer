@@ -26,9 +26,12 @@ let package = Package(
                     verb: "BuildFFmpeg",
                     description: "Rebuild FFmpeg 9.0 xcframeworks for iOS (device + simulator)"
                 ),
-                permissions: [
-                    .writeToPackageDirectory(reason: "Write built xcframeworks to Sources/"),
-                ]
+                // No declared permissions: the workflow invokes the plugin with
+                // `--disable-sandbox`, which lifts all write restrictions. Declaring
+                // `.writeToPackageDirectory` here instead makes SwiftPM demand an
+                // explicit `--allow-writing-to-package-directory`, which would fail
+                // (matching the upstream fork, which keeps this list empty).
+                permissions: []
             )
         )
     ]
