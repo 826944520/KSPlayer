@@ -292,13 +292,13 @@ public extension KSVideoPlayer {
         return self
     }
 
-    func onPlay(_ handler: @escaping (TimeInterval, TimeInterval) -> Void) -> Self {
+    public func onPlay(_ handler: @escaping (TimeInterval, TimeInterval) -> Void) -> Self {
         coordinator.onPlay = handler
         return self
     }
 
 
-    func onStateChanged(_ handler: @escaping (KSPlayerLayer, KSPlayerState) -> Void) -> Self {
+    public func onStateChanged(_ handler: @escaping (KSPlayerLayer, KSPlayerState) -> Void) -> Self {
         coordinator.onStateChanged = handler
         return self
     }

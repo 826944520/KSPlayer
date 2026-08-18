@@ -39,15 +39,10 @@ struct PlayerView: View {
 
             if let url = urls.indices.contains(currentIndex) ? urls[currentIndex] : urls.first {
                 KSVideoPlayer(coordinator: coordinator, url: url, options: options)
-                    .ignoresSafeArea()
-                    .onAppear {
-                        // Feed the layer the full playlist so
-                        // KSPlayerLayer.next()/previous() can advance it. Only
-                        // when still on the first URL, to avoid a restart.
-                        if let layer = coordinator.playerLayer, layer.url == urls.first {
-                            layer.set(urls: urls, options: options)
-                        }
-                    }
+                    // onStateChanged/onPlay are struct methods on KSVideoPlayer
+                    // (returning Self), so they must precede the generic View
+                    // modifiers below — otherwise the type erases to some View
+                    // and the members vanish.
                     .onStateChanged { _, state in
                         stateLabel = "\(state)"
                         isPlaying = state.isPlaying
@@ -58,6 +53,15 @@ struct PlayerView: View {
                     .onPlay { current, total in
                         currentTime = current
                         totalTime = total
+                    }
+                    .ignoresSafeArea()
+                    .onAppear {
+                        // Feed the layer the full playlist so
+                        // KSPlayerLayer.next()/previous() can advance it. Only
+                        // when still on the first URL, to avoid a restart.
+                        if let layer = coordinator.playerLayer, layer.url == urls.first {
+                            layer.set(urls: urls, options: options)
+                        }
                     }
             }
 
