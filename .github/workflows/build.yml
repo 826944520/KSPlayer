@@ -58,11 +58,8 @@ jobs:
           set -o pipefail
           if ! swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` \
             -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator 2>&1 | tee /tmp/build.log; then
-            ERR=$(grep -nE -B1 -A6 "error:" /tmp/build.log | head -80)
-            if [ -z "$ERR" ]; then
-              ERR="no 'error:' lines found; tail:%0A$(tail -40 /tmp/build.log | sed 's/$/%0A/')"
-            fi
-            echo "::error::swift build FAILED%0A${ERR}"
+            echo "::error::swift build FAILED (first error/note lines):"
+            grep -nE "error:|note:" /tmp/build.log | head -9 | sed 's/^/::error::/'
             exit 1
           fi
 
