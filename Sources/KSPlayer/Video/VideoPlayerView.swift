@@ -87,6 +87,11 @@ open class VideoPlayerView: PlayerView {
     public var seekToView: UIView & SeekViewProtocol = SeekView()
     public var replayButton = UIButton()
     public var lockButton = UIButton()
+    public var errorView = UIView()
+    private var lastError: Error?
+    private let errorTitleLabel = UILabel()
+    private let errorDetailLabel = UILabel()
+    private let errorRetryButton = UIButton()
     public var isLock: Bool { lockButton.isSelected }
     open var isMaskShow = true {
         didSet {
@@ -223,6 +228,47 @@ open class VideoPlayerView: PlayerView {
         }
         lockButton.tintColor = .white
         replayButton.tintColor = .white
+        // Error/retry card: title + message + retry, shown when the player lands
+        // in .error after both player types have failed. Persistent (not tied to
+        // isMaskShow) so the message is not lost when the user toggles the masks.
+        controllerView.addSubview(errorView)
+        errorView.isHidden = true
+        errorView.backgroundColor = UIColor.black.withAlphaComponent(0.55)
+        errorView.cornerRadius = 10
+        errorView.clipsToBounds = true
+        errorView.addSubview(errorTitleLabel)
+        errorView.addSubview(errorDetailLabel)
+        errorView.addSubview(errorRetryButton)
+        errorTitleLabel.text = NSLocalizedString("Playback Failed", comment: "")
+        errorTitleLabel.textColor = .white
+        errorTitleLabel.font = .systemFont(ofSize: 15, weight: .semibold)
+        errorTitleLabel.textAlignment = .center
+        errorDetailLabel.textColor = UIColor.white.withAlphaComponent(0.8)
+        errorDetailLabel.font = .systemFont(ofSize: 12)
+        errorDetailLabel.numberOfLines = 0
+        errorDetailLabel.textAlignment = .center
+        errorRetryButton.setTitle(NSLocalizedString("Retry", comment: ""), for: .normal)
+        errorRetryButton.setTitleColor(.white, for: .normal)
+        errorRetryButton.backgroundColor = UIColor.white.withAlphaComponent(0.25)
+        errorRetryButton.cornerRadius = 18
+        errorRetryButton.titleFont = .systemFont(ofSize: 14, weight: .medium)
+        errorRetryButton.addTarget(self, action: #selector(retryPlayback), for: .primaryActionTriggered)
+        errorTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        errorDetailLabel.translatesAutoresizingMaskIntoConstraints = false
+        errorRetryButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            errorTitleLabel.topAnchor.constraint(equalTo: errorView.topAnchor, constant: 18),
+            errorTitleLabel.leadingAnchor.constraint(equalTo: errorView.leadingAnchor, constant: 18),
+            errorTitleLabel.trailingAnchor.constraint(equalTo: errorView.trailingAnchor, constant: -18),
+            errorDetailLabel.topAnchor.constraint(equalTo: errorTitleLabel.bottomAnchor, constant: 8),
+            errorDetailLabel.leadingAnchor.constraint(equalTo: errorView.leadingAnchor, constant: 18),
+            errorDetailLabel.trailingAnchor.constraint(equalTo: errorView.trailingAnchor, constant: -18),
+            errorRetryButton.topAnchor.constraint(equalTo: errorDetailLabel.bottomAnchor, constant: 16),
+            errorRetryButton.centerXAnchor.constraint(equalTo: errorView.centerXAnchor),
+            errorRetryButton.widthAnchor.constraint(equalToConstant: 100),
+            errorRetryButton.heightAnchor.constraint(equalToConstant: 36),
+            errorRetryButton.bottomAnchor.constraint(equalTo: errorView.bottomAnchor, constant: -16),
+        ])
         controllerView.addSubview(lockButton)
         controllerView.addSubview(topMaskView)
         controllerView.addSubview(bottomMaskView)
@@ -308,6 +354,8 @@ open class VideoPlayerView: PlayerView {
         super.player(layer: layer, state: state)
         switch state {
         case .readyToPlay:
+            lastError = nil
+            errorView.isHidden = true
             toolBar.timeSlider.isPlayable = true
             startThumbnailGeneration()
             toolBar.videoSwitchButton.isHidden = layer.player.tracks(mediaType: .video).count < 2
@@ -340,7 +388,7 @@ open class VideoPlayerView: PlayerView {
             replayButton.isSelected = false
             hideLoader()
             autoFadeOutViewWithAnimation()
-        case .paused, .playedToTheEnd, .error:
+        case .paused, .playedToTheEnd:
             hideLoader()
             replayButton.isHidden = false
             seekToView.isHidden = true
@@ -349,9 +397,24 @@ open class VideoPlayerView: PlayerView {
             if state == .playedToTheEnd {
                 replayButton.isSelected = true
             }
+        case .error:
+            hideLoader()
+            replayButton.isHidden = true
+            replayButton.isSelected = false
+            seekToView.isHidden = true
+            delayItem?.cancel()
+            isMaskShow = true
+            showErrorView()
         case .initialized, .preparing:
             break
         }
+    }
+
+    override open func player(layer: KSPlayerLayer, finish error: Error?) {
+        if let error {
+            lastError = error
+        }
+        super.player(layer: layer, finish: error)
     }
 
     override open func resetPlayer() {
@@ -359,6 +422,8 @@ open class VideoPlayerView: PlayerView {
         thumbnailGenerationTask = nil
         thumbnailTimeline = []
         hideScrubPreview()
+        lastError = nil
+        errorView.isHidden = true
         super.resetPlayer()
         delayItem = nil
         toolBar.reset()
@@ -873,6 +938,31 @@ extension VideoPlayerView {
         loadingIndector.stopAnimating()
     }
 
+    private func showErrorView() {
+        if let lastError {
+            errorDetailLabel.text = errorDescription(lastError)
+        } else {
+            errorDetailLabel.text = NSLocalizedString("Unknown Error", comment: "")
+        }
+        errorView.isHidden = false
+    }
+
+    private func errorDescription(_ error: Error) -> String {
+        if let nserr = error as? NSError {
+            return "\(nserr.localizedDescription) (\(nserr.domain) \(nserr.code))"
+        }
+        return error.localizedDescription
+    }
+
+    @objc private func retryPlayback() {
+        guard !errorView.isHidden else { return }
+        lastError = nil
+        errorView.isHidden = true
+        showLoader()
+        // KSPlayerLayer.play() re-prepares when state == .error.
+        playerLayer?.play()
+    }
+
     private func addConstraint() {
         if #available(macOS 11.0, *) {
             #if !targetEnvironment(macCatalyst)
@@ -922,6 +1012,7 @@ extension VideoPlayerView {
         seekToView.translatesAutoresizingMaskIntoConstraints = false
         replayButton.translatesAutoresizingMaskIntoConstraints = false
         lockButton.translatesAutoresizingMaskIntoConstraints = false
+        errorView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             contentOverlayView.topAnchor.constraint(equalTo: topAnchor),
             contentOverlayView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -953,6 +1044,10 @@ extension VideoPlayerView {
             replayButton.centerXAnchor.constraint(equalTo: centerXAnchor),
             lockButton.leadingAnchor.constraint(equalTo: safeLeadingAnchor, constant: 22),
             lockButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            errorView.centerXAnchor.constraint(equalTo: controllerView.centerXAnchor),
+            errorView.centerYAnchor.constraint(equalTo: controllerView.centerYAnchor),
+            errorView.widthAnchor.constraint(equalToConstant: 280),
+            errorView.heightAnchor.constraint(greaterThanOrEqualToConstant: 110),
             progressOverlay.leadingAnchor.constraint(equalTo: toolBar.timeSlider.leadingAnchor),
             progressOverlay.trailingAnchor.constraint(equalTo: toolBar.timeSlider.trailingAnchor),
             progressOverlay.bottomAnchor.constraint(equalTo: toolBar.timeSlider.bottomAnchor),
