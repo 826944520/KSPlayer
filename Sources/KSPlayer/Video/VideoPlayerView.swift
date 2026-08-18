@@ -424,15 +424,29 @@ open class VideoPlayerView: PlayerView {
     override open func player(layer: KSPlayerLayer, finish error: Error?) {
         if let error {
             lastError = error
+            // KSPlayerLayer.finish dispatches state == .error before
+            // finish(error:) here, so showErrorView() in the state handler only
+            // had the generic "Unknown Error". Re-render now that the real
+            // error is available.
+            if layer.state == .error {
+                showErrorView()
+            }
         }
         super.player(layer: layer, finish: error)
     }
 
-    override open func resetPlayer() {
+    /// Drop any in-flight or completed scrub thumbnails. Called on teardown and
+    /// on every URL switch (definition/resource) so a pass that finishes after
+    /// the switch can't populate the timeline with the previous media's frames.
+    private func invalidateScrubThumbnails() {
         thumbnailGenerationTask?.cancel()
         thumbnailGenerationTask = nil
         thumbnailTimeline = []
         hideScrubPreview()
+    }
+
+    override open func resetPlayer() {
+        invalidateScrubThumbnails()
         lastError = nil
         errorView.isHidden = true
         super.resetPlayer()
@@ -477,6 +491,7 @@ open class VideoPlayerView: PlayerView {
         }
         currentDefinition = definitionIndex >= resource.definitions.count ? resource.definitions.count - 1 : definitionIndex
         let asset = resource.definitions[currentDefinition]
+        invalidateScrubThumbnails()
         super.set(url: asset.url, options: asset.options)
         if shouldSeekTo > 0 {
             seek(time: shouldSeekTo) { _ in }
@@ -487,6 +502,7 @@ open class VideoPlayerView: PlayerView {
         currentDefinition = definitionIndex >= resource.definitions.count ? resource.definitions.count - 1 : definitionIndex
         if isSetUrl {
             let asset = resource.definitions[currentDefinition]
+            invalidateScrubThumbnails()
             super.set(url: asset.url, options: asset.options)
         }
         self.resource = resource

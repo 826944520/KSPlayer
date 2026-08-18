@@ -280,6 +280,13 @@ private class VRDisplayModel: SphereDisplayModel {
         return projectionMatrix * viewMatrix
     }
 
+    // Ring sized to one renderer's in-flight budget (3 = MetalRender's
+    // inflightSemaphore). The display models are process-wide singletons, so if
+    // two+ VR layers render concurrently each can hold 3 frames while the shared
+    // ring has only 3 slots — a slot could be overwritten while an earlier
+    // renderer's GPU pass still reads it (rare, cosmetic geometry tearing).
+    // Acceptable for the single-active-VR-player case; revisit if multi-player
+    // VR matters.
     private let matrixBufferRing = MatrixBufferRing(count: 3)
 
     override required init() {

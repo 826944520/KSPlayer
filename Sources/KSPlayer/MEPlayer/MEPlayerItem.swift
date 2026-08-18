@@ -7,6 +7,13 @@ import Libavcodec
 import Libavfilter
 import Libavformat
 
+/// True for HLS playlists. Uses the path extension (which excludes the query
+/// string) so `index.m3u8?token=…` is still detected, unlike a raw
+/// `absoluteString.hasSuffix(".m3u8")`.
+fileprivate func isHLSURL(_ url: URL) -> Bool {
+    url.pathExtension.lowercased().hasSuffix("m3u8")
+}
+
 public final class MEPlayerItem: Sendable {
     private let url: URL
     private let options: KSOptions
@@ -186,20 +193,22 @@ extension MEPlayerItem {
         formatCtx.pointee.interrupt_callback = interruptCB
 
         setHttpProxy()
-        var avOptions = options.formatContextOptions.avOptions
         let urlString: String
         if url.isFileURL {
             urlString = url.path
-        } else if options.cache, KSOptions.isCacheProtocolAvailable, !url.absoluteString.hasSuffix(".m3u8") {
+        } else if options.cache, KSOptions.isCacheProtocolAvailable, !isHLSURL(url) {
             // FFmpeg's cache: protocol spools a progressive download to a local
             // file (anti-jitter + fast reopen on seek-back). Scoped to
             // progressive files: for HLS the prefix would only cache the
             // playlist — segment requests bypass the parent protocol.
+            // cache_dir must be set BEFORE the avOptions snapshot below —
+            // avformat_open_input reads cache_dir out of that dictionary.
             options.formatContextOptions["cache_dir"] = options.cacheDirectory.path
             urlString = "cache:" + url.absoluteString
         } else {
             urlString = url.absoluteString
         }
+        var avOptions = options.formatContextOptions.avOptions
         if let pb = options.process(url: url) {
 
             formatCtx.pointee.pb = pb.getContext()

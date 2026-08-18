@@ -22,6 +22,7 @@ struct PlayerView: View {
     @State private var isPlaying = true
     @State private var currentTime: Double = 0
     @State private var totalTime: Double = 0
+    @State private var isScrubbing = false
     @State private var showDebug = false
     @State private var showHint = !UserDefaults.standard.bool(forKey: "ksp.doubleTapHintDismissed")
 
@@ -51,15 +52,22 @@ struct PlayerView: View {
                         }
                     }
                     .onPlay { current, total in
-                        currentTime = current
                         totalTime = total
+                        // Don't fight the user's scrub gesture: live position
+                        // updates would yank the thumb back mid-drag.
+                        if !isScrubbing {
+                            currentTime = current
+                        }
                     }
                     .ignoresSafeArea()
                     .onAppear {
                         // Feed the layer the full playlist so
                         // KSPlayerLayer.next()/previous() can advance it. Only
-                        // when still on the first URL, to avoid a restart.
-                        if let layer = coordinator.playerLayer, layer.url == urls.first {
+                        // when the layer is still on the entry URL, to avoid a
+                        // restart. `set(urls:)` always switches to the first
+                        // item, so this only feeds when the entry index is 0
+                        // (the demo's case).
+                        if let layer = coordinator.playerLayer, layer.url == urls[currentIndex] {
                             layer.set(urls: urls, options: options)
                         }
                     }
@@ -120,9 +128,18 @@ struct PlayerView: View {
                     Slider(
                         value: Binding(
                             get: { currentTime },
-                            set: { coordinator.seek(time: $0) }
+                            // Update locally while dragging so the thumb follows
+                            // the finger smoothly; the actual seek happens once
+                            // on release (onEditingChanged).
+                            set: { currentTime = $0 }
                         ),
-                        in: 0...totalTime
+                        in: 0...totalTime,
+                        onEditingChanged: { editing in
+                            isScrubbing = editing
+                            if !editing {
+                                coordinator.seek(time: currentTime)
+                            }
+                        }
                     )
                     .tint(.white)
                     HStack {
