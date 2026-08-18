@@ -116,6 +116,7 @@ open class VideoPlayerView: PlayerView {
     private var rotationAngle: CGFloat = 0
     private var isMirrored = false
     private var zoomScale: CGFloat = 1
+    private var zoomBaseScale: CGFloat = 1
 
     public let speedTipLabel: UILabel = {
         let label = UILabel()
@@ -614,7 +615,22 @@ open class VideoPlayerView: PlayerView {
     public let pinchGesture = UIPinchGestureRecognizer()
     private var vrFovBase = KSOptions.vrFov
     @objc open func pinchGestureAction(_ gesture: UIPinchGestureRecognizer) {
-        guard let options = playerLayer?.options, options.display != .plane else { return }
+        guard let options = playerLayer?.options else { return }
+        if options.display == .plane {
+            // Plane zoom is opt-in (KSOptions.enableZoomGestures, default off).
+            guard KSOptions.enableZoomGestures else { return }
+            switch gesture.state {
+            case .began:
+                zoomBaseScale = zoomScale
+            case .changed:
+                zoomScale = min(max(zoomBaseScale * gesture.scale, 1.0), 4.0)
+                applyVideoTransform(animated: false)
+            default:
+                break
+            }
+            return
+        }
+        // VR / VRBox: existing FOV adjustment.
         switch gesture.state {
         case .began:
             vrFovBase = KSOptions.vrFov
@@ -752,14 +768,18 @@ extension VideoPlayerView {
         applyVideoTransform()
     }
 
-    open func applyVideoTransform() {
+    open func applyVideoTransform(animated: Bool = true) {
         var transform = CGAffineTransform.identity.scaledBy(x: zoomScale, y: zoomScale)
         if isMirrored {
             transform = transform.scaledBy(x: -1, y: 1)
         }
         transform = transform.rotated(by: rotationAngle)
-        UIView.animate(withDuration: 0.25) {
-            self.playerLayer?.player.view?.transform = transform
+        if animated {
+            UIView.animate(withDuration: 0.25) {
+                self.playerLayer?.player.view?.transform = transform
+            }
+        } else {
+            playerLayer?.player.view?.transform = transform
         }
     }
 
@@ -767,6 +787,7 @@ extension VideoPlayerView {
         rotationAngle = 0
         isMirrored = false
         zoomScale = 1
+        zoomBaseScale = 1
         playerLayer?.player.view?.transform = .identity
     }
     #endif
