@@ -16,9 +16,9 @@ public extension KSOptions {
 /// Preallocated pool of per-frame vertex matrices. Sized to the maximum number
 /// of frames in flight (MetalRender.draw's inflight semaphore = 3, times the
 /// matrices each frame needs), so a slot is never rewritten while the GPU is
-/// still reading the previous use. set(encoder:) runs on the main actor, so the
-/// ring index cannot race a pending draw.
-private final class MatrixBufferRing {
+/// still reading the previous use. set(encoder:ring:) runs on the main actor, so
+/// the ring index cannot race a pending draw.
+final class MatrixBufferRing {
     private let buffers: [MTLBuffer]
     private var index = 0
 
@@ -39,14 +39,14 @@ extension DisplayEnum {
     private static var vrDiaplay = VRDisplayModel()
     private static var vrBoxDiaplay = VRBoxDisplayModel()
 
-    func set(encoder: MTLRenderCommandEncoder) {
+    func set(encoder: MTLRenderCommandEncoder, ring: MatrixBufferRing) {
         switch self {
         case .plane:
-            DisplayEnum.planeDisplay.set(encoder: encoder)
+            DisplayEnum.planeDisplay.set(encoder: encoder, ring: ring)
         case .vr:
-            DisplayEnum.vrDiaplay.set(encoder: encoder)
+            DisplayEnum.vrDiaplay.set(encoder: encoder, ring: ring)
         case .vrBox:
-            DisplayEnum.vrBoxDiaplay.set(encoder: encoder)
+            DisplayEnum.vrBoxDiaplay.set(encoder: encoder, ring: ring)
         }
     }
 
@@ -115,7 +115,7 @@ private class PlaneDisplayModel {
         return (indices, positions, uvs)
     }
 
-    func set(encoder: MTLRenderCommandEncoder) {
+    func set(encoder: MTLRenderCommandEncoder, ring _: MatrixBufferRing) {
         encoder.setFrontFacing(.clockwise)
         encoder.setVertexBuffer(posBuffer, offset: 0, index: 0)
         encoder.setVertexBuffer(uvBuffer, offset: 0, index: 1)
@@ -188,7 +188,7 @@ private class SphereDisplayModel {
         #endif
     }
 
-    func set(encoder: MTLRenderCommandEncoder) {
+    func set(encoder: MTLRenderCommandEncoder, ring _: MatrixBufferRing) {
         encoder.setFrontFacing(.clockwise)
         encoder.setVertexBuffer(posBuffer, offset: 0, index: 0)
         encoder.setVertexBuffer(uvBuffer, offset: 0, index: 1)
@@ -306,22 +306,13 @@ private class VRDisplayModel: SphereDisplayModel {
         return projectionMatrix * viewMatrix
     }
 
-    // Ring sized to one renderer's in-flight budget (3 = MetalRender's
-    // inflightSemaphore). The display models are process-wide singletons, so if
-    // two+ VR layers render concurrently each can hold 3 frames while the shared
-    // ring has only 3 slots — a slot could be overwritten while an earlier
-    // renderer's GPU pass still reads it (rare, cosmetic geometry tearing).
-    // Acceptable for the single-active-VR-player case; revisit if multi-player
-    // VR matters.
-    private let matrixBufferRing = MatrixBufferRing(count: 3)
-
     override required init() {
         super.init()
     }
 
-    override func set(encoder: MTLRenderCommandEncoder) {
-        super.set(encoder: encoder)
-        let matrixBuffer = matrixBufferRing.next()
+    override func set(encoder: MTLRenderCommandEncoder, ring: MatrixBufferRing) {
+        super.set(encoder: encoder, ring: ring)
+        let matrixBuffer = ring.next()
         var matrix = modelViewProjectionMatrix * modelViewMatrix
         matrixBuffer.contents().copyMemory(from: &matrix, byteCount: MemoryLayout<simd_float4x4>.size)
         encoder.setVertexBuffer(matrixBuffer, offset: 0, index: 2)
@@ -347,20 +338,18 @@ private class VRBoxDisplayModel: SphereDisplayModel {
         return projectionMatrix * viewMatrixRight
     }
 
-    private let matrixBufferRing = MatrixBufferRing(count: 6)
-
     override required init() {
         super.init()
     }
 
-    override func set(encoder: MTLRenderCommandEncoder) {
-        super.set(encoder: encoder)
+    override func set(encoder: MTLRenderCommandEncoder, ring: MatrixBufferRing) {
+        super.set(encoder: encoder, ring: ring)
         let layerSize = KSOptions.sceneSize
         let width = Double(layerSize.width / 2)
         [(modelViewProjectionMatrixLeft, MTLViewport(originX: 0, originY: 0, width: width, height: Double(layerSize.height), znear: 0, zfar: 0)),
          (modelViewProjectionMatrixRight, MTLViewport(originX: width, originY: 0, width: width, height: Double(layerSize.height), znear: 0, zfar: 0))].forEach { modelViewProjectionMatrix, viewport in
             encoder.setViewport(viewport)
-            let matrixBuffer = matrixBufferRing.next()
+            let matrixBuffer = ring.next()
             var matrix = modelViewProjectionMatrix * modelViewMatrix
             matrixBuffer.contents().copyMemory(from: &matrix, byteCount: MemoryLayout<simd_float4x4>.size)
             encoder.setVertexBuffer(matrixBuffer, offset: 0, index: 2)

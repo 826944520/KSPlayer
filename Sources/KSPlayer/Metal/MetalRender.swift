@@ -30,6 +30,10 @@ class MetalRender {
     // MetalView.init). A slow GPU throttles the CPU via this semaphore instead of
     // stalling the main thread on waitUntilCompleted() every frame.
     private let inflightSemaphore = DispatchSemaphore(value: 3)
+    // Per-renderer (per-MetalView) vertex-matrix pool, so concurrent renderers
+    // never share a ring. 6 slots = max matrices per frame (VRBox: 2) × frames
+    // in flight (3). Plane/VR use fewer; unused slots are just idle memory.
+    private let matrixBufferRing = MatrixBufferRing(count: 6)
     private lazy var samplerState: MTLSamplerState? = {
         let samplerDescriptor = MTLSamplerDescriptor()
         samplerDescriptor.minFilter = .linear
@@ -123,16 +127,17 @@ class MetalRender {
             var type = transferType
             encoder.setFragmentBytes(&type, length: MemoryLayout<Int32>.size, index: 3)
         }
-        display.set(encoder: encoder)
+        display.set(encoder: encoder, ring: matrixBufferRing)
         encoder.popDebugGroup()
         encoder.endEncoding()
         commandBuffer.present(drawable)
         commandBuffer.commit()
-        // Retain the backing CVPixelBuffer until the GPU is done sampling it.
-        // Previously waitUntilCompleted() pinned the pixel buffer implicitly;
-        // without that barrier the IOSurface could be recycled mid-draw.
-        commandBuffer.addCompletedHandler { [inflightSemaphore, cvPixelBuffer] _ in
-            _ = cvPixelBuffer
+        // Retain the CVMetalTexture wrappers (and thus their backing IOSurface)
+        // until the GPU is done sampling them. Previously waitUntilCompleted()
+        // pinned them implicitly; without that barrier the IOSurface could be
+        // recycled mid-draw.
+        commandBuffer.addCompletedHandler { [inflightSemaphore, cvTextures] _ in
+            _ = cvTextures
             inflightSemaphore.signal()
         }
     }
