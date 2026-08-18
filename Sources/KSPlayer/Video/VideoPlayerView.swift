@@ -113,6 +113,9 @@ open class VideoPlayerView: PlayerView {
     }
 
     private var originalPlaybackRate: Float = 1.0
+    private var rotationAngle: CGFloat = 0
+    private var isMirrored = false
+    private var zoomScale: CGFloat = 1
 
     public let speedTipLabel: UILabel = {
         let label = UILabel()
@@ -166,6 +169,13 @@ open class VideoPlayerView: PlayerView {
                 playerLayer?.isPipActive.toggle()
             }
         }
+        #if canImport(UIKit)
+        if type == .rotate {
+            rotateVideo()
+        } else if type == .mirror {
+            mirrorVideo()
+        }
+        #endif
         #if os(tvOS)
         if type == .srt {
             changeSrt(button: button)
@@ -434,6 +444,9 @@ open class VideoPlayerView: PlayerView {
         seekToView.isHidden = true
         isPlayed = false
         lockButton.isSelected = false
+        #if canImport(UIKit)
+        resetVideoTransform()
+        #endif
     }
 
 
@@ -689,9 +702,74 @@ extension VideoPlayerView {
         toolBar.audioSwitchButton.showsMenuAsPrimaryAction = true
         toolBar.playbackRateButton.showsMenuAsPrimaryAction = true
         toolBar.srtButton.showsMenuAsPrimaryAction = true
+        toolBar.settingsButton.showsMenuAsPrimaryAction = true
         #endif
+        toolBar.settingsButton.menu = settingsMenu()
         #endif
     }
+
+    @available(iOS 14.0, tvOS 15.0, *)
+    func settingsMenu() -> UIMenu {
+        UIMenu(title: NSLocalizedString("settings", comment: ""), children: [
+            UIAction(title: NSLocalizedString("double-tap seek", comment: ""),
+                     state: KSOptions.doubleTapZoneSeek ? .on : .off) { [weak self] _ in
+                KSOptions.doubleTapZoneSeek.toggle()
+                self?.refreshSettingsMenu()
+            },
+            UIAction(title: NSLocalizedString("scrub preview", comment: ""),
+                     state: KSOptions.enableScrubPreview ? .on : .off) { [weak self] _ in
+                KSOptions.enableScrubPreview.toggle()
+                self?.refreshSettingsMenu()
+            },
+            UIAction(title: NSLocalizedString("hardware decode", comment: ""),
+                     state: KSOptions.hardwareDecode ? .on : .off) { [weak self] _ in
+                KSOptions.hardwareDecode.toggle()
+                self?.refreshSettingsMenu()
+            },
+            UIAction(title: NSLocalizedString("pinch zoom", comment: ""),
+                     state: KSOptions.enableZoomGestures ? .on : .off) { [weak self] _ in
+                KSOptions.enableZoomGestures.toggle()
+                self?.refreshSettingsMenu()
+            },
+        ])
+    }
+
+    private func refreshSettingsMenu() {
+        #if !os(tvOS)
+        toolBar.settingsButton.menu = settingsMenu()
+        #endif
+    }
+
+    #if canImport(UIKit)
+    open func rotateVideo() {
+        rotationAngle += .pi / 2
+        rotationAngle = rotationAngle.truncatingRemainder(dividingBy: 2 * .pi)
+        applyVideoTransform()
+    }
+
+    open func mirrorVideo() {
+        isMirrored.toggle()
+        applyVideoTransform()
+    }
+
+    open func applyVideoTransform() {
+        var transform = CGAffineTransform.identity.scaledBy(x: zoomScale, y: zoomScale)
+        if isMirrored {
+            transform = transform.scaledBy(x: -1, y: 1)
+        }
+        transform = transform.rotated(by: rotationAngle)
+        UIView.animate(withDuration: 0.25) {
+            self.playerLayer?.player.view?.transform = transform
+        }
+    }
+
+    open func resetVideoTransform() {
+        rotationAngle = 0
+        isMirrored = false
+        zoomScale = 1
+        playerLayer?.player.view?.transform = .identity
+    }
+    #endif
 }
 
 
@@ -1093,6 +1171,10 @@ extension VideoPlayerView {
         toolBar.videoSwitchButton.tintColor = .white
         toolBar.srtButton.tintColor = .white
         toolBar.pipButton.tintColor = .white
+        toolBar.settingsButton.tintColor = .white
+        toolBar.rotateButton.tintColor = .white
+        toolBar.mirrorButton.tintColor = .white
+        toolBar.volumeSlider.tintColor = .white
 
         toolBar.spacing = 10
         toolBar.addArrangedSubview(toolBar.playButton)
@@ -1103,6 +1185,10 @@ extension VideoPlayerView {
         toolBar.addArrangedSubview(toolBar.videoSwitchButton)
         toolBar.addArrangedSubview(toolBar.srtButton)
         toolBar.addArrangedSubview(toolBar.pipButton)
+        toolBar.addArrangedSubview(toolBar.volumeSlider)
+        toolBar.addArrangedSubview(toolBar.settingsButton)
+        toolBar.addArrangedSubview(toolBar.rotateButton)
+        toolBar.addArrangedSubview(toolBar.mirrorButton)
 
         toolBar.setCustomSpacing(20, after: toolBar.timeLabel)
         toolBar.setCustomSpacing(20, after: toolBar.playbackRateButton)

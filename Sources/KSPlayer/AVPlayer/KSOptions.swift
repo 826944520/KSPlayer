@@ -454,6 +454,10 @@ public extension KSOptions {
     /// Lazy, capped generation (40 frames); off = plain SeekView feedback.
     public static var enableScrubPreview = true
 
+    /// Two-finger pinch zoom on the video view (plane mode only). Off by default
+    /// because it changes gesture behavior; the demo app can enable it.
+    public static var enableZoomGestures = false
+
     static var logLevel = LogLevel.warning
     static var logger: LogHandler = OSLog(lable: "KSPlayer")
     internal static func deviceCpuCount() -> Int {

@@ -20,6 +20,10 @@ public class PlayerToolBar: UIStackView {
     public let audioSwitchButton = UIButton()
     public let definitionButton = UIButton()
     public let pipButton = UIButton()
+    public let volumeSlider = UXSlider()
+    public let settingsButton = UIButton()
+    public let rotateButton = UIButton()
+    public let mirrorButton = UIButton()
     public var onFocusUpdate: ((_ cofusedItem: UIView) -> Void)?
     public var timeType = TimeType.minOrHour {
         didSet {
@@ -156,6 +160,15 @@ public class PlayerToolBar: UIStackView {
         pipButton.titleFont = .systemFont(ofSize: 14, weight: .medium)
         pipButton.setTitleColor(focusColor, for: .focused)
         pipButton.setTitleColor(tintColor, for: .normal)
+        settingsButton.tag = PlayerButtonType.settings.rawValue
+        rotateButton.tag = PlayerButtonType.rotate.rawValue
+        mirrorButton.tag = PlayerButtonType.mirror.rawValue
+        volumeSlider.minimumValue = 0
+        volumeSlider.maximumValue = 1
+        volumeSlider.value = 0.5
+        #if !os(tvOS)
+        volumeSlider.isContinuous = true
+        #endif
         if #available(macOS 11.0, *) {
             pipButton.setImage(UIImage(systemName: "pip.enter"), for: .normal)
             pipButton.setImage(UIImage(systemName: "pip.exit"), for: .selected)
@@ -166,6 +179,9 @@ public class PlayerToolBar: UIStackView {
             audioSwitchButton.setImage(UIImage(systemName: "waveform"), for: .normal)
             videoSwitchButton.setImage(UIImage(systemName: "video.badge.ellipsis"), for: .normal)
             playbackRateButton.setImage(UIImage(systemName: "speedometer"), for: .normal)
+            settingsButton.setImage(UIImage(systemName: "gearshape.fill"), for: .normal)
+            rotateButton.setImage(UIImage(systemName: "rotate.right"), for: .normal)
+            mirrorButton.setImage(UIImage(systemName: "flip.horizontal"), for: .normal)
         }
         playButton.translatesAutoresizingMaskIntoConstraints = false
         srtButton.translatesAutoresizingMaskIntoConstraints = false
@@ -188,6 +204,9 @@ public class PlayerToolBar: UIStackView {
         videoSwitchButton.tintColor = tintColor
         srtButton.tintColor = tintColor
         pipButton.tintColor = tintColor
+        settingsButton.tintColor = tintColor
+        rotateButton.tintColor = tintColor
+        mirrorButton.tintColor = tintColor
         timeSlider.tintColor = tintColor
         NSLayoutConstraint.activate([
             playButton.widthAnchor.constraint(equalTo: playButton.heightAnchor),
@@ -197,6 +216,9 @@ public class PlayerToolBar: UIStackView {
             videoSwitchButton.widthAnchor.constraint(equalTo: videoSwitchButton.heightAnchor),
             srtButton.widthAnchor.constraint(equalTo: srtButton.heightAnchor),
             pipButton.widthAnchor.constraint(equalTo: pipButton.heightAnchor),
+            settingsButton.widthAnchor.constraint(equalTo: settingsButton.heightAnchor),
+            rotateButton.widthAnchor.constraint(equalTo: rotateButton.heightAnchor),
+            mirrorButton.widthAnchor.constraint(equalTo: mirrorButton.heightAnchor),
             heightAnchor.constraint(equalToConstant: 40),
         ])
         #else
@@ -208,10 +230,18 @@ public class PlayerToolBar: UIStackView {
         videoSwitchButton.tintColor = .white
         srtButton.tintColor = .white
         pipButton.tintColor = .white
+        settingsButton.tintColor = .white
+        rotateButton.tintColor = .white
+        mirrorButton.tintColor = .white
+        volumeSlider.tintColor = .white
         NSLayoutConstraint.activate([
             playButton.widthAnchor.constraint(equalToConstant: 30),
             heightAnchor.constraint(equalToConstant: 49),
             srtButton.widthAnchor.constraint(equalToConstant: 40),
+            settingsButton.widthAnchor.constraint(equalToConstant: 30),
+            rotateButton.widthAnchor.constraint(equalToConstant: 30),
+            mirrorButton.widthAnchor.constraint(equalToConstant: 30),
+            volumeSlider.widthAnchor.constraint(equalToConstant: 90),
         ])
         #endif
     }
@@ -254,6 +284,9 @@ public class PlayerToolBar: UIStackView {
         videoSwitchButton.addTarget(target, action: action, for: .primaryActionTriggered)
         srtButton.addTarget(target, action: action, for: .primaryActionTriggered)
         pipButton.addTarget(target, action: action, for: .primaryActionTriggered)
+        settingsButton.addTarget(target, action: action, for: .primaryActionTriggered)
+        rotateButton.addTarget(target, action: action, for: .primaryActionTriggered)
+        mirrorButton.addTarget(target, action: action, for: .primaryActionTriggered)
     }
 
     public func reset() {

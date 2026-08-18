@@ -68,6 +68,15 @@ open class IOSVideoPlayerView: VideoPlayerView {
             volumeViewSlider = first
         }
         #endif
+        toolBar.volumeSlider.value = Float(volumeViewSlider.value)
+        #if !targetEnvironment(macCatalyst)
+        toolBar.volumeSlider.addTarget(self, action: #selector(volumeSliderValueChanged(_:)), for: .valueChanged)
+        #endif
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            toolBar.volumeSlider.isHidden = true
+            toolBar.rotateButton.isHidden = true
+            toolBar.mirrorButton.isHidden = true
+        }
         backButton.translatesAutoresizingMaskIntoConstraints = false
         landscapeButton.translatesAutoresizingMaskIntoConstraints = false
         maskImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -198,8 +207,14 @@ open class IOSVideoPlayerView: VideoPlayerView {
                 }
             }
             toolBar.playbackRateButton.isHidden = !isLandscape
+            toolBar.volumeSlider.isHidden = !isLandscape
+            toolBar.rotateButton.isHidden = !isLandscape
+            toolBar.mirrorButton.isHidden = !isLandscape
         } else {
             landscapeButton.isHidden = true
+            toolBar.volumeSlider.isHidden = false
+            toolBar.rotateButton.isHidden = false
+            toolBar.mirrorButton.isHidden = false
         }
         lockButton.isHidden = !isLandscape
         judgePanGesture()
@@ -256,6 +271,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
                     tmpPanValue += panValue(velocity: point, direction: direction, currentTime: Float(toolBar.currentTime), totalTime: Float(totalTime))
                     tmpPanValue = max(min(tmpPanValue, 1), 0)
                     volumeViewSlider.value = tmpPanValue
+                    toolBar.volumeSlider.value = tmpPanValue
                 }
             } else if KSOptions.enableBrightnessGestures {
                 #if !os(xrOS)
@@ -265,6 +281,10 @@ open class IOSVideoPlayerView: VideoPlayerView {
         } else {
             super.panGestureChanged(velocity: point, direction: direction)
         }
+    }
+
+    @objc private func volumeSliderValueChanged(_ slider: UISlider) {
+        volumeViewSlider.value = slider.value
     }
 
     open func judgePanGesture() {
