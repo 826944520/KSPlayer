@@ -62,3 +62,57 @@ jobs:
             tail -120 /tmp/build.log | sed 's/^/::error::/'
             exit 1
           fi
+
+  build-ipa:
+    name: Build unsigned IPA (demo app)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        run: |
+          XCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)
+          if [ -n "$XCODE_APP" ]; then
+            sudo xcode-select -s "/Applications/$XCODE_APP/Contents/Developer"
+          fi
+          xcode-select -p
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: |
+          brew install xcodegen
+          xcodegen version
+
+      - name: Generate Xcode project
+        working-directory: Demo
+        run: xcodegen generate
+
+      - name: Build demo app (unsigned, iphoneos)
+        working-directory: Demo
+        run: |
+          xcodebuild -project DemoApp.xcodeproj \
+            -scheme DemoApp \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Package unsigned IPA
+        working-directory: Demo
+        run: |
+          set -e
+          APP=$(ls build/Build/Products/Release-iphoneos/DemoApp.app >/dev/null 2>&1 && echo build/Build/Products/Release-iphoneos/DemoApp.app || find build -name 'DemoApp.app' -type d | head -1)
+          if [ -z "$APP" ]; then echo "::error::DemoApp.app not found"; exit 1; fi
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          zip -qry DemoApp-unsigned.ipa Payload
+          ls -lh DemoApp-unsigned.ipa
+
+      - name: Upload unsigned IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DemoApp-unsigned-ipa
+          path: Demo/DemoApp-unsigned.ipa
