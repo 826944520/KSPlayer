@@ -458,6 +458,13 @@ public extension KSOptions {
     /// because it changes gesture behavior; the demo app can enable it.
     public static var enableZoomGestures = false
 
+    /// HDR→SDR tone-mapping in the Metal (VR/VRBox) path. Off by default: HDR
+    /// frames are handed to the EDR layer (wantsExtendedDynamicRangeContent) and
+    /// the display tone-maps them. When on, the fragment shader decodes PQ/HLG
+    /// to linear light, applies an ACES-style curve, and encodes to sRGB, so the
+    /// output is display-referred SDR regardless of the panel's HDR support.
+    public static var enableToneMapping = false
+
     static var logLevel = LogLevel.warning
     static var logger: LogHandler = OSLog(lable: "KSPlayer")
     internal static func deviceCpuCount() -> Int {

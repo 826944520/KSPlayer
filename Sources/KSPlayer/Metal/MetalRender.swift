@@ -108,7 +108,8 @@ class MetalRender {
             return
         }
         encoder.pushDebugGroup("RenderFrame")
-        let state = display.pipeline(planeCount: pixelBuffer.planeCount, bitDepth: pixelBuffer.bitDepth)
+        let transferType = Self.hdrTransferType(for: pixelBuffer)
+        let state = display.pipeline(planeCount: pixelBuffer.planeCount, bitDepth: pixelBuffer.bitDepth, transferType: transferType)
         encoder.setRenderPipelineState(state)
         encoder.setFragmentSamplerState(samplerState, index: 0)
         for (index, texture) in inputTextures.enumerated() {
@@ -116,6 +117,12 @@ class MetalRender {
             encoder.setFragmentTexture(texture, index: index)
         }
         setFragmentBuffer(pixelBuffer: pixelBuffer, encoder: encoder)
+        if transferType != 0 {
+            // The tone-mapped fragment functions read the source EOTF (1 = PQ,
+            // 2 = HLG) from buffer(3) to pick the right decode curve.
+            var type = transferType
+            encoder.setFragmentBytes(&type, length: MemoryLayout<Int32>.size, index: 3)
+        }
         display.set(encoder: encoder)
         encoder.popDebugGroup()
         encoder.endEncoding()
@@ -150,6 +157,19 @@ class MetalRender {
             let leftShift = pixelBuffer.leftShift == 0 ? leftShiftMatrixBuffer : leftShiftSixMatrixBuffer
             encoder.setFragmentBuffer(leftShift, offset: 0, index: 2)
         }
+    }
+
+    /// Source EOTF for the tone-mapped fragment pass: 1 = PQ (ST 2084),
+    /// 2 = HLG (BT.2100), 0 = none (tone-mapping off / 8-bit content).
+    static func hdrTransferType(for pixelBuffer: PixelBufferProtocol) -> Int32 {
+        guard KSOptions.enableToneMapping, pixelBuffer.bitDepth >= 10 else { return 0 }
+        if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_ITU_R_2100_HLG {
+            return 2
+        }
+        if pixelBuffer.transferFunction == kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ {
+            return 1
+        }
+        return 0
     }
 
     static func makePipelineState(fragmentFunction: String, isSphere: Bool = false, bitDepth: Int32 = 8) -> MTLRenderPipelineState {

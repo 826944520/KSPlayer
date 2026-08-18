@@ -19,6 +19,7 @@
 | 1.3 cache 协议 | 设置页打开「本地缓存」后播放一个 MP4，播放中途断网再切回 | 已下载部分仍可播；播放完成后退出重进同一 URL 秒开（命中磁盘缓存） |
 | 1.5 A/V 时钟 | 播放视频后反复 seek（精确/非精确、正向/反向） | 无音画不同步；seek 后 1 秒内声音画面对齐；连续 seek 无卡死 |
 | 1.6 IO buffer | 设置页打开「低延迟音频」后播放 | 声音跟手，无卡顿/爆音；播放正常 |
+| 1.7 HDR→SDR tone-mapping | 播放 HDR10（PQ）或 HLG 的 `.vr` / `.vrBox` 全景视频，设置页打开「HDR→SDR 色调映射」 | 高光细节保留、画面明暗正常（ACES 曲线）；关闭开关时回到 EDR 原始 HDR 显示；SDR 视频开关无影响 |
 
 ### Stage 2 — 播放器 UI/UX
 
@@ -49,7 +50,7 @@
 - **`enableZoomGestures` 默认关**（库层），demo 设置页可开启。
 - **`cache` 默认关**，需在设置页手动打开；仅在运行时探测到 FFmpeg `cache:` 协议且为 progressive 文件（非 `.m3u8`）时生效。
 - **PiP 按钮**在模拟器隐藏（`isPictureInPictureSupported()` 返回 false），真机显示。
-- **HDR tone-mapping（1.7）按计划延期**：HDR→SDR 调色 pass 设计为 `KSOptions.enableToneMapping = false`（默认关）的新 Metal fragment pass，未在本分支实现。
+- **HDR tone-mapping（1.7）默认关**（`KSOptions.enableToneMapping = false`），demo 设置页「画面」区可开启；仅在 10-bit HDR 内容（PQ/HLG）且走 Metal 渲染（`.vr`/`.vrBox`）时生效。
 - 播放器的自动隐藏遮罩（2.5d）已达现有 `isMaskShow` 淡入淡出标准，未新增独立配置。
 
 ## 4. 完成标准

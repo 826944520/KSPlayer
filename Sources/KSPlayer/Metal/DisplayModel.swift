@@ -50,14 +50,14 @@ extension DisplayEnum {
         }
     }
 
-    func pipeline(planeCount: Int, bitDepth: Int32) -> MTLRenderPipelineState {
+    func pipeline(planeCount: Int, bitDepth: Int32, transferType: Int32 = 0) -> MTLRenderPipelineState {
         switch self {
         case .plane:
-            return DisplayEnum.planeDisplay.pipeline(planeCount: planeCount, bitDepth: bitDepth)
+            return DisplayEnum.planeDisplay.pipeline(planeCount: planeCount, bitDepth: bitDepth, transferType: transferType)
         case .vr:
-            return DisplayEnum.vrDiaplay.pipeline(planeCount: planeCount, bitDepth: bitDepth)
+            return DisplayEnum.vrDiaplay.pipeline(planeCount: planeCount, bitDepth: bitDepth, transferType: transferType)
         case .vrBox:
-            return DisplayEnum.vrBoxDiaplay.pipeline(planeCount: planeCount, bitDepth: bitDepth)
+            return DisplayEnum.vrBoxDiaplay.pipeline(planeCount: planeCount, bitDepth: bitDepth, transferType: transferType)
         }
     }
 
@@ -79,6 +79,9 @@ private class PlaneDisplayModel {
     private lazy var nv12 = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture")
     private lazy var p010LE = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture", bitDepth: 10)
     private lazy var bgra = MetalRender.makePipelineState(fragmentFunction: "displayTexture")
+    // HDR→SDR tone-mapping variants (only 10-bit HDR content needs them).
+    private lazy var yuvp010LEToneMapped = MetalRender.makePipelineState(fragmentFunction: "displayYUVTextureToneMapped", bitDepth: 10)
+    private lazy var p010LEToneMapped = MetalRender.makePipelineState(fragmentFunction: "displayNV12TextureToneMapped", bitDepth: 10)
     let indexCount: Int
     let indexType = MTLIndexType.uint16
     let primitiveType = MTLPrimitiveType.triangleStrip
@@ -119,7 +122,17 @@ private class PlaneDisplayModel {
         encoder.drawIndexedPrimitives(type: primitiveType, indexCount: indexCount, indexType: indexType, indexBuffer: indexBuffer, indexBufferOffset: 0)
     }
 
-    func pipeline(planeCount: Int, bitDepth: Int32) -> MTLRenderPipelineState {
+    func pipeline(planeCount: Int, bitDepth: Int32, transferType: Int32) -> MTLRenderPipelineState {
+        if transferType != 0, bitDepth == 10 {
+            switch planeCount {
+            case 3:
+                return yuvp010LEToneMapped
+            case 2:
+                return p010LEToneMapped
+            default:
+                break
+            }
+        }
         switch planeCount {
         case 3:
             if bitDepth == 10 {
@@ -148,6 +161,9 @@ private class SphereDisplayModel {
     private lazy var nv12 = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture", isSphere: true)
     private lazy var p010LE = MetalRender.makePipelineState(fragmentFunction: "displayNV12Texture", isSphere: true, bitDepth: 10)
     private lazy var bgra = MetalRender.makePipelineState(fragmentFunction: "displayTexture", isSphere: true)
+    // HDR→SDR tone-mapping variants (only 10-bit HDR content needs them).
+    private lazy var yuvp010LEToneMapped = MetalRender.makePipelineState(fragmentFunction: "displayYUVTextureToneMapped", isSphere: true, bitDepth: 10)
+    private lazy var p010LEToneMapped = MetalRender.makePipelineState(fragmentFunction: "displayNV12TextureToneMapped", isSphere: true, bitDepth: 10)
     private var fingerRotationX = Float(0)
     private var fingerRotationY = Float(0)
     fileprivate var modelViewMatrix = matrix_identity_float4x4
@@ -248,7 +264,17 @@ private class SphereDisplayModel {
         return (indices, positions, uvs)
     }
 
-    func pipeline(planeCount: Int, bitDepth: Int32) -> MTLRenderPipelineState {
+    func pipeline(planeCount: Int, bitDepth: Int32, transferType: Int32) -> MTLRenderPipelineState {
+        if transferType != 0, bitDepth == 10 {
+            switch planeCount {
+            case 3:
+                return yuvp010LEToneMapped
+            case 2:
+                return p010LEToneMapped
+            default:
+                break
+            }
+        }
         switch planeCount {
         case 3:
             if bitDepth == 10 {

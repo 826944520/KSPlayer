@@ -29,6 +29,9 @@ final class AppSettings: ObservableObject {
     @Published var enableZoomGestures = KSOptions.enableZoomGestures {
         didSet { KSOptions.enableZoomGestures = enableZoomGestures }
     }
+    @Published var enableToneMapping = KSOptions.enableToneMapping {
+        didSet { KSOptions.enableToneMapping = enableToneMapping }
+    }
     @Published var preferredIOBufferDuration: Double? = KSOptions.preferredIOBufferDuration {
         didSet { KSOptions.preferredIOBufferDuration = preferredIOBufferDuration }
     }

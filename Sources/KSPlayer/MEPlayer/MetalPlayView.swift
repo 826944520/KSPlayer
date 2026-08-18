@@ -286,7 +286,16 @@ class MetalView: UIView {
     func draw(pixelBuffer: PixelBufferProtocol, display: DisplayEnum, size: CGSize) {
         metalLayer.drawableSize = size
         metalLayer.pixelFormat = KSOptions.colorPixelFormat(bitDepth: pixelBuffer.bitDepth)
-        let colorspace = pixelBuffer.colorspace
+        // When tone-mapping is active the fragment pass outputs display-referred
+        // SDR (ACES→sRGB), so the layer must advertise sRGB — which also turns
+        // wantsExtendedDynamicRangeContent off below — instead of the source's
+        // wide-gamut colorspace.
+        let colorspace: CGColorSpace?
+        if MetalRender.hdrTransferType(for: pixelBuffer) != 0 {
+            colorspace = CGColorSpace(name: CGColorSpace.sRGB)
+        } else {
+            colorspace = pixelBuffer.colorspace
+        }
         if colorspace != nil, metalLayer.colorspace != colorspace {
             metalLayer.colorspace = colorspace
             KSLog("[video] CAMetalLayer colorspace \(String(describing: colorspace))")

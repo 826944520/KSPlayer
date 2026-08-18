@@ -32,6 +32,10 @@ struct SettingsView: View {
                 Toggle("低延迟音频（IO buffer 0.02s）", isOn: lowLatencyAudioBinding)
             }
 
+            Section("画面") {
+                Toggle("HDR→SDR 色调映射（VR/VRBox 渲染）", isOn: $settings.enableToneMapping)
+            }
+
             Section("手势与预览") {
                 Toggle("双击分区 ±10s seek", isOn: $settings.doubleTapZoneSeek)
                 Stepper(value: $settings.doubleTapSeekInterval, in: 5...30, step: 5) {
