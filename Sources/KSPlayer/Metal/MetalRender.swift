@@ -26,6 +26,10 @@ class MetalRender {
 
     private let renderPassDescriptor = MTLRenderPassDescriptor()
     private let commandQueue = MetalRender.device.makeCommandQueue()
+    // Bounds the number of command buffers in flight to maximumDrawableCount (see
+    // MetalView.init). A slow GPU throttles the CPU via this semaphore instead of
+    // stalling the main thread on waitUntilCompleted() every frame.
+    private let inflightSemaphore = DispatchSemaphore(value: 3)
     private lazy var samplerState: MTLSamplerState? = {
         let samplerDescriptor = MTLSamplerDescriptor()
         samplerDescriptor.minFilter = .linear
@@ -96,10 +100,11 @@ class MetalRender {
         guard let cvPixelBuffer = pixelBuffer.cvPixelBuffer else {
             return
         }
-
+        inflightSemaphore.wait()
         let (inputTextures, cvTextures) = MetalRender.textures(pixelBuffer: cvPixelBuffer)
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture
         guard !inputTextures.isEmpty, let commandBuffer = commandQueue?.makeCommandBuffer(), let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
+            inflightSemaphore.signal()
             return
         }
         encoder.pushDebugGroup("RenderFrame")
@@ -116,7 +121,13 @@ class MetalRender {
         encoder.endEncoding()
         commandBuffer.present(drawable)
         commandBuffer.commit()
-        commandBuffer.waitUntilCompleted()
+        // Retain the backing CVPixelBuffer until the GPU is done sampling it.
+        // Previously waitUntilCompleted() pinned the pixel buffer implicitly;
+        // without that barrier the IOSurface could be recycled mid-draw.
+        commandBuffer.addCompletedHandler { [inflightSemaphore, cvPixelBuffer] _ in
+            _ = cvPixelBuffer
+            inflightSemaphore.signal()
+        }
     }
 
     private func setFragmentBuffer(pixelBuffer: PixelBufferProtocol, encoder: MTLRenderCommandEncoder) {

@@ -13,6 +13,27 @@ public extension KSOptions {
     static var vrFov: Float = Float.pi / 2
 }
 
+/// Preallocated pool of per-frame vertex matrices. Sized to the maximum number
+/// of frames in flight (MetalRender.draw's inflight semaphore = 3, times the
+/// matrices each frame needs), so a slot is never rewritten while the GPU is
+/// still reading the previous use. set(encoder:) runs on the main actor, so the
+/// ring index cannot race a pending draw.
+private final class MatrixBufferRing {
+    private let buffers: [MTLBuffer]
+    private var index = 0
+
+    init(count: Int) {
+        buffers = (0 ..< count).map { _ in
+            MetalRender.device.makeBuffer(length: MemoryLayout<simd_float4x4>.size, options: [])!
+        }
+    }
+
+    func next() -> MTLBuffer {
+        defer { index = (index + 1) % buffers.count }
+        return buffers[index]
+    }
+}
+
 extension DisplayEnum {
     private static var planeDisplay = PlaneDisplayModel()
     private static var vrDiaplay = VRDisplayModel()
@@ -259,14 +280,17 @@ private class VRDisplayModel: SphereDisplayModel {
         return projectionMatrix * viewMatrix
     }
 
+    private let matrixBufferRing = MatrixBufferRing(count: 3)
+
     override required init() {
         super.init()
     }
 
     override func set(encoder: MTLRenderCommandEncoder) {
         super.set(encoder: encoder)
+        let matrixBuffer = matrixBufferRing.next()
         var matrix = modelViewProjectionMatrix * modelViewMatrix
-        let matrixBuffer = MetalRender.device.makeBuffer(bytes: &matrix, length: MemoryLayout<simd_float4x4>.size)
+        matrixBuffer.contents().copyMemory(from: &matrix, byteCount: MemoryLayout<simd_float4x4>.size)
         encoder.setVertexBuffer(matrixBuffer, offset: 0, index: 2)
         encoder.drawIndexedPrimitives(type: primitiveType, indexCount: indexCount, indexType: indexType, indexBuffer: indexBuffer, indexBufferOffset: 0)
     }
@@ -290,6 +314,8 @@ private class VRBoxDisplayModel: SphereDisplayModel {
         return projectionMatrix * viewMatrixRight
     }
 
+    private let matrixBufferRing = MatrixBufferRing(count: 6)
+
     override required init() {
         super.init()
     }
@@ -301,8 +327,9 @@ private class VRBoxDisplayModel: SphereDisplayModel {
         [(modelViewProjectionMatrixLeft, MTLViewport(originX: 0, originY: 0, width: width, height: Double(layerSize.height), znear: 0, zfar: 0)),
          (modelViewProjectionMatrixRight, MTLViewport(originX: width, originY: 0, width: width, height: Double(layerSize.height), znear: 0, zfar: 0))].forEach { modelViewProjectionMatrix, viewport in
             encoder.setViewport(viewport)
+            let matrixBuffer = matrixBufferRing.next()
             var matrix = modelViewProjectionMatrix * modelViewMatrix
-            let matrixBuffer = MetalRender.device.makeBuffer(bytes: &matrix, length: MemoryLayout<simd_float4x4>.size)
+            matrixBuffer.contents().copyMemory(from: &matrix, byteCount: MemoryLayout<simd_float4x4>.size)
             encoder.setVertexBuffer(matrixBuffer, offset: 0, index: 2)
             encoder.drawIndexedPrimitives(type: primitiveType, indexCount: indexCount, indexType: indexType, indexBuffer: indexBuffer, indexBufferOffset: 0)
         }

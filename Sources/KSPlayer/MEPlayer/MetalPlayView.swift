@@ -265,6 +265,10 @@ class MetalView: UIView {
         #endif
         metalLayer.device = MetalRender.device
         metalLayer.framebufferOnly = true
+        // Match the render pipeline's inflight semaphore (MetalRender.draw): up to
+        // 3 drawables may be outstanding, so nextDrawable() back-pressures on a
+        // slow GPU instead of the main thread spinning on waitUntilCompleted().
+        metalLayer.maximumDrawableCount = 3
 
     }
 
