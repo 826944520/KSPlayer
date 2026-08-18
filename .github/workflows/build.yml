@@ -58,10 +58,19 @@ jobs:
           set -o pipefail
           if ! swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` \
             -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator 2>&1 | tee /tmp/build.log; then
-            echo "::error::swift build FAILED (first error/note lines):"
-            grep -nE "error:|note:" /tmp/build.log | head -9 | sed 's/^/::error::/'
+            echo "::error::=== swift build FAILED — last error lines ==="
+            grep -nE "error:" /tmp/build.log | tail -5 | sed 's/^/::error::/'
+            echo "::error::=== last 20 log lines ==="
+            tail -20 /tmp/build.log | sed 's/^/::error::/'
             exit 1
           fi
+
+      - name: Upload build log (diagnostic)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-ios-log
+          path: /tmp/build.log
 
   build-ipa:
     name: Build unsigned IPA (demo app)
