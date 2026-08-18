@@ -239,7 +239,7 @@ open class VideoPlayerView: PlayerView {
         panGesture.addTarget(self, action: #selector(panGestureAction(_:)))
         controllerView.addGestureRecognizer(panGesture)
         panGesture.isEnabled = false
-        doubleTapGesture.addTarget(self, action: #selector(doubleTapGestureAction))
+        doubleTapGesture.addTarget(self, action: #selector(doubleTapGestureAction(_:)))
         doubleTapGesture.numberOfTapsRequired = 2
         tapGesture.require(toFail: doubleTapGesture)
         controllerView.addGestureRecognizer(doubleTapGesture)
@@ -376,9 +376,32 @@ open class VideoPlayerView: PlayerView {
         set(resource: KSPlayerResource(url: url, options: options))
     }
 
-    @objc open func doubleTapGestureAction() {
-        toolBar.playButton.sendActions(for: .primaryActionTriggered)
-        isMaskShow = true
+    @objc open func doubleTapGestureAction(_ sender: UITapGestureRecognizer) {
+        guard KSOptions.doubleTapZoneSeek else {
+            toolBar.playButton.sendActions(for: .primaryActionTriggered)
+            isMaskShow = true
+            return
+        }
+        let location = sender.location(in: self)
+        let thirdWidth = bounds.width / 3
+        if location.x < thirdWidth {
+            seekByInterval(-KSOptions.doubleTapSeekInterval, isAdd: false)
+        } else if location.x > thirdWidth * 2 {
+            seekByInterval(KSOptions.doubleTapSeekInterval, isAdd: true)
+        } else {
+            toolBar.playButton.sendActions(for: .primaryActionTriggered)
+            isMaskShow = true
+        }
+    }
+
+    /// Double-tap left/right-zone seek (commercial standard). Clamped to the
+    /// playable range; shows the transient seek indicator and keeps the mask
+    /// visible so the scrub feedback is obvious.
+    private func seekByInterval(_ interval: TimeInterval, isAdd: Bool) {
+        guard toolBar.isSeekable else { return }
+        let target = min(max(toolBar.currentTime + interval, 0), totalTime)
+        showSeekToView(second: target, isAdd: isAdd)
+        seek(time: target) { _ in }
     }
 
     @objc open func tapGestureAction(_: UITapGestureRecognizer) {
@@ -780,7 +803,11 @@ extension VideoPlayerView {
         bottomMaskView.addSubview(toolBar.timeSlider)
         toolBar.audioSwitchButton.isHidden = true
         toolBar.videoSwitchButton.isHidden = true
-        toolBar.pipButton.isHidden = true
+        // iOS PiP is already wired (KSAVPlayer / KSPlayerLayer); the toolbar's
+        // own capability check (PlayerToolBar) decides visibility. On the
+        // simulator isPictureInPictureSupported() returns false, on devices it
+        // returns true.
+        toolBar.pipButton.isHidden = !AVPictureInPictureController.isPictureInPictureSupported()
         contentOverlayView.translatesAutoresizingMaskIntoConstraints = false
         controllerView.translatesAutoresizingMaskIntoConstraints = false
         toolBar.timeSlider.translatesAutoresizingMaskIntoConstraints = false

@@ -443,6 +443,13 @@ public extension KSOptions {
     /// (e.g. 0.01–0.02) for low-latency audio; nil leaves the session default.
     public static var preferredIOBufferDuration: TimeInterval? = nil
 
+    /// Double-tap left/right thirds seek by doubleTapSeekInterval seconds
+    /// (commercial standard); the middle third keeps toggling play/pause.
+    public static var doubleTapZoneSeek = true
+
+    /// Seconds sought per double-tap-zone gesture.
+    public static var doubleTapSeekInterval = 10.0
+
     static var logLevel = LogLevel.warning
     static var logger: LogHandler = OSLog(lable: "KSPlayer")
     internal static func deviceCpuCount() -> Int {
