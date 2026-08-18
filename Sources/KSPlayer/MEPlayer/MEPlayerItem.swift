@@ -806,7 +806,7 @@ extension MEPlayerItem: CodecCapacityDelegate {
 
 extension MEPlayerItem: OutputRenderSourceDelegate {
     func mainClock() -> KSClock {
-        isAudioStalled ? videoClock : audioClock
+        (isAudioStalled ? videoClock : audioClock).snapshot()
     }
 
     public func setVideo(time: CMTime, position: Int64) {
@@ -823,11 +823,11 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
     }
 
     public func setAudio(time: CMTime, position: Int64) {
-
-        runOnMainThread {
-            self.audioClock.time = time
-            self.audioClock.position = position
-        }
+        // Called from the real-time audio render callback; write the clock
+        // directly (KSClock is internally synchronized) instead of hopping to
+        // the main thread on every audio buffer.
+        audioClock.time = time
+        audioClock.position = position
     }
 
     public func getVideoOutputRender(force: Bool) -> VideoVTBFrame? {

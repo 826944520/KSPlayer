@@ -613,15 +613,52 @@ public extension Array {
 }
 
 public struct KSClock {
-    public private(set) var lastMediaTime = CACurrentMediaTime()
-    public internal(set) var position = Int64(0)
-    public internal(set) var time = CMTime.zero {
-        didSet {
-            lastMediaTime = CACurrentMediaTime()
+    private let lock = NSLock()
+    private var lastMediaTimeValue = CACurrentMediaTime()
+    private var positionValue = Int64(0)
+    private var timeValue = CMTime.zero
+
+    public private(set) var lastMediaTime: TimeInterval {
+        get { locked { lastMediaTimeValue } }
+        set { locked { lastMediaTimeValue = newValue } }
+    }
+
+    public internal(set) var position: Int64 {
+        get { locked { positionValue } }
+        set { locked { positionValue = newValue } }
+    }
+
+    public internal(set) var time: CMTime {
+        get { locked { timeValue } }
+        set {
+            locked {
+                timeValue = newValue
+                lastMediaTimeValue = CACurrentMediaTime()
+            }
         }
     }
 
     func getTime() -> TimeInterval {
-        time.seconds + CACurrentMediaTime() - lastMediaTime
+        locked { timeValue.seconds + CACurrentMediaTime() - lastMediaTimeValue }
+    }
+
+    /// Consistent point-in-time copy, safe to read on any thread. The audio
+    /// clock is written from the audio render thread while video sync reads it
+    /// from the read/render threads; reading the fields individually could
+    /// otherwise observe a torn update.
+    public func snapshot() -> KSClock {
+        var copy = KSClock()
+        locked {
+            copy.lastMediaTimeValue = lastMediaTimeValue
+            copy.positionValue = positionValue
+            copy.timeValue = timeValue
+        }
+        return copy
+    }
+
+    private func locked<T>(_ body: () -> T) -> T {
+        lock.lock()
+        defer { lock.unlock() }
+        return body()
     }
 }
