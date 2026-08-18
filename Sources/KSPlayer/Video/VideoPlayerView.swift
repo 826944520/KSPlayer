@@ -801,6 +801,13 @@ extension VideoPlayerView {
             #endif
         }
         bottomMaskView.addSubview(toolBar.timeSlider)
+        // Buffered-range + chapter overlay, sibling above the slider so touches
+        // still reach the slider (the overlay is non-interactive).
+        let progressOverlay = ProgressOverlayView(frame: .zero)
+        progressOverlay.slider = toolBar.timeSlider
+        progressOverlay.translatesAutoresizingMaskIntoConstraints = false
+        bottomMaskView.addSubview(progressOverlay)
+        toolBar.timeSlider.progressOverlay = progressOverlay
         toolBar.audioSwitchButton.isHidden = true
         toolBar.videoSwitchButton.isHidden = true
         // iOS PiP is already wired (KSAVPlayer / KSPlayerLayer); the toolbar's
@@ -850,6 +857,10 @@ extension VideoPlayerView {
             replayButton.centerXAnchor.constraint(equalTo: centerXAnchor),
             lockButton.leadingAnchor.constraint(equalTo: safeLeadingAnchor, constant: 22),
             lockButton.centerYAnchor.constraint(equalTo: centerYAnchor),
+            progressOverlay.leadingAnchor.constraint(equalTo: toolBar.timeSlider.leadingAnchor),
+            progressOverlay.trailingAnchor.constraint(equalTo: toolBar.timeSlider.trailingAnchor),
+            progressOverlay.bottomAnchor.constraint(equalTo: toolBar.timeSlider.bottomAnchor),
+            progressOverlay.heightAnchor.constraint(equalTo: toolBar.timeSlider.heightAnchor),
         ])
 
         configureToolBarConstraints()

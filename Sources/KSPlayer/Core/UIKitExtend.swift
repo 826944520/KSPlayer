@@ -9,6 +9,17 @@ public class KSSlider: UXSlider {
     weak var delegate: KSSliderDelegate?
     public var trackHeigt = CGFloat(2)
     public var isPlayable = false
+    /// End of the buffered-ahead range in seconds; ProgressOverlayView draws the
+    /// unplayed-but-buffered segment from the playhead to this value.
+    public var bufferedTime: TimeInterval = 0 {
+        didSet { progressOverlay?.setNeedsDisplay() }
+    }
+    /// Chapter list; ProgressOverlayView renders start markers as ticks.
+    public var chapters: [Chapter] = [] {
+        didSet { progressOverlay?.setNeedsDisplay() }
+    }
+    /// Non-interactive overlay aligned to this slider's track (same frame).
+    weak var progressOverlay: ProgressOverlayView?
     override public init(frame: CGRect) {
         super.init(frame: frame)
         tapGesture = UITapGestureRecognizer(target: self, action: #selector(actionTapGesture(sender:)))

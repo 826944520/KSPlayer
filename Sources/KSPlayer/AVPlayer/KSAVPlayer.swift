@@ -129,7 +129,7 @@ public class KSAVPlayer {
     public private(set) var duration: TimeInterval = 0
     public private(set) var fileSize: Double = 0
     public private(set) var playableTime: TimeInterval = 0
-    public let chapters: [Chapter] = []
+    public private(set) var chapters: [Chapter] = []
     public var playbackRate: Float = 1 {
         didSet {
             if playbackState == .playing {
@@ -265,6 +265,15 @@ extension KSAVPlayer {
             duration = item.duration.seconds
             let estimatedDataRates = item.tracks.compactMap { $0.assetTrack?.estimatedDataRate }
             fileSize = Double(estimatedDataRates.reduce(0, +)) * duration / 8
+            if chapters.isEmpty {
+                chapters = urlAsset.chapterMetadataGroups(withTitleLocale: nil, containingItemsWithCommonKeys: nil).compactMap { group in
+                    let start = group.timeRange.start.seconds
+                    let end = group.timeRange.end.seconds
+                    guard start.isFinite, end.isFinite, end > start else { return nil }
+                    let title = group.items.first(where: { $0.commonKey == .commonKeyTitle })?.stringValue ?? ""
+                    return Chapter(start: start, end: end, title: title)
+                }
+            }
             isReadyToPlay = true
         } else if item.status == .failed {
             error = item.error

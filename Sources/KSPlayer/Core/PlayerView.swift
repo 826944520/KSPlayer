@@ -141,6 +141,8 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
     open func resetPlayer() {
         pause()
         totalTime = 0.0
+        toolBar.timeSlider.chapters = []
+        toolBar.timeSlider.bufferedTime = 0
     }
 
     open func set(url: URL, options: KSOptions) {
@@ -170,16 +172,18 @@ open class PlayerView: UIView, KSPlayerLayerDelegate, KSSliderDelegate {
             totalTime = layer.player.duration
             toolBar.isSeekable = layer.player.seekable
             toolBar.playButton.isSelected = true
+            toolBar.timeSlider.chapters = layer.player.chapters
         } else if state == .playedToTheEnd || state == .paused || state == .error {
             toolBar.playButton.isSelected = false
         }
     }
 
-    open func player(layer _: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
+    open func player(layer: KSPlayerLayer, currentTime: TimeInterval, totalTime: TimeInterval) {
         delegate?.playerController(currentTime: currentTime, totalTime: totalTime)
         playTimeDidChange?(currentTime, totalTime)
         toolBar.currentTime = currentTime
         self.totalTime = totalTime
+        toolBar.timeSlider.bufferedTime = layer.player.playableTime
     }
 
     open func player(layer _: KSPlayerLayer, finish error: Error?) {
