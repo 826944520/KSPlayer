@@ -4,7 +4,12 @@ import PackageDescription
 let package = Package(
     name: "KSPlayer",
     defaultLocalization: "en",
-    platforms: [.iOS(.v26)],
+    // .macOS(.v10_15) matches FFmpegKit's minimum macOS. SwiftPM validates product
+    // dependencies against the platform it plans for (here the macOS host, since
+    // CI builds with `swift build --sdk iphonesimulator` without --triple); an
+    // undeclared macOS platform defaults to 10.13 < FFmpegKit's 10.15 and fails
+    // the deployment-target check even though KSPlayer itself is iOS-only.
+    platforms: [.iOS(.v26), .macOS(.v10_15)],
     products: [
         .library(
             name: "KSPlayer",
