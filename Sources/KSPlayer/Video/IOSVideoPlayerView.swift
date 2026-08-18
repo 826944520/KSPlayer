@@ -91,6 +91,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
             airplayStatusView.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
         #if !os(xrOS)
+        routeDetector.isRouteDetectionEnabled = true
         routeButton.isHidden = true
         navigationBar.addArrangedSubview(routeButton)
         routeButton.translatesAutoresizingMaskIntoConstraints = false
@@ -107,7 +108,7 @@ open class IOSVideoPlayerView: VideoPlayerView {
         maskImageView.image = nil
         panGesture.isEnabled = false
         #if !os(xrOS)
-        routeButton.isHidden = !routeDetector.multipleRoutesDetected
+        updateRouteButtonVisibility()
         #endif
     }
 
@@ -329,7 +330,16 @@ extension IOSVideoPlayerView {
 
     @objc private func routesAvailableDidChange(notification _: Notification) {
         #if !os(xrOS)
-        routeButton.isHidden = !routeDetector.multipleRoutesDetected
+        updateRouteButtonVisibility()
+        #endif
+    }
+
+    private func updateRouteButtonVisibility() {
+        #if !os(xrOS)
+        // Show the AirPlay picker whenever external playback is allowed, even if
+        // AVRouteDetector has not (yet) found multiple routes — single-device
+        // AirPlay is the common case and the picker handles the empty state.
+        routeButton.isHidden = !(playerLayer?.player.allowsExternalPlayback ?? true)
         #endif
     }
 

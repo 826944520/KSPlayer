@@ -726,7 +726,7 @@ extension VideoPlayerView {
 
     @available(iOS 14.0, tvOS 15.0, *)
     func settingsMenu() -> UIMenu {
-        UIMenu(title: NSLocalizedString("settings", comment: ""), children: [
+        var children: [UIMenuElement] = [
             UIAction(title: NSLocalizedString("double-tap seek", comment: ""),
                      state: KSOptions.doubleTapZoneSeek ? .on : .off) { [weak self] _ in
                 KSOptions.doubleTapZoneSeek.toggle()
@@ -747,7 +747,58 @@ extension VideoPlayerView {
                 KSOptions.enableZoomGestures.toggle()
                 self?.refreshSettingsMenu()
             },
-        ])
+            UIMenu(title: NSLocalizedString("subtitle style", comment: ""), children: [
+                UIMenu(title: NSLocalizedString("subtitle size", comment: ""), children: [
+                    UIAction(title: NSLocalizedString("smaller", comment: ""),
+                             state: SubtitleModel.textFontSize == SubtitleModel.Size.smaller.rawValue ? .on : .off) { [weak self] _ in
+                        SubtitleModel.textFontSize = SubtitleModel.Size.smaller.rawValue
+                        self?.updateSrt()
+                        self?.refreshSettingsMenu()
+                    },
+                    UIAction(title: NSLocalizedString("standard", comment: ""),
+                             state: SubtitleModel.textFontSize == SubtitleModel.Size.standard.rawValue ? .on : .off) { [weak self] _ in
+                        SubtitleModel.textFontSize = SubtitleModel.Size.standard.rawValue
+                        self?.updateSrt()
+                        self?.refreshSettingsMenu()
+                    },
+                    UIAction(title: NSLocalizedString("large", comment: ""),
+                             state: SubtitleModel.textFontSize == SubtitleModel.Size.large.rawValue ? .on : .off) { [weak self] _ in
+                        SubtitleModel.textFontSize = SubtitleModel.Size.large.rawValue
+                        self?.updateSrt()
+                        self?.refreshSettingsMenu()
+                    },
+                ]),
+                UIMenu(title: NSLocalizedString("subtitle color", comment: ""), children: [
+                    UIAction(title: NSLocalizedString("white", comment: ""),
+                             state: SubtitleModel.textColor == .white ? .on : .off) { [weak self] _ in
+                        SubtitleModel.textColor = .white
+                        self?.updateSrt()
+                        self?.refreshSettingsMenu()
+                    },
+                    UIAction(title: NSLocalizedString("yellow", comment: ""),
+                             state: SubtitleModel.textColor == .yellow ? .on : .off) { [weak self] _ in
+                        SubtitleModel.textColor = .yellow
+                        self?.updateSrt()
+                        self?.refreshSettingsMenu()
+                    },
+                    UIAction(title: NSLocalizedString("red", comment: ""),
+                             state: SubtitleModel.textColor == .red ? .on : .off) { [weak self] _ in
+                        SubtitleModel.textColor = .red
+                        self?.updateSrt()
+                        self?.refreshSettingsMenu()
+                    },
+                ]),
+            ]),
+        ]
+        let chapters = playerLayer?.player.chapters.filter { !$0.title.isEmpty } ?? []
+        if !chapters.isEmpty {
+            children.append(UIMenu(title: NSLocalizedString("chapters", comment: ""), children: chapters.map { chapter in
+                UIAction(title: chapter.title) { [weak self] _ in
+                    self?.seek(time: chapter.start) { _ in }
+                }
+            }))
+        }
+        return UIMenu(title: NSLocalizedString("settings", comment: ""), children: children)
     }
 
     private func refreshSettingsMenu() {
