@@ -522,6 +522,17 @@ extension KSPlayerLayer {
         }
     }
 
+    /// Advance to the next URL in the playlist set via `set(urls:options:)`,
+    /// if any. No-op for a single-URL playlist.
+    public func next() {
+        nextPlayer()
+    }
+
+    /// Go back to the previous URL in the playlist, if any. No-op at the start.
+    public func previous() {
+        previousPlayer()
+    }
+
     func seek(time: TimeInterval) {
         seek(time: time, autoPlay: options.isSeekedAutoPlay) { _ in
         }
