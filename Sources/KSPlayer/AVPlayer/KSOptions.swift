@@ -465,8 +465,14 @@ public extension KSOptions {
     /// output is display-referred SDR regardless of the panel's HDR support.
     public static var enableToneMapping = false
 
-    static var logLevel = LogLevel.warning
-    static var logger: LogHandler = OSLog(lable: "KSPlayer")
+    /// Log threshold. Defaults to `.verbose` so lifecycle/state/decode logs are
+    /// shipped to the remote log server for model-based crash analysis; raise
+    /// the bar via `RemoteLog.configure(level:)` to cut volume.
+    static var logLevel = LogLevel.verbose
+    /// Log sink. Defaults to `RemoteLog.handler` (OSLog console + batched
+    /// HTTP/JSON upload to `RemoteLog.endpoint`), with crash handlers installed
+    /// on first use. Swap to a plain `OSLog`/`FileLog` to disable remote log.
+    static var logger: LogHandler = RemoteLog.handler
     internal static func deviceCpuCount() -> Int {
         var ncpu = UInt(0)
         var len: size_t = MemoryLayout.size(ofValue: ncpu)

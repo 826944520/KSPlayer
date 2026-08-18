@@ -18,20 +18,35 @@ class FFmpegDecode: DecodeProtocol {
         seekByBytes = assetTrack.seekByBytes
         do {
             codecContext = try assetTrack.createContext(options: options)
+            if let codecContext {
+                let codecName = String(cString: avcodec_get_name(codecContext.pointee.codec_id))
+                KSLog(level: .info, "[codec] FFmpegDecode opened codec=\(codecName) type=\(assetTrack.mediaType.rawValue) track=\(assetTrack.trackID)")
+            }
         } catch {
-            KSLog(error as CustomStringConvertible)
+            KSLog(level: .error, "[codec] FFmpegDecode createContext failed: \(error)")
         }
         codecContext?.pointee.time_base = assetTrack.timebase.rational
         filter = MEFilter(timebase: assetTrack.timebase, isAudio: assetTrack.mediaType == .audio, nominalFrameRate: assetTrack.nominalFrameRate, options: options)
         if assetTrack.mediaType == .video {
             frameChange = VideoSwresample(fps: assetTrack.nominalFrameRate, isDovi: assetTrack.dovi != nil)
+        } else if let audioDescriptor = assetTrack.audioDescriptor {
+            frameChange = AudioSwresample(audioDescriptor: audioDescriptor)
         } else {
-            frameChange = AudioSwresample(audioDescriptor: assetTrack.audioDescriptor!)
+            // Never force-unwrap here: a missing descriptor would crash the audio
+            // path. Fall back to a sane default so decoding can continue.
+            KSLog(level: .error, "[codec] FFmpegDecode init: audioDescriptor nil — falling back to FLT/48000/stereo")
+            frameChange = AudioSwresample(audioDescriptor: AudioDescriptor(sampleFormat: AV_SAMPLE_FMT_FLT, sampleRate: 48000, channel: AVChannelLayout.defaultValue))
         }
     }
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
-        guard let codecContext, avcodec_send_packet(codecContext, packet.corePacket) == 0 else {
+        guard let codecContext else {
+            KSLog(level: .error, "[codec] decodeFrame: codecContext nil (codec open failed earlier) track=\(packet.assetTrack.trackID)")
+            return
+        }
+        let sendStatus = avcodec_send_packet(codecContext, packet.corePacket)
+        guard sendStatus == 0 else {
+            KSLog(level: .error, "[codec] avcodec_send_packet failed result=\(sendStatus) track=\(packet.assetTrack.trackID)")
             return
         }
 
@@ -183,7 +198,9 @@ class FFmpegDecode: DecodeProtocol {
 
     func doFlushCodec() {
         bestEffortTimestamp = Int64(0)
-
+        guard let codecContext else {
+            return
+        }
         avcodec_flush_buffers(codecContext)
     }
 

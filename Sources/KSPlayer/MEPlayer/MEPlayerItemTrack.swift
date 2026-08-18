@@ -63,6 +63,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
     func decode() {
         isEndOfFile = false
         state = .decoding
+        KSLog(level: .verbose, "[\(description)] decode() started")
     }
 
     func seek(time: TimeInterval) {
@@ -75,6 +76,7 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
         state = .flush
         outputRenderQueue.flush()
         isLoopModel = false
+        KSLog(level: .info, "[\(description)] seek(t=\(time)) accurate=\(options.isAccurateSeek) seekTime=\(seekTime)")
     }
 
     func putPacket(packet: Packet) {
@@ -149,13 +151,14 @@ class SyncPlayerItemTrack<Frame: MEFrame>: PlayerItemTrackProtocol, CustomString
                     self.outputRenderQueue.fps = packet.assetTrack.nominalFrameRate
                 }
             } catch {
-                KSLog("Decoder did Failed : \(error)")
+                KSLog(level: .error, "[\(self.description)] decoder failed: \(error)")
                 if decoder is VideoToolboxDecode {
                     decoder.shutdown()
                     self.decoderMap[packet.assetTrack.trackID] = FFmpegDecode(assetTrack: packet.assetTrack, options: self.options)
-                    KSLog("VideoCodec switch to software decompression")
+                    KSLog(level: .info, "[\(self.description)] VideoToolbox failed — switched to software decode track=\(packet.assetTrack.trackID)")
                     self.doDecode(packet: packet)
                 } else {
+                    KSLog(level: .error, "[\(self.description)] decode unrecoverable — state → failed (track \(packet.assetTrack.trackID))")
                     self.state = .failed
                 }
             }
@@ -240,6 +243,9 @@ final class AsyncPlayerItemTrack<Frame: MEFrame>: SyncPlayerItemTrack<Frame> {
                 state = .decoding
             case .decoding:
                 if isEndOfFile, packetQueue.count == 0 {
+                    if state != .finished {
+                        KSLog(level: .info, "[\(description)] decodeThread reached EOF — finished (packets drained)")
+                    }
                     state = .finished
                 } else {
                     guard let packet = packetQueue.pop(wait: true), state != .flush, state != .closed else {

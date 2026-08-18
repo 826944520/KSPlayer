@@ -148,7 +148,10 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             let bytesPerSample = UInt32(av_get_bytes_per_sample(sampleFormat))
             let formatFlags = ((sampleFormat == AV_SAMPLE_FMT_FLT || sampleFormat == AV_SAMPLE_FMT_DBL) ? kAudioFormatFlagIsFloat : sampleFormat == AV_SAMPLE_FMT_U8 ? 0 : kAudioFormatFlagIsSignedInteger) | kAudioFormatFlagIsPacked
             var audioStreamBasicDescription = AudioStreamBasicDescription(mSampleRate: Float64(codecpar.sample_rate), mFormatID: codecType.rawValue, mFormatFlags: formatFlags, mBytesPerPacket: bytesPerSample * channelsPerFrame, mFramesPerPacket: 1, mBytesPerFrame: bytesPerSample * channelsPerFrame, mChannelsPerFrame: channelsPerFrame, mBitsPerChannel: bytesPerSample * 8, mReserved: 0)
-            _ = CMAudioFormatDescriptionCreate(allocator: kCFAllocatorDefault, asbd: &audioStreamBasicDescription, layoutSize: 0, layout: nil, magicCookieSize: 0, magicCookie: nil, extensions: nil, formatDescriptionOut: &formatDescriptionOut)
+            let audioFmtStatus = CMAudioFormatDescriptionCreate(allocator: kCFAllocatorDefault, asbd: &audioStreamBasicDescription, layoutSize: 0, layout: nil, magicCookieSize: 0, magicCookie: nil, extensions: nil, formatDescriptionOut: &formatDescriptionOut)
+            if audioFmtStatus != noErr {
+                KSLog(level: .error, "[track] CMAudioFormatDescriptionCreate failed status=\(audioFmtStatus) rate=\(codecpar.sample_rate) ch=\(channelsPerFrame)")
+            }
             if let name = av_get_sample_fmt_name(sampleFormat) {
                 formatName = String(cString: name)
             } else {
@@ -192,12 +195,15 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
                 if codecType.rawValue == kCMVideoCodecType_VP9 {
 
                     var ioContext: UnsafeMutablePointer<AVIOContext>?
-                    guard avio_open_dyn_buf(&ioContext) == 0 else {
+                    let dynBufStatus = avio_open_dyn_buf(&ioContext)
+                    guard dynBufStatus == 0 else {
+                        KSLog(level: .error, "[track] VP9 avio_open_dyn_buf failed status=\(dynBufStatus)")
                         return nil
                     }
                     ff_isom_write_vpcc(nil, ioContext, nil, 0, &self.codecpar)
                     extradataSize = avio_close_dyn_buf(ioContext, &extradata)
                     guard let extradata else {
+                        KSLog(level: .error, "[track] VP9 avio_close_dyn_buf returned nil extradata")
                         return nil
                     }
                     var data = Data()
@@ -230,7 +236,10 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             dic[kCVImageBufferTransferFunctionKey] = codecpar.color_trc.transferFunction as String?
             dic[kCVImageBufferYCbCrMatrixKey] = codecpar.color_space.ycbcrMatrix as String?
 
-            _ = CMVideoFormatDescriptionCreate(allocator: kCFAllocatorDefault, codecType: codecType.rawValue, width: codecpar.width, height: codecpar.height, extensions: dic, formatDescriptionOut: &formatDescriptionOut)
+            let videoFmtStatus = CMVideoFormatDescriptionCreate(allocator: kCFAllocatorDefault, codecType: codecType.rawValue, width: codecpar.width, height: codecpar.height, extensions: dic, formatDescriptionOut: &formatDescriptionOut)
+            if videoFmtStatus != noErr {
+                KSLog(level: .error, "[track] CMVideoFormatDescriptionCreate failed status=\(videoFmtStatus) codec=\(codecType.rawValue) w=\(codecpar.width) h=\(codecpar.height)")
+            }
 
             if let name = av_get_pix_fmt_name(format) {
                 formatName = String(cString: name)
@@ -243,7 +252,10 @@ public class FFmpegAssetTrack: MediaPlayerTrack {
             formatName = nil
             bitDepth = 0
             isConvertNALSize = false
-            _ = CMFormatDescriptionCreate(allocator: kCFAllocatorDefault, mediaType: kCMMediaType_Subtitle, mediaSubType: codecType.rawValue, extensions: nil, formatDescriptionOut: &formatDescriptionOut)
+            let subtitleFmtStatus = CMFormatDescriptionCreate(allocator: kCFAllocatorDefault, mediaType: kCMMediaType_Subtitle, mediaSubType: codecType.rawValue, extensions: nil, formatDescriptionOut: &formatDescriptionOut)
+            if subtitleFmtStatus != noErr {
+                KSLog(level: .error, "[track] CMFormatDescriptionCreate(subtitle) failed status=\(subtitleFmtStatus) subType=\(codecType.rawValue)")
+            }
         } else {
             bitDepth = 0
             return nil

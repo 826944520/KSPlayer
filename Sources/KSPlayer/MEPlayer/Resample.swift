@@ -110,6 +110,9 @@ class VideoSwresample: FrameChange {
             imgConvertCtx = sws_getCachedContext(imgConvertCtx, width, height, self.format, dstWidth, dstHeight, dstFormat, SWS_FAST_BILINEAR, nil, nil, nil)
         }
         pool = CVPixelBufferPool.create(width: dstWidth, height: dstHeight, bytesPerRowAlignment: linesize, pixelFormatType: pixelFormatType)
+        if pool == nil {
+            KSLog(level: .error, "[video] CVPixelBufferPool.create returned nil fmt=\(pixelFormatType) w=\(dstWidth) h=\(dstHeight)")
+        }
     }
 
     func transfer(frame: AVFrame) -> PixelBufferProtocol? {
@@ -147,6 +150,7 @@ class VideoSwresample: FrameChange {
             var pbuf: CVPixelBuffer?
             let ret = CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pool, &pbuf)
             guard let pbuf, ret == kCVReturnSuccess else {
+                KSLog(level: .error, "[video] CVPixelBufferPoolCreatePixelBuffer failed ret=\(ret) fmt=\(format.rawValue) w=\(width) h=\(height)")
                 return nil
             }
             CVPixelBufferLockBaseAddress(pbuf, CVPixelBufferLockFlags(rawValue: 0))
@@ -158,7 +162,10 @@ class VideoSwresample: FrameChange {
                 let contents = (0 ..< bufferPlaneCount).map { i in
                     pbuf.baseAddressOfPlane(at: i)?.assumingMemoryBound(to: UInt8.self)
                 }
-                _ = sws_scale(imgConvertCtx, data.map { UnsafePointer($0) }, linesize, 0, height, contents, bytesPerRow)
+                let swsResult = sws_scale(imgConvertCtx, data.map { UnsafePointer($0) }, linesize, 0, height, contents, bytesPerRow)
+                if swsResult < 0 {
+                    KSLog(level: .error, "[video] sws_scale failed result=\(swsResult) srcFmt=\(format.rawValue) w=\(width) h=\(height)")
+                }
             } else {
                 let planeCount = format.planeCount
                 let byteCount = format.bitDepth > 8 ? 2 : 1
@@ -227,8 +234,16 @@ class AudioSwresample: FrameChange {
 
     private func setup(descriptor: AudioDescriptor) -> Bool {
         var result = swr_alloc_set_opts2(&swrContext, &descriptor.outChannel, descriptor.audioFormat.sampleFormat, Int32(descriptor.audioFormat.sampleRate), &descriptor.channel, descriptor.sampleFormat, descriptor.sampleRate, 0, nil)
+        if result < 0 {
+            // Guard before swr_init: a failed alloc leaves swrContext NULL and
+            // swr_init(NULL) would crash — log instead.
+            KSLog(level: .error, "[audio] swr_alloc_set_opts2 failed result=\(result) inRate=\(descriptor.sampleRate) outRate=\(descriptor.audioFormat.sampleRate)")
+            shutdown()
+            return false
+        }
         result = swr_init(swrContext)
         if result < 0 {
+            KSLog(level: .error, "[audio] swr_init failed result=\(result) inRate=\(descriptor.sampleRate) outRate=\(descriptor.audioFormat.sampleRate)")
             shutdown()
             return false
         } else {
@@ -254,7 +269,13 @@ class AudioSwresample: FrameChange {
 
         _ = av_samples_get_buffer_size(&bufferSize, channels, outSamples, descriptor.audioFormat.sampleFormat, 1)
         let frame = AudioFrame(dataSize: Int(bufferSize[0]), audioFormat: descriptor.audioFormat)
-        frame.numberOfSamples = UInt32(swr_convert(swrContext, &frame.data, outSamples, &frameBuffer, numberOfSamples))
+        let converted = swr_convert(swrContext, &frame.data, outSamples, &frameBuffer, numberOfSamples)
+        if converted < 0 {
+            KSLog(level: .error, "[audio] swr_convert failed result=\(converted) in=\(numberOfSamples) out=\(outSamples)")
+        }
+        // Clamp: a negative swr_convert result previously wrapped into a huge
+        // UInt32 (e.g. -1 → 4294967295) which could crash the audio path.
+        frame.numberOfSamples = UInt32(max(0, converted))
         return frame
     }
 

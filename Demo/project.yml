@@ -15,6 +15,26 @@ targets:
       - DemoApp
     dependencies:
       - package: KSPlayer
+    info:
+      path: DemoApp/Info.plist
+      properties:
+        CFBundleDisplayName: KSPlayer Demo
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        # Remote logging to http://192.168.10.15:7777 (LAN HTTP + local
+        # network permission). ATS: the Demo target ships Info.plist in-repo
+        # so NSAppTransportSecurity is applied project-wide.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        NSLocalNetworkUsageDescription: KSPlayer Demo uploads playback logs to the local log server (192.168.10.15:7777) for debugging.
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kingsplayer.DemoApp
@@ -22,12 +42,6 @@ targets:
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.0"
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: KSPlayer Demo
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1"
         SUPPORTED_PLATFORMS: "iphoneos"
         SUPPORTS_MACCATALYST: NO

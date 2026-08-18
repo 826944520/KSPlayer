@@ -25,12 +25,19 @@ class VideoToolboxDecode: DecodeProtocol {
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
         if needReconfig {
-
-            session = DecompressionSession(assetTrack: session.assetTrack, options: options)!
+            KSLog(level: .info, "[video] VT session reconfig for track \(session.assetTrack.trackID)")
+            guard let newSession = DecompressionSession(assetTrack: session.assetTrack, options: options) else {
+                KSLog(level: .error, "[video] VTDecompressionSession reconfig failed — switching to software decode")
+                needReconfig = false
+                completionHandler(.failure(NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: kVTInvalidSessionErr)))
+                return
+            }
+            session = newSession
             doFlushCodec()
             needReconfig = false
         }
         guard let corePacket = packet.corePacket?.pointee, let data = corePacket.data else {
+            KSLog(level: .debug, "[video] VT decode dropped packet (no corePacket/data) stream \(packet.assetTrack.trackID)")
             return
         }
         do {
@@ -48,6 +55,7 @@ class VideoToolboxDecode: DecodeProtocol {
                     return
                 }
                 guard status == noErr else {
+                    KSLog(level: .error, "[video] VT decode callback failed status=\(status) keyframe=\(packet.isKeyFrame)")
                     if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
                         if packet.isKeyFrame {
                             completionHandler(.failure(NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)))
@@ -77,12 +85,15 @@ class VideoToolboxDecode: DecodeProtocol {
                     VTDecompressionSessionWaitForAsynchronousFrames(session.decompressionSession)
                 }
             } else if status == kVTInvalidSessionErr || status == kVTVideoDecoderMalfunctionErr || status == kVTVideoDecoderBadDataErr {
+                KSLog(level: .error, "[video] VTDecompressionSessionDecodeFrame failed status=\(status)")
                 if packet.isKeyFrame {
                     throw NSError(errorCode: .codecVideoReceiveFrame, avErrorCode: status)
                 } else {
 
                     needReconfig = true
                 }
+            } else {
+                KSLog(level: .error, "[video] VTDecompressionSessionDecodeFrame unexpected status=\(status)")
             }
         } catch {
             completionHandler(.failure(error))
@@ -111,6 +122,7 @@ class DecompressionSession {
     init?(assetTrack: FFmpegAssetTrack, options: KSOptions) {
         self.assetTrack = assetTrack
         guard let pixelFormatType = assetTrack.pixelFormatType, let formatDescription = assetTrack.formatDescription else {
+            KSLog(level: .error, "[video] DecompressionSession: missing pixelFormatType/formatDescription (codecId=\(assetTrack.codecpar.codec_id.rawValue))")
             return nil
         }
         self.formatDescription = formatDescription
@@ -133,19 +145,26 @@ class DecompressionSession {
         let status = VTDecompressionSessionCreate(allocator: kCFAllocatorDefault, formatDescription: formatDescription, decoderSpecification: CMFormatDescriptionGetExtensions(formatDescription), imageBufferAttributes: attributes, outputCallback: nil, decompressionSessionOut: &session)
 
         guard status == noErr, let decompressionSession = session else {
+            KSLog(level: .error, "[video] VTDecompressionSessionCreate failed status=\(status) codecId=\(assetTrack.codecpar.codec_id.rawValue)")
             return nil
         }
         if #available(iOS 14.0, tvOS 14.0, macOS 11.0, *) {
-            VTSessionSetProperty(decompressionSession, key: kVTDecompressionPropertyKey_PropagatePerFrameHDRDisplayMetadata,
-                                 value: kCFBooleanTrue)
+            let propStatus = VTSessionSetProperty(decompressionSession, key: kVTDecompressionPropertyKey_PropagatePerFrameHDRDisplayMetadata,
+                                                  value: kCFBooleanTrue)
+            if propStatus != noErr {
+                KSLog(level: .error, "[video] VTSessionSetProperty HDR metadata failed status=\(propStatus)")
+            }
         }
         if let destinationDynamicRange = options.availableDynamicRange(nil) {
             let pixelTransferProperties = [kVTPixelTransferPropertyKey_DestinationColorPrimaries: destinationDynamicRange.colorPrimaries,
                                            kVTPixelTransferPropertyKey_DestinationTransferFunction: destinationDynamicRange.transferFunction,
                                            kVTPixelTransferPropertyKey_DestinationYCbCrMatrix: destinationDynamicRange.yCbCrMatrix]
-            VTSessionSetProperty(decompressionSession,
-                                 key: kVTDecompressionPropertyKey_PixelTransferProperties,
-                                 value: pixelTransferProperties as CFDictionary)
+            let propStatus = VTSessionSetProperty(decompressionSession,
+                                                  key: kVTDecompressionPropertyKey_PixelTransferProperties,
+                                                  value: pixelTransferProperties as CFDictionary)
+            if propStatus != noErr {
+                KSLog(level: .error, "[video] VTSessionSetProperty pixelTransfer failed status=\(propStatus)")
+            }
         }
         self.decompressionSession = decompressionSession
     }

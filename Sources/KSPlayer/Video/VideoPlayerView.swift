@@ -423,6 +423,7 @@ open class VideoPlayerView: PlayerView {
 
     override open func player(layer: KSPlayerLayer, finish error: Error?) {
         if let error {
+            KSLog(level: .error, "[ui] player finish(error: \(error))")
             lastError = error
             // KSPlayerLayer.finish dispatches state == .error before
             // finish(error:) here, so showErrorView() in the state handler only
@@ -1105,6 +1106,8 @@ extension VideoPlayerView {
     }
 
     private func showErrorView() {
+        let detail = lastError.map { errorDescription($0) } ?? NSLocalizedString("Unknown Error", comment: "")
+        KSLog(level: .error, "[ui] showErrorView \(detail)")
         if let lastError {
             errorDetailLabel.text = errorDescription(lastError)
         } else {

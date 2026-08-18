@@ -8,7 +8,15 @@ import QuartzCore
 import simd
 
 class MetalRender {
-    static let device = MTLCreateSystemDefaultDevice()!
+    static let device: MTLDevice = {
+        guard let device = MTLCreateSystemDefaultDevice() else {
+            // No Metal device means rendering cannot proceed; log before the
+            // fatal so the crash report carries the cause.
+            KSLog(level: .fatal, "[metal] MTLCreateSystemDefaultDevice returned nil — Metal unavailable")
+            fatalError("KSPlayer requires Metal: MTLCreateSystemDefaultDevice() returned nil")
+        }
+        return device
+    }()
 
     private static let textureCache: CVMetalTextureCache? = {
         var cache: CVMetalTextureCache?
@@ -20,6 +28,9 @@ class MetalRender {
         library = device.makeDefaultLibrary()
         if library == nil {
             library = try? device.makeDefaultLibrary(bundle: .module)
+        }
+        if library == nil {
+            KSLog(level: .error, "[metal] makeDefaultLibrary returned nil — default shaders unavailable")
         }
         return library
     }()
@@ -91,6 +102,7 @@ class MetalRender {
         guard let commandBuffer = commandQueue?.makeCommandBuffer(),
               let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)
         else {
+            KSLog(level: .error, "[metal] clear(): commandBuffer/encoder creation failed")
             return
         }
         encoder.endEncoding()
@@ -108,6 +120,7 @@ class MetalRender {
         let (inputTextures, cvTextures) = MetalRender.textures(pixelBuffer: cvPixelBuffer)
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture
         guard !inputTextures.isEmpty, let commandBuffer = commandQueue?.makeCommandBuffer(), let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
+            KSLog(level: .error, "[metal] draw(): no inputTextures or commandBuffer/encoder creation failed (textures=\(inputTextures.count))")
             inflightSemaphore.signal()
             return
         }
@@ -193,8 +206,15 @@ class MetalRender {
         vertexDescriptor.layouts[1].stride = MemoryLayout<simd_float2>.stride
         descriptor.vertexDescriptor = vertexDescriptor
 
-        return try! library.device.makeRenderPipelineState(descriptor: descriptor)
-
+        do {
+            return try library.device.makeRenderPipelineState(descriptor: descriptor)
+        } catch {
+            // A shader compile failure is unrecoverable for this display path;
+            // log the fragment function before crashing so the remote report
+            // identifies the failing pipeline.
+            KSLog(level: .fatal, "[metal] makeRenderPipelineState failed fragment=\(fragmentFunction) isSphere=\(isSphere) bitDepth=\(bitDepth): \(error)")
+            fatalError("KSPlayer Metal pipeline compile failed for \(fragmentFunction): \(error)")
+        }
     }
 
 
@@ -213,6 +233,8 @@ class MetalRender {
             if result == kCVReturnSuccess, let cvTexture, let texture = CVMetalTextureGetTexture(cvTexture) {
                 textures.append(texture)
                 cvTextures.append(cvTexture)
+            } else {
+                KSLog(level: .error, "[metal] CVMetalTextureCacheCreateTextureFromImage failed result=\(result) plane=\(index) fmt=\(formats[index].rawValue) w=\(width) h=\(height)")
             }
         }
         return (textures, cvTextures)

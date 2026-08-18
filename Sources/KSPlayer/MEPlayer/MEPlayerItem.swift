@@ -68,6 +68,7 @@ public final class MEPlayerItem: Sendable {
 
     private var state = MESourceState.idle {
         didSet {
+            KSLog(level: .info, "[demux] state \(oldValue) → \(state)")
             switch state {
             case .opened:
                 delegate?.sourceDidOpened()
@@ -170,9 +171,11 @@ public final class MEPlayerItem: Sendable {
 
 extension MEPlayerItem {
     private func openThread() {
+        KSLog(level: .info, "[demux] openThread start url=\(url.absoluteString)")
         avformat_close_input(&self.formatCtx)
         formatCtx = avformat_alloc_context()
         guard let formatCtx else {
+            KSLog(level: .error, "[demux] avformat_alloc_context failed (.formatCreate)")
             error = NSError(errorCode: .formatCreate)
             return
         }
@@ -216,11 +219,13 @@ extension MEPlayerItem {
         var result = avformat_open_input(&self.formatCtx, urlString, nil, &avOptions)
         av_dict_free(&avOptions)
         if result == AVError.eof.code {
+            KSLog(level: .info, "[demux] avformat_open_input returned EOF (empty/short input) url=\(urlString)")
             state = .finished
             delegate?.sourceDidFinished()
             return
         }
         guard result == 0 else {
+            KSLog(level: .error, "[demux] avformat_open_input failed result=\(result) url=\(urlString)")
             error = .init(errorCode: .formatOpenInput, avErrorCode: result)
             avformat_close_input(&self.formatCtx)
             return
@@ -238,6 +243,7 @@ extension MEPlayerItem {
         }
         result = avformat_find_stream_info(formatCtx, nil)
         guard result == 0 else {
+            KSLog(level: .error, "[demux] avformat_find_stream_info failed result=\(result)")
             error = .init(errorCode: .formatFindStreamInfo, avErrorCode: result)
             avformat_close_input(&self.formatCtx)
             return
@@ -274,7 +280,10 @@ extension MEPlayerItem {
         if let outputURL = options.outputURL {
             startRecord(url: outputURL)
         }
+        let openSpend = CACurrentMediaTime() - options.openTime
+        KSLog(level: .info, "[demux] opened fmt=\(options.formatName.isEmpty ? "?" : options.formatName) streams=\(formatCtx.pointee.nb_streams) duration=\(duration)s size=\(fileSize)B tracks=\(allPlayerItemTracks.count) spend=\(String(format: "%.3f", openSpend))s")
         if videoTrack == nil, audioTrack == nil {
+            KSLog(level: .error, "[demux] no playable video/audio track")
             state = .failed
         } else {
             state = .opened
@@ -287,7 +296,7 @@ extension MEPlayerItem {
         let filename = url.isFileURL ? url.path : url.absoluteString
         var ret = avformat_alloc_output_context2(&outputFormatCtx, nil, nil, filename)
         guard let outputFormatCtx, let formatCtx else {
-            KSLog(NSError(errorCode: .formatOutputCreate, avErrorCode: ret))
+            KSLog(level: .error, "[demux] avformat_alloc_output_context2 failed (\(NSError(errorCode: .formatOutputCreate, avErrorCode: ret)))")
             return
         }
         var index = 0
@@ -331,10 +340,13 @@ extension MEPlayerItem {
                 }
             }
         }
-        avio_open(&(outputFormatCtx.pointee.pb), filename, AVIO_FLAG_WRITE)
+        let avioStatus = avio_open(&(outputFormatCtx.pointee.pb), filename, AVIO_FLAG_WRITE)
+        if avioStatus < 0 {
+            KSLog(level: .error, "[demux] avio_open(output) failed result=\(avioStatus) file=\(filename)")
+        }
         ret = avformat_write_header(outputFormatCtx, nil)
         guard ret >= 0 else {
-            KSLog(NSError(errorCode: .formatWriteHeader, avErrorCode: ret))
+            KSLog(level: .error, "[demux] avformat_write_header failed (\(NSError(errorCode: .formatWriteHeader, avErrorCode: ret)))")
             avformat_close_input(&self.outputFormatCtx)
             return
         }
@@ -457,7 +469,10 @@ extension MEPlayerItem {
                 let result = avformat_seek_file(formatCtx, -1, Int64.min, timestamp.value, Int64.max, flags)
                 audioClock.time = timestamp
                 videoClock.time = timestamp
-                KSLog("start PlayTime: \(timestamp.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
+                if result < 0 {
+                    KSLog(level: .error, "[demux] startPlayTime seek failed result=\(result) t=\(timestamp.seconds)")
+                }
+                KSLog(level: .info, "[demux] start PlayTime: \(timestamp.seconds) spend Time: \(CACurrentMediaTime() - seekStartTime)")
             }
             state = .reading
         }
@@ -501,12 +516,16 @@ extension MEPlayerItem {
                 var result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
 
                 if result < 0, seekFlags & AVSEEK_FLAG_BACKWARD == AVSEEK_FLAG_BACKWARD {
-                    KSLog("seek to \(seekToTime) failed. seekFlags remove BACKWARD")
+                    KSLog(level: .info, "[demux] seek to \(seekToTime) failed first try. retry without BACKWARD")
                     options.seekFlags &= ~AVSEEK_FLAG_BACKWARD
                     seekFlags &= ~AVSEEK_FLAG_BACKWARD
                     result = avformat_seek_file(formatCtx, -1, seekMin, timeStamp, seekMax, seekFlags)
                 }
-                KSLog("seek to \(seekToTime) spend Time: \(CACurrentMediaTime() - seekStartTime)")
+                if result < 0 {
+                    KSLog(level: .error, "[demux] seek to \(seekToTime) ultimately failed result=\(result)")
+                } else {
+                    KSLog(level: .info, "[demux] seek to \(seekToTime) spend \(String(format: "%.3f", CACurrentMediaTime() - seekStartTime))s result=\(result)")
+                }
                 if state == .closed {
                     break
                 }
@@ -554,7 +573,7 @@ extension MEPlayerItem {
                     outputPacket.pointee.pos = -1
                     let ret = av_interleaved_write_frame(outputFormatCtx, outputPacket)
                     if ret < 0 {
-                        KSLog("can not av_interleaved_write_frame")
+                        KSLog(level: .error, "[demux] av_interleaved_write_frame failed result=\(ret)")
                     }
                 }
             }
@@ -599,14 +618,16 @@ extension MEPlayerItem {
         } else {
             if readResult == AVError.eof.code || avio_feof(formatCtx?.pointee.pb) > 0 {
                 if options.isLoopPlay, allPlayerItemTracks.allSatisfy({ !$0.isLoopModel }) {
+                    KSLog(level: .info, "[demux] read EOF — looping playback, seeking to start")
                     allPlayerItemTracks.forEach { $0.isLoopModel = true }
                     _ = av_seek_frame(formatCtx, -1, startTime.value, AVSEEK_FLAG_BACKWARD)
                 } else {
+                    KSLog(level: .info, "[demux] read EOF — finished")
                     allPlayerItemTracks.forEach { $0.isEndOfFile = true }
                     state = .finished
                 }
             } else {
-
+                KSLog(level: .error, "[demux] av_read_frame failed result=\(readResult)")
                 error = .init(errorCode: .readFrame, avErrorCode: readResult)
             }
         }
@@ -642,6 +663,7 @@ extension MEPlayerItem: MediaPlayback {
     }
 
     public func prepareToPlay() {
+        KSLog(level: .info, "[demux] prepareToPlay url=\(url.absoluteString)")
         state = .opening
         openOperation = BlockOperation { [weak self] in
             guard let self else { return }
@@ -658,6 +680,7 @@ extension MEPlayerItem: MediaPlayback {
 
     public func shutdown() {
         guard state != .closed else { return }
+        KSLog(level: .info, "[demux] shutdown")
         state = .closed
         av_packet_free(&outputPacket)
         stopRecord()
@@ -665,7 +688,7 @@ extension MEPlayerItem: MediaPlayback {
         let closeOperation = BlockOperation {
             Thread.current.name = (self.operationQueue.name ?? "") + "_close"
             self.allPlayerItemTracks.forEach { $0.shutdown() }
-            KSLog("清空formatCtx")
+            KSLog(level: .info, "[demux] closing formatCtx")
 
             if let formatCtx = self.formatCtx, (formatCtx.pointee.flags & AVFMT_FLAG_CUSTOM_IO) != 0, let opaque = formatCtx.pointee.pb.pointee.opaque {
                 let value = Unmanaged<AbstractAVIOContext>.fromOpaque(opaque).takeRetainedValue()
@@ -706,6 +729,7 @@ extension MEPlayerItem: MediaPlayback {
     }
 
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
+        KSLog(level: .info, "[demux] seek(t=\(time)) state=\(state)")
         if state == .reading || state == .paused {
             seekTime = time
             state = .seeking
@@ -755,6 +779,7 @@ extension MEPlayerItem: CodecCapacityDelegate {
         }
         let allSatisfy = videoAudioTracks.allSatisfy { $0.isEndOfFile && $0.frameCount == 0 && $0.packetCount == 0 }
         if allSatisfy {
+            KSLog(level: .info, "[demux] codecDidFinished: all audio/video tracks drained")
 
             if !options.isLoopPlay && (audioTrack?.isLoopModel == true || videoTrack?.isLoopModel == true) {
                 isAudioStalled = audioTrack == nil

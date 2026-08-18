@@ -149,6 +149,7 @@ public class KSAVPlayer {
     public private(set) var loadState = MediaLoadState.idle {
         didSet {
             if loadState != oldValue {
+                KSLog(level: .info, "[player] loadState \(oldValue) → \(loadState)")
                 playOrPause()
                 if loadState == .loading || loadState == .idle {
                     bufferingProgress = 0
@@ -160,6 +161,7 @@ public class KSAVPlayer {
     public private(set) var playbackState = MediaPlaybackState.idle {
         didSet {
             if playbackState != oldValue {
+                KSLog(level: .info, "[player] playbackState \(oldValue) → \(playbackState)")
                 playOrPause()
                 if playbackState == .finished {
                     delegate?.finish(player: self, error: nil)
@@ -171,6 +173,7 @@ public class KSAVPlayer {
     public private(set) var isReadyToPlay = false {
         didSet {
             if isReadyToPlay != oldValue {
+                KSLog(level: .info, "[player] isReadyToPlay → \(isReadyToPlay)")
                 if isReadyToPlay {
                     options.readyTime = CACurrentMediaTime()
                     delegate?.readyToPlay(player: self)
@@ -219,6 +222,7 @@ public class KSAVPlayer {
             guard let self else { return }
             self.observer(playerItem: player.currentItem)
         }
+        KSLog(level: .info, "[player] KSAVPlayer init url=\(url.absoluteString)")
     }
 }
 
@@ -226,6 +230,7 @@ extension KSAVPlayer {
     public var player: AVQueuePlayer { playerView.player }
     public var playerLayer: AVPlayerLayer { playerView.playerLayer }
     @objc private func moviePlayDidEnd(notification _: Notification) {
+        KSLog(level: .info, "[player] AVPlayerItemDidPlayToEndTime isLoopPlay=\(options.isLoopPlay)")
         if !options.isLoopPlay {
             playbackState = .finished
         }
@@ -242,6 +247,7 @@ extension KSAVPlayer {
                 playError = NSError(domain: "AVMoviePlayer", code: errorCode, userInfo: nil)
             }
         }
+        KSLog(level: .error, "[player] playerItemFailedToPlayToEndTime error=\(String(describing: playError))")
         delegate?.finish(player: self, error: playError)
     }
 
@@ -257,6 +263,7 @@ extension KSAVPlayer {
             if let playableVideo {
                 naturalSize = playableVideo.naturalSize
             } else {
+                KSLog(level: .error, "[player] updateStatus: no playable video track (.videoTracksUnplayable)")
                 error = NSError(errorCode: .videoTracksUnplayable)
                 return
             }
@@ -274,8 +281,10 @@ extension KSAVPlayer {
                     return Chapter(start: start, end: end, title: title)
                 }
             }
+            KSLog(level: .info, "[player] AVPlayerItem readyToPlay duration=\(duration)s size=\(naturalSize) tracks=\(mediaPlayerTracks.count)")
             isReadyToPlay = true
         } else if item.status == .failed {
+            KSLog(level: .error, "[player] AVPlayerItem status failed error=\(String(describing: item.error))")
             error = item.error
         }
     }
@@ -406,6 +415,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
     }
 
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
+        KSLog(level: .info, "[player] seek(t=\(time)) accurate=\(options.isAccurateSeek)")
         let time = max(time, 0)
         shouldSeekTo = time
         playbackState = .seeking
@@ -422,7 +432,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
     }
 
     public func prepareToPlay() {
-        KSLog("prepareToPlay \(self)")
+        KSLog(level: .info, "[player] prepareToPlay")
         options.prepareTime = CACurrentMediaTime()
         runOnMainThread { [weak self] in
             guard let self else { return }
@@ -436,17 +446,17 @@ extension KSAVPlayer: MediaPlayerProtocol {
     }
 
     public func play() {
-        KSLog("play \(self)")
+        KSLog(level: .info, "[player] play")
         playbackState = .playing
     }
 
     public func pause() {
-        KSLog("pause \(self)")
+        KSLog(level: .info, "[player] pause")
         playbackState = .paused
     }
 
     public func shutdown() {
-        KSLog("shutdown \(self)")
+        KSLog(level: .info, "[player] shutdown")
         isReadyToPlay = false
         playbackState = .stopped
         loadState = .idle
@@ -455,7 +465,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
     }
 
     public func replace(url: URL, options: KSOptions) {
-        KSLog("replaceUrl \(self)")
+        KSLog(level: .info, "[player] replaceUrl \(url.absoluteString)")
         shutdown()
         urlAsset = AVURLAsset(url: url, options: options.avOptions)
         self.options = options

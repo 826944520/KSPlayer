@@ -146,10 +146,13 @@ public class AudioEnginePlayer: AudioOutput {
         engine.attach(timePitch)
         if let audioUnit = engine.outputNode.audioUnit {
             addRenderNotify(audioUnit: audioUnit)
+        } else {
+            KSLog(level: .error, "[audio] AudioEnginePlayer init: outputNode.audioUnit is nil (no render notify)")
         }
         #if !os(macOS)
         outputLatency = AVAudioSession.sharedInstance().outputLatency
         #endif
+        KSLog(level: .info, "[audio] AudioEnginePlayer initialized")
     }
 
     public func prepare(audioFormat: AVAudioFormat) {
@@ -190,7 +193,12 @@ public class AudioEnginePlayer: AudioOutput {
         engine.connect(nodes: nodes, format: audioFormat)
         engine.prepare()
         if isRunning {
-            try? engine.start()
+            do {
+                try engine.start()
+                KSLog(level: .info, "[audio] AudioEnginePlayer engine restarted after prepare fmt=\(audioFormat.sampleRate)Hz ch=\(audioFormat.channelCount)")
+            } catch {
+                KSLog(level: .error, "[audio] AudioEnginePlayer engine.start() after prepare failed: \(error)")
+            }
 
             DispatchQueue.main.async { [weak self] in
                 self?.play()
@@ -206,8 +214,9 @@ public class AudioEnginePlayer: AudioOutput {
         if !engine.isRunning {
             do {
                 try engine.start()
+                KSLog(level: .info, "[audio] AudioEnginePlayer.play started")
             } catch {
-                KSLog(error)
+                KSLog(level: .error, "[audio] AudioEnginePlayer.play engine.start() failed: \(error)")
             }
         }
     }
@@ -215,6 +224,7 @@ public class AudioEnginePlayer: AudioOutput {
     public func pause() {
         if engine.isRunning {
             engine.pause()
+            KSLog(level: .info, "[audio] AudioEnginePlayer.pause paused")
         }
     }
 

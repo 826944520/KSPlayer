@@ -91,6 +91,7 @@ public class KSMEPlayer: NSObject {
     public private(set) var loadState = MediaLoadState.idle {
         didSet {
             if loadState != oldValue {
+                KSLog(level: .info, "[player] loadState \(oldValue) → \(loadState)")
                 playOrPause()
             }
         }
@@ -99,6 +100,7 @@ public class KSMEPlayer: NSObject {
     public private(set) var playbackState = MediaPlaybackState.idle {
         didSet {
             if playbackState != oldValue {
+                KSLog(level: .info, "[player] playbackState \(oldValue) → \(playbackState)")
                 playOrPause()
                 if playbackState == .finished {
                     runOnMainThread { [weak self] in
@@ -131,9 +133,11 @@ public class KSMEPlayer: NSObject {
             NotificationCenter.default.addObserver(self, selector: #selector(spatialCapabilityChange), name: AVAudioSession.spatialPlaybackCapabilitiesChangedNotification, object: nil)
         }
         #endif
+        KSLog(level: .info, "[player] KSMEPlayer init url=\(url.absoluteString) videoDisable=\(options.videoDisable) audio=\(type(of: audioOutput))")
     }
 
     deinit {
+        KSLog(level: .info, "[player] KSMEPlayer deinit")
         #if !os(macOS)
         try? AVAudioSession.sharedInstance().setPreferredOutputNumberOfChannels(2)
         #endif
@@ -162,7 +166,7 @@ private extension KSMEPlayer {
     }
 
     @objc private func spatialCapabilityChange(notification _: Notification) {
-        KSLog("[audio] spatialCapabilityChange")
+        KSLog(level: .info, "[audio] spatialCapabilityChange — updating audio formats")
         for track in tracks(mediaType: .audio) {
             (track as? FFmpegAssetTrack)?.audioDescriptor?.updateAudioFormat()
         }
@@ -170,7 +174,7 @@ private extension KSMEPlayer {
 
     #if !os(macOS)
     @objc private func audioRouteChange(notification: Notification) {
-        KSLog("[audio] audioRouteChange")
+        KSLog(level: .info, "[audio] audioRouteChange")
         guard let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt else {
             return
         }
@@ -191,13 +195,14 @@ extension KSMEPlayer: MEPlayerDelegate {
         if vidoeTracks.isEmpty {
             videoOutput = nil
         }
+        KSLog(level: .info, "[player] sourceDidOpened duration=\(playerItem.duration)s videoTracks=\(vidoeTracks.count) naturalSize=\(playerItem.naturalSize) readySpend=\(String(format: "%.3f", options.readyTime - options.prepareTime))s")
         let audioDescriptor = tracks(mediaType: .audio).first { $0.isEnabled }.flatMap {
             $0 as? FFmpegAssetTrack
         }?.audioDescriptor
         runOnMainThread { [weak self] in
             guard let self else { return }
             if let audioDescriptor {
-                KSLog("[audio] audio type: \(audioOutput) prepare audioFormat )")
+                KSLog(level: .info, "[audio] prepare audioFormat \(audioDescriptor.audioFormat.sampleRate)Hz ch=\(audioDescriptor.audioFormat.channelCount)")
                 audioOutput.prepare(audioFormat: audioDescriptor.audioFormat)
             }
             if let controlTimebase = videoOutput?.displayLayer.controlTimebase, options.startPlayTime > 1 {
@@ -208,6 +213,7 @@ extension KSMEPlayer: MEPlayerDelegate {
     }
 
     func sourceDidFailed(error: NSError?) {
+        KSLog(level: .error, "[player] sourceDidFailed error=\(String(describing: error))")
         runOnMainThread { [weak self] in
             guard let self else { return }
             self.delegate?.finish(player: self, error: error)
@@ -215,6 +221,7 @@ extension KSMEPlayer: MEPlayerDelegate {
     }
 
     func sourceDidFinished() {
+        KSLog(level: .info, "[player] sourceDidFinished isLoopPlay=\(options.isLoopPlay)")
         runOnMainThread { [weak self] in
             guard let self else { return }
             if self.options.isLoopPlay {
@@ -292,7 +299,7 @@ extension KSMEPlayer: MEPlayerDelegate {
     }
 
     func sourceDidChange(oldBitRate: Int64, newBitrate: Int64) {
-        KSLog("oldBitRate \(oldBitRate) change to newBitrate \(newBitrate)")
+        KSLog(level: .info, "[player] adaptive bitrate changed \(oldBitRate) → \(newBitrate)")
     }
 }
 
@@ -323,7 +330,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
     public var view: UIView? { videoOutput }
 
     public func replace(url: URL, options: KSOptions) {
-        KSLog("replaceUrl \(self)")
+        KSLog(level: .info, "[player] replaceUrl \(url.absoluteString)")
         shutdown()
         playerItem.delegate = nil
         playerItem = MEPlayerItem(url: url, options: options)
@@ -364,6 +371,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
     }
 
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
+        KSLog(level: .info, "[player] seek(t=\(time)) duration=\(duration)")
         let time = max(time, 0)
         playbackState = .seeking
         runOnMainThread { [weak self] in
@@ -391,14 +399,14 @@ extension KSMEPlayer: MediaPlayerProtocol {
     }
 
     public func prepareToPlay() {
-        KSLog("prepareToPlay \(self)")
+        KSLog(level: .info, "[player] prepareToPlay")
         options.prepareTime = CACurrentMediaTime()
         playerItem.prepareToPlay()
         bufferingProgress = 0
     }
 
     public func play() {
-        KSLog("play \(self)")
+        KSLog(level: .info, "[player] play")
         playbackState = .playing
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             pipController?.invalidatePlaybackState()
@@ -406,7 +414,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
     }
 
     public func pause() {
-        KSLog("pause \(self)")
+        KSLog(level: .info, "[player] pause")
         playbackState = .paused
         if #available(iOS 15.0, tvOS 15.0, macOS 12.0, *) {
             pipController?.invalidatePlaybackState()
@@ -414,7 +422,7 @@ extension KSMEPlayer: MediaPlayerProtocol {
     }
 
     public func shutdown() {
-        KSLog("shutdown \(self)")
+        KSLog(level: .info, "[player] shutdown")
         playbackState = .stopped
         loadState = .idle
         isReadyToPlay = false

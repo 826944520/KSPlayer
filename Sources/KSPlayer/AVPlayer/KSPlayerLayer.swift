@@ -82,7 +82,7 @@ open class KSPlayerLayer: NSObject {
 
     public var player: MediaPlayerProtocol {
         didSet {
-            KSLog("player is \(player)")
+            KSLog(level: .info, "[layer] player replaced → \(type(of: player))")
             state = .initialized
             runOnMainThread { [weak self] in
                 guard let self else { return }
@@ -149,9 +149,10 @@ open class KSPlayerLayer: NSObject {
     public private(set) var state = KSPlayerState.initialized {
         willSet {
             if state != newValue {
+                let oldState = state
                 runOnMainThread { [weak self] in
                     guard let self else { return }
-                    KSLog("playerStateDidChange - \(newValue)")
+                    KSLog(level: .info, "[layer] playerStateDidChange \(oldState) → \(newValue)")
                     self.delegate?.player(layer: self, state: newValue)
                 }
             }
@@ -262,6 +263,7 @@ open class KSPlayerLayer: NSObject {
     }
 
     open func play() {
+        KSLog(level: .info, "[layer] play state=\(state) ready=\(player.isReadyToPlay)")
         runOnMainThread {
             UIApplication.shared.isIdleTimerDisabled = true
         }
@@ -290,6 +292,7 @@ open class KSPlayerLayer: NSObject {
     }
 
     open func pause() {
+        KSLog(level: .info, "[layer] pause")
         isAutoPlay = false
         player.pause()
         timer.fireDate = Date.distantFuture
@@ -301,7 +304,7 @@ open class KSPlayerLayer: NSObject {
     }
 
     public func stop() {
-        KSLog("stop Player")
+        KSLog(level: .info, "[layer] stop")
         state = .initialized
         player.shutdown()
         bufferedCount = 0
@@ -428,12 +431,13 @@ extension KSPlayerLayer: MediaPlayerDelegate {
 
     public func finish(player: some MediaPlayerProtocol, error: Error?) {
         if let error {
+            KSLog(level: .error, "[layer] finish(error: \(error)) playerType=\(type(of: player))")
             if type(of: player) != KSOptions.secondPlayerType, let secondPlayerType = KSOptions.secondPlayerType {
+                KSLog(level: .info, "[layer] falling back to second player \(secondPlayerType)")
                 self.player = secondPlayerType.init(url: url, options: options)
                 return
             }
             state = .error
-            KSLog(error as CustomStringConvertible)
         } else {
             let duration = player.duration
             runOnMainThread { [weak self] in
@@ -471,6 +475,7 @@ extension KSPlayerLayer: AVPictureInPictureControllerDelegate {
 
 extension KSPlayerLayer {
     open func prepareToPlay() {
+        KSLog(level: .info, "[layer] prepareToPlay url=\(url.absoluteString)")
         state = .preparing
         startTime = CACurrentMediaTime()
         bufferedCount = 0
@@ -684,10 +689,11 @@ extension KSPlayerLayer {
         }
         switch type {
         case .began:
+            KSLog(level: .info, "[layer] audioInterrupted began")
             pause()
 
         case .ended:
-
+            KSLog(level: .info, "[layer] audioInterrupted ended")
 
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)

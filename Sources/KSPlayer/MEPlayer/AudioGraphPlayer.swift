@@ -28,11 +28,17 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
     }
 
     public func play() {
-        AUGraphStart(graph)
+        let status = AUGraphStart(graph)
+        if status != noErr {
+            KSLog(level: .error, "[audio] AUGraphStart failed status=\(status)")
+        }
     }
 
     public func pause() {
-        AUGraphStop(graph)
+        let status = AUGraphStop(graph)
+        if status != noErr {
+            KSLog(level: .error, "[audio] AUGraphStop failed status=\(status)")
+        }
     }
 
     public var playbackRate: Float {
@@ -122,27 +128,48 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
         var nodeForDynamicsProcessor = AUNode()
         var nodeForMixer = AUNode()
         var nodeForOutput = AUNode()
-        AUGraphAddNode(graph, &descriptionForTimePitch, &nodeForTimePitch)
-        AUGraphAddNode(graph, &descriptionForMixer, &nodeForMixer)
-        AUGraphAddNode(graph, &descriptionForDynamicsProcessor, &nodeForDynamicsProcessor)
-        AUGraphAddNode(graph, &descriptionForOutput, &nodeForOutput)
-        AUGraphOpen(graph)
-        AUGraphConnectNodeInput(graph, nodeForTimePitch, 0, nodeForDynamicsProcessor, 0)
-        AUGraphConnectNodeInput(graph, nodeForDynamicsProcessor, 0, nodeForMixer, 0)
-        AUGraphConnectNodeInput(graph, nodeForMixer, 0, nodeForOutput, 0)
+        var status = AUGraphAddNode(graph, &descriptionForTimePitch, &nodeForTimePitch)
+        if status != noErr { KSLog(level: .error, "[audio] AUGraphAddNode(timePitch) failed status=\(status)") }
+        status = AUGraphAddNode(graph, &descriptionForMixer, &nodeForMixer)
+        if status != noErr { KSLog(level: .error, "[audio] AUGraphAddNode(mixer) failed status=\(status)") }
+        status = AUGraphAddNode(graph, &descriptionForDynamicsProcessor, &nodeForDynamicsProcessor)
+        if status != noErr { KSLog(level: .error, "[audio] AUGraphAddNode(dynamics) failed status=\(status)") }
+        status = AUGraphAddNode(graph, &descriptionForOutput, &nodeForOutput)
+        if status != noErr { KSLog(level: .error, "[audio] AUGraphAddNode(output) failed status=\(status)") }
+        status = AUGraphOpen(graph)
+        if status != noErr { KSLog(level: .error, "[audio] AUGraphOpen failed status=\(status)") }
+        status = AUGraphConnectNodeInput(graph, nodeForTimePitch, 0, nodeForDynamicsProcessor, 0)
+        if status != noErr { KSLog(level: .error, "[audio] AUGraphConnect(timePitch→dynamics) failed status=\(status)") }
+        status = AUGraphConnectNodeInput(graph, nodeForDynamicsProcessor, 0, nodeForMixer, 0)
+        if status != noErr { KSLog(level: .error, "[audio] AUGraphConnect(dynamics→mixer) failed status=\(status)") }
+        status = AUGraphConnectNodeInput(graph, nodeForMixer, 0, nodeForOutput, 0)
+        if status != noErr { KSLog(level: .error, "[audio] AUGraphConnect(mixer→output) failed status=\(status)") }
         AUGraphNodeInfo(graph, nodeForTimePitch, &descriptionForTimePitch, &audioUnitForTimePitch)
-        var audioUnitForDynamicsProcessor: AudioUnit?
-        AUGraphNodeInfo(graph, nodeForDynamicsProcessor, &descriptionForDynamicsProcessor, &audioUnitForDynamicsProcessor)
-        self.audioUnitForDynamicsProcessor = audioUnitForDynamicsProcessor!
+        var dynamicsUnit: AudioUnit?
+        status = AUGraphNodeInfo(graph, nodeForDynamicsProcessor, &descriptionForDynamicsProcessor, &dynamicsUnit)
+        if status != noErr || dynamicsUnit == nil {
+            KSLog(level: .error, "[audio] AUGraphNodeInfo(dynamics) failed status=\(status)")
+        }
         AUGraphNodeInfo(graph, nodeForMixer, &descriptionForMixer, &audioUnitForMixer)
         AUGraphNodeInfo(graph, nodeForOutput, &descriptionForOutput, &audioUnitForOutput)
+        if let dynamicsUnit {
+            self.audioUnitForDynamicsProcessor = dynamicsUnit
+        } else {
+            // The dynamics node sits in the required chain (timePitch→dynamics→mixer);
+            // if its unit failed to instantiate, reuse the mixer unit so the protocol
+            // property still holds a valid AudioUnit instead of crashing on a force unwrap.
+            self.audioUnitForDynamicsProcessor = audioUnitForMixer
+        }
         addRenderNotify(audioUnit: audioUnitForOutput)
         var value = UInt32(1)
-        AudioUnitSetProperty(audioUnitForTimePitch,
-                             kAudioOutputUnitProperty_EnableIO,
-                             kAudioUnitScope_Output, 0,
-                             &value,
-                             UInt32(MemoryLayout<UInt32>.size))
+        status = AudioUnitSetProperty(audioUnitForTimePitch,
+                                      kAudioOutputUnitProperty_EnableIO,
+                                      kAudioUnitScope_Output, 0,
+                                      &value,
+                                      UInt32(MemoryLayout<UInt32>.size))
+        if status != noErr {
+            KSLog(level: .error, "[audio] EnableIO(timePitch) failed status=\(status)")
+        }
         #if !os(macOS)
         outputLatency = AVAudioSession.sharedInstance().outputLatency
         #endif
@@ -161,40 +188,68 @@ public final class AudioGraphPlayer: AudioOutput, AudioDynamicsProcessor {
         var audioStreamBasicDescription = audioFormat.formatDescription.audioStreamBasicDescription
         let audioStreamBasicDescriptionSize = UInt32(MemoryLayout<AudioStreamBasicDescription>.size)
         let channelLayout = audioFormat.channelLayout?.layout
-        for unit in [audioUnitForTimePitch, audioUnitForDynamicsProcessor, audioUnitForMixer, audioUnitForOutput] {
+        // AudioUnit is an opaque pointer (COpaquePointer-backed struct), so we
+        // identify units by position/name rather than `===`/`!=` (which only
+        // work on class instances).
+        let units: [(name: String, unit: AudioUnit?)] = [
+            (name: "timePitch", unit: audioUnitForTimePitch),
+            (name: "dynamics", unit: audioUnitForDynamicsProcessor),
+            (name: "mixer", unit: audioUnitForMixer),
+            (name: "output", unit: audioUnitForOutput),
+        ]
+        for (unitName, unit) in units {
             guard let unit else { continue }
-            AudioUnitSetProperty(unit,
-                                 kAudioUnitProperty_StreamFormat,
-                                 kAudioUnitScope_Input, 0,
-                                 &audioStreamBasicDescription,
-                                 audioStreamBasicDescriptionSize)
-            AudioUnitSetProperty(unit,
-                                 kAudioUnitProperty_AudioChannelLayout,
-                                 kAudioUnitScope_Input, 0,
-                                 channelLayout,
-                                 UInt32(MemoryLayout<AudioChannelLayout>.size))
-            if unit != audioUnitForOutput {
-                AudioUnitSetProperty(unit,
-                                     kAudioUnitProperty_StreamFormat,
-                                     kAudioUnitScope_Output, 0,
-                                     &audioStreamBasicDescription,
-                                     audioStreamBasicDescriptionSize)
-                AudioUnitSetProperty(unit,
-                                     kAudioUnitProperty_AudioChannelLayout,
-                                     kAudioUnitScope_Output, 0,
-                                     channelLayout,
-                                     UInt32(MemoryLayout<AudioChannelLayout>.size))
+            var unitStatus = AudioUnitSetProperty(unit,
+                                                  kAudioUnitProperty_StreamFormat,
+                                                  kAudioUnitScope_Input, 0,
+                                                  &audioStreamBasicDescription,
+                                                  audioStreamBasicDescriptionSize)
+            if unitStatus != noErr {
+                KSLog(level: .error, "[audio] \(unitName) set StreamFormat(input) failed status=\(unitStatus)")
             }
-            if unit == audioUnitForTimePitch {
+            unitStatus = AudioUnitSetProperty(unit,
+                                              kAudioUnitProperty_AudioChannelLayout,
+                                              kAudioUnitScope_Input, 0,
+                                              channelLayout,
+                                              UInt32(MemoryLayout<AudioChannelLayout>.size))
+            if unitStatus != noErr {
+                KSLog(level: .error, "[audio] \(unitName) set AudioChannelLayout(input) failed status=\(unitStatus)")
+            }
+            if unitName != "output" {
+                unitStatus = AudioUnitSetProperty(unit,
+                                                  kAudioUnitProperty_StreamFormat,
+                                                  kAudioUnitScope_Output, 0,
+                                                  &audioStreamBasicDescription,
+                                                  audioStreamBasicDescriptionSize)
+                if unitStatus != noErr {
+                    KSLog(level: .error, "[audio] \(unitName) set StreamFormat(output) failed status=\(unitStatus)")
+                }
+                unitStatus = AudioUnitSetProperty(unit,
+                                                  kAudioUnitProperty_AudioChannelLayout,
+                                                  kAudioUnitScope_Output, 0,
+                                                  channelLayout,
+                                                  UInt32(MemoryLayout<AudioChannelLayout>.size))
+                if unitStatus != noErr {
+                    KSLog(level: .error, "[audio] \(unitName) set AudioChannelLayout(output) failed status=\(unitStatus)")
+                }
+            }
+            if unitName == "timePitch" {
                 var inputCallbackStruct = renderCallbackStruct()
-                AudioUnitSetProperty(unit,
-                                     kAudioUnitProperty_SetRenderCallback,
-                                     kAudioUnitScope_Input, 0,
-                                     &inputCallbackStruct,
-                                     UInt32(MemoryLayout<AURenderCallbackStruct>.size))
+                unitStatus = AudioUnitSetProperty(unit,
+                                                  kAudioUnitProperty_SetRenderCallback,
+                                                  kAudioUnitScope_Input, 0,
+                                                  &inputCallbackStruct,
+                                                  UInt32(MemoryLayout<AURenderCallbackStruct>.size))
+                if unitStatus != noErr {
+                    KSLog(level: .error, "[audio] \(unitName) set RenderCallback failed status=\(unitStatus)")
+                }
             }
         }
-        AUGraphInitialize(graph)
+        let graphStatus = AUGraphInitialize(graph)
+        if graphStatus != noErr {
+            KSLog(level: .error, "[audio] AUGraphInitialize failed status=\(graphStatus)")
+        }
+        KSLog(level: .info, "[audio] AudioGraphPlayer prepared rate=\(audioFormat.sampleRate) ch=\(audioFormat.channelCount) fmt=\(audioFormat.sampleSize * 8)-bit")
     }
 
     public func flush() {

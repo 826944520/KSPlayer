@@ -338,11 +338,13 @@ class AVSampleBufferDisplayView: UIView {
         layer = AVSampleBufferDisplayLayer()
         #endif
         var controlTimebase: CMTimebase?
-        CMTimebaseCreateWithSourceClock(allocator: kCFAllocatorDefault, sourceClock: CMClockGetHostTimeClock(), timebaseOut: &controlTimebase)
+        let timebaseStatus = CMTimebaseCreateWithSourceClock(allocator: kCFAllocatorDefault, sourceClock: CMClockGetHostTimeClock(), timebaseOut: &controlTimebase)
         if let controlTimebase {
             displayLayer.controlTimebase = controlTimebase
             CMTimebaseSetTime(controlTimebase, time: .zero)
             CMTimebaseSetRate(controlTimebase, rate: 1.0)
+        } else {
+            KSLog(level: .error, "[video] CMTimebaseCreateWithSourceClock failed status=\(timebaseStatus)")
         }
     }
 
@@ -355,7 +357,7 @@ class AVSampleBufferDisplayView: UIView {
         let timing = CMSampleTimingInfo(duration: .invalid, presentationTimeStamp: .zero, decodeTimeStamp: .invalid)
 
         var sampleBuffer: CMSampleBuffer?
-        CMSampleBufferCreateReadyWithImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: imageBuffer, formatDescription: formatDescription, sampleTiming: [timing], sampleBufferOut: &sampleBuffer)
+        let status = CMSampleBufferCreateReadyWithImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: imageBuffer, formatDescription: formatDescription, sampleTiming: [timing], sampleBufferOut: &sampleBuffer)
         if let sampleBuffer {
             if let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: true) as? [NSMutableDictionary], let dic = attachmentsArray.first {
                 dic[kCMSampleAttachmentKey_DisplayImmediately] = true
@@ -373,10 +375,12 @@ class AVSampleBufferDisplayView: UIView {
                 }
             }
             if displayLayer.status == .failed {
-                KSLog("[video] AVSampleBufferDisplayLayer status failed so flush")
+                KSLog(level: .error, "[video] AVSampleBufferDisplayLayer status failed so flush")
                 displayLayer.flush()
 
             }
+        } else {
+            KSLog(level: .error, "[video] CMSampleBufferCreateReadyWithImageBuffer failed status=\(status)")
         }
     }
 }

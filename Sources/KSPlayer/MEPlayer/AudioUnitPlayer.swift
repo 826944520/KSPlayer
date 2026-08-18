@@ -20,17 +20,32 @@ public final class AudioUnitPlayer: AudioOutput {
     }
 
     private var isPlaying = false
+    private var underflowCount = 0
     public func play() {
         if !isPlaying {
             isPlaying = true
-            AudioOutputUnitStart(audioUnitForOutput)
+            guard let audioUnitForOutput else {
+                KSLog(level: .error, "[audio] play() with nil audioUnitForOutput")
+                return
+            }
+            let status = AudioOutputUnitStart(audioUnitForOutput)
+            if status != noErr {
+                KSLog(level: .error, "[audio] AudioOutputUnitStart failed status=\(status)")
+            }
         }
     }
 
     public func pause() {
         if isPlaying {
             isPlaying = false
-            AudioOutputUnitStop(audioUnitForOutput)
+            guard let audioUnitForOutput else {
+                KSLog(level: .error, "[audio] pause() with nil audioUnitForOutput")
+                return
+            }
+            let status = AudioOutputUnitStop(audioUnitForOutput)
+            if status != noErr {
+                KSLog(level: .error, "[audio] AudioOutputUnitStop failed status=\(status)")
+            }
         }
     }
 
@@ -48,14 +63,23 @@ public final class AudioUnitPlayer: AudioOutput {
         descriptionForOutput.componentSubType = kAudioUnitSubType_RemoteIO
         outputLatency = AVAudioSession.sharedInstance().outputLatency
         #endif
-        let nodeForOutput = AudioComponentFindNext(nil, &descriptionForOutput)
-        AudioComponentInstanceNew(nodeForOutput!, &audioUnitForOutput)
+        guard let nodeForOutput = AudioComponentFindNext(nil, &descriptionForOutput) else {
+            KSLog(level: .error, "[audio] AudioComponentFindNext failed (no output component)")
+            return
+        }
+        let newStatus = AudioComponentInstanceNew(nodeForOutput, &audioUnitForOutput)
+        if newStatus != noErr {
+            KSLog(level: .error, "[audio] AudioComponentInstanceNew failed status=\(newStatus)")
+        }
         var value = UInt32(1)
-        AudioUnitSetProperty(audioUnitForOutput,
-                             kAudioOutputUnitProperty_EnableIO,
-                             kAudioUnitScope_Output, 0,
-                             &value,
-                             UInt32(MemoryLayout<UInt32>.size))
+        let ioStatus = AudioUnitSetProperty(audioUnitForOutput,
+                                            kAudioOutputUnitProperty_EnableIO,
+                                            kAudioUnitScope_Output, 0,
+                                            &value,
+                                            UInt32(MemoryLayout<UInt32>.size))
+        if ioStatus != noErr {
+            KSLog(level: .error, "[audio] EnableIO failed status=\(ioStatus)")
+        }
     }
 
     public func prepare(audioFormat: AVAudioFormat) {
@@ -69,25 +93,38 @@ public final class AudioUnitPlayer: AudioOutput {
         #endif
         sampleSize = audioFormat.sampleSize
         var audioStreamBasicDescription = audioFormat.formatDescription.audioStreamBasicDescription
-        AudioUnitSetProperty(audioUnitForOutput,
-                             kAudioUnitProperty_StreamFormat,
-                             kAudioUnitScope_Input, 0,
-                             &audioStreamBasicDescription,
-                             UInt32(MemoryLayout<AudioStreamBasicDescription>.size))
+        let fmtStatus = AudioUnitSetProperty(audioUnitForOutput,
+                                             kAudioUnitProperty_StreamFormat,
+                                             kAudioUnitScope_Input, 0,
+                                             &audioStreamBasicDescription,
+                                             UInt32(MemoryLayout<AudioStreamBasicDescription>.size))
+        if fmtStatus != noErr {
+            KSLog(level: .error, "[audio] set StreamFormat failed status=\(fmtStatus) rate=\(audioFormat.sampleRate) ch=\(audioFormat.channelCount)")
+        }
         let channelLayout = audioFormat.channelLayout?.layout
-        AudioUnitSetProperty(audioUnitForOutput,
-                             kAudioUnitProperty_AudioChannelLayout,
-                             kAudioUnitScope_Input, 0,
-                             channelLayout,
-                             UInt32(MemoryLayout<AudioChannelLayout>.size))
+        let layoutStatus = AudioUnitSetProperty(audioUnitForOutput,
+                                                kAudioUnitProperty_AudioChannelLayout,
+                                                kAudioUnitScope_Input, 0,
+                                                channelLayout,
+                                                UInt32(MemoryLayout<AudioChannelLayout>.size))
+        if layoutStatus != noErr {
+            KSLog(level: .error, "[audio] set AudioChannelLayout failed status=\(layoutStatus)")
+        }
         var inputCallbackStruct = renderCallbackStruct()
-        AudioUnitSetProperty(audioUnitForOutput,
-                             kAudioUnitProperty_SetRenderCallback,
-                             kAudioUnitScope_Input, 0,
-                             &inputCallbackStruct,
-                             UInt32(MemoryLayout<AURenderCallbackStruct>.size))
+        let cbStatus = AudioUnitSetProperty(audioUnitForOutput,
+                                            kAudioUnitProperty_SetRenderCallback,
+                                            kAudioUnitScope_Input, 0,
+                                            &inputCallbackStruct,
+                                            UInt32(MemoryLayout<AURenderCallbackStruct>.size))
+        if cbStatus != noErr {
+            KSLog(level: .error, "[audio] set RenderCallback failed status=\(cbStatus)")
+        }
         addRenderNotify(audioUnit: audioUnitForOutput)
-        AudioUnitInitialize(audioUnitForOutput)
+        let initStatus = AudioUnitInitialize(audioUnitForOutput)
+        if initStatus != noErr {
+            KSLog(level: .error, "[audio] AudioUnitInitialize failed status=\(initStatus)")
+        }
+        KSLog(level: .info, "[audio] AudioUnitPlayer prepared rate=\(audioFormat.sampleRate) ch=\(audioFormat.channelCount) fmt=\(audioFormat.sampleSize * 8)-bit")
     }
 
     public func flush() {
@@ -137,6 +174,12 @@ extension AudioUnitPlayer {
                 currentRender = renderSource?.getAudioOutputRender()
             }
             guard let currentRender else {
+                // Audio underflow: render callback ran out of frames. Throttled
+                // (the callback is real-time; log every 60th underflow only).
+                underflowCount += 1
+                if underflowCount % 60 == 1 {
+                    KSLog(level: .debug, "[audio] underflow: no audio frame (count=\(underflowCount))")
+                }
                 break
             }
             let residueLinesize = currentRender.numberOfSamples - currentRenderReadOffset
