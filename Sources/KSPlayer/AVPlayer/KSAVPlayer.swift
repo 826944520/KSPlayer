@@ -266,7 +266,7 @@ extension KSAVPlayer {
             let estimatedDataRates = item.tracks.compactMap { $0.assetTrack?.estimatedDataRate }
             fileSize = Double(estimatedDataRates.reduce(0, +)) * duration / 8
             if chapters.isEmpty {
-                chapters = urlAsset.chapterMetadataGroups(withTitleLocale: nil, containingItemsWithCommonKeys: nil).compactMap { group in
+                chapters = urlAsset.chapterMetadataGroups(withTitleLocale: Locale.current, containingItemsWithCommonKeys: nil).compactMap { group in
                     let start = group.timeRange.start.seconds
                     let end = group.timeRange.end.seconds
                     guard start.isFinite, end.isFinite, end > start else { return nil }
