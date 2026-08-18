@@ -35,6 +35,15 @@ open class VideoPlayerView: PlayerView {
     var tmpPanValue: Float = 0
     private var isSliderSliding = false
 
+    /// Floating scrub-preview popup above the progress slider: thumbnail of the
+    /// nearest generated frame + the target time. Hidden by default.
+    public let previewContainer = UIView()
+    private let previewImageView = UIImageView()
+    private let previewTimeLabel = UILabel()
+    private var previewCenterXConstraint: NSLayoutConstraint?
+    private var thumbnailTimeline: [FFThumbnail] = []
+    private var thumbnailGenerationTask: Task<Void, Never>?
+
     public let bottomMaskView = LayerContainerView()
     public let topMaskView = LayerContainerView()
 
@@ -225,6 +234,30 @@ open class VideoPlayerView: PlayerView {
             speedTipLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
             speedTipLabel.heightAnchor.constraint(equalToConstant: 30),
         ])
+        previewContainer.backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        previewContainer.cornerRadius = 6
+        previewContainer.clipsToBounds = true
+        previewContainer.isHidden = true
+        previewContainer.addSubview(previewImageView)
+        previewContainer.addSubview(previewTimeLabel)
+        previewImageView.translatesAutoresizingMaskIntoConstraints = false
+        previewTimeLabel.translatesAutoresizingMaskIntoConstraints = false
+        previewImageView.contentMode = .scaleAspectFill
+        previewTimeLabel.textColor = .white
+        previewTimeLabel.font = .systemFont(ofSize: 12)
+        previewTimeLabel.textAlignment = .center
+        previewTimeLabel.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        previewTimeLabel.cornerRadius = 3
+        NSLayoutConstraint.activate([
+            previewImageView.topAnchor.constraint(equalTo: previewContainer.topAnchor),
+            previewImageView.leadingAnchor.constraint(equalTo: previewContainer.leadingAnchor),
+            previewImageView.bottomAnchor.constraint(equalTo: previewContainer.bottomAnchor),
+            previewImageView.trailingAnchor.constraint(equalTo: previewContainer.trailingAnchor),
+            previewTimeLabel.leadingAnchor.constraint(equalTo: previewContainer.leadingAnchor, constant: 4),
+            previewTimeLabel.bottomAnchor.constraint(equalTo: previewContainer.bottomAnchor, constant: -3),
+            previewTimeLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 44),
+            previewTimeLabel.heightAnchor.constraint(equalToConstant: 18),
+        ])
         addConstraint()
         customizeUIComponents()
         setupSrtControl()
@@ -276,6 +309,7 @@ open class VideoPlayerView: PlayerView {
         switch state {
         case .readyToPlay:
             toolBar.timeSlider.isPlayable = true
+            startThumbnailGeneration()
             toolBar.videoSwitchButton.isHidden = layer.player.tracks(mediaType: .video).count < 2
             toolBar.audioSwitchButton.isHidden = layer.player.tracks(mediaType: .audio).count < 2
             if #available(iOS 14.0, tvOS 15.0, *) {
@@ -321,6 +355,10 @@ open class VideoPlayerView: PlayerView {
     }
 
     override open func resetPlayer() {
+        thumbnailGenerationTask?.cancel()
+        thumbnailGenerationTask = nil
+        thumbnailTimeline = []
+        hideScrubPreview()
         super.resetPlayer()
         delayItem = nil
         toolBar.reset()
@@ -338,14 +376,17 @@ open class VideoPlayerView: PlayerView {
     override open func slider(value: Double, event: ControlEvents) {
         if event == .valueChanged {
             delayItem?.cancel()
+            updateScrubPreview(time: value)
         } else if event == .touchUpInside {
             autoFadeOutViewWithAnimation()
         }
         super.slider(value: value, event: event)
         if event == .touchDown {
             isSliderSliding = true
+            isMaskShow = true
         } else if event == .touchUpInside {
             isSliderSliding = false
+            hideScrubPreview()
         }
     }
 
@@ -705,6 +746,49 @@ public extension VideoPlayerView {
     }
 }
 
+private extension VideoPlayerView {
+    /// Lazily pre-generates scrub thumbnails in the background (capped at 40,
+    /// gated by enableScrubPreview + seekable). On failure the scrub simply
+    /// falls back to the existing SeekView — playback is unaffected.
+    func startThumbnailGeneration() {
+        thumbnailGenerationTask?.cancel()
+        thumbnailGenerationTask = nil
+        thumbnailTimeline = []
+        guard KSOptions.enableScrubPreview, toolBar.isSeekable, let playerLayer else { return }
+        let targetURL = playerLayer.url
+        thumbnailGenerationTask = Task { @MainActor [weak self] in
+            guard let self, !Task.isCancelled else { return }
+            let thumbnails = try? await ThumbnailController(thumbnailCount: 40).generateThumbnail(for: targetURL, thumbWidth: 160)
+            guard !Task.isCancelled else { return }
+            self.thumbnailTimeline = Array(thumbnails?.prefix(40) ?? [])
+        }
+    }
+
+    func updateScrubPreview(time: TimeInterval) {
+        guard KSOptions.enableScrubPreview, !thumbnailTimeline.isEmpty, let previewCenterXConstraint else {
+            return
+        }
+        guard let nearest = thumbnailTimeline.min(by: { abs($0.time - time) < abs($1.time - time) }) else {
+            previewContainer.isHidden = true
+            return
+        }
+        let sliderBounds = toolBar.timeSlider.bounds
+        let track = toolBar.timeSlider.trackRect(forBounds: sliderBounds)
+        let maxValue = max(CGFloat(toolBar.timeSlider.maximumValue), 1)
+        let fraction = CGFloat(toolBar.timeSlider.value) / maxValue
+        let centerX = track.minX + fraction * track.width
+        // Keep the 160pt popup fully on screen.
+        previewCenterXConstraint.constant = min(max(centerX, 80), max(sliderBounds.width - 80, 80))
+        previewImageView.image = nearest.image
+        previewTimeLabel.text = nearest.time.toString(for: toolBar.timeType)
+        previewContainer.isHidden = false
+    }
+
+    func hideScrubPreview() {
+        previewContainer.isHidden = true
+    }
+}
+
 
 
 extension VideoPlayerView {
@@ -808,6 +892,18 @@ extension VideoPlayerView {
         progressOverlay.translatesAutoresizingMaskIntoConstraints = false
         bottomMaskView.addSubview(progressOverlay)
         toolBar.timeSlider.progressOverlay = progressOverlay
+        // Scrub preview popup floats above the slider; its center-x tracks the
+        // thumb via previewCenterXConstraint (updated during valueChanged).
+        bottomMaskView.addSubview(previewContainer)
+        previewContainer.translatesAutoresizingMaskIntoConstraints = false
+        let previewCenterX = previewContainer.centerXAnchor.constraint(equalTo: toolBar.timeSlider.leadingAnchor)
+        previewCenterXConstraint = previewCenterX
+        NSLayoutConstraint.activate([
+            previewCenterX,
+            previewContainer.bottomAnchor.constraint(equalTo: toolBar.timeSlider.topAnchor, constant: -12),
+            previewContainer.widthAnchor.constraint(equalToConstant: 160),
+            previewContainer.heightAnchor.constraint(equalToConstant: 90),
+        ])
         toolBar.audioSwitchButton.isHidden = true
         toolBar.videoSwitchButton.isHidden = true
         // iOS PiP is already wired (KSAVPlayer / KSPlayerLayer); the toolbar's

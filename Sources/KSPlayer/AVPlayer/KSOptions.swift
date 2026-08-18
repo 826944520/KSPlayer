@@ -450,6 +450,10 @@ public extension KSOptions {
     /// Seconds sought per double-tap-zone gesture.
     public static var doubleTapSeekInterval = 10.0
 
+    /// Show a thumbnail preview popup while scrubbing the progress slider.
+    /// Lazy, capped generation (40 frames); off = plain SeekView feedback.
+    public static var enableScrubPreview = true
+
     static var logLevel = LogLevel.warning
     static var logger: LogHandler = OSLog(lable: "KSPlayer")
     internal static func deviceCpuCount() -> Int {
