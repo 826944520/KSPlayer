@@ -187,15 +187,22 @@ extension MEPlayerItem {
 
         setHttpProxy()
         var avOptions = options.formatContextOptions.avOptions
-        if let pb = options.process(url: url) {
-
-            formatCtx.pointee.pb = pb.getContext()
-        }
         let urlString: String
         if url.isFileURL {
             urlString = url.path
+        } else if options.cache, KSOptions.isCacheProtocolAvailable, !url.absoluteString.hasSuffix(".m3u8") {
+            // FFmpeg's cache: protocol spools a progressive download to a local
+            // file (anti-jitter + fast reopen on seek-back). Scoped to
+            // progressive files: for HLS the prefix would only cache the
+            // playlist — segment requests bypass the parent protocol.
+            options.formatContextOptions["cache_dir"] = options.cacheDirectory.path
+            urlString = "cache:" + url.absoluteString
         } else {
             urlString = url.absoluteString
+        }
+        if let pb = options.process(url: url) {
+
+            formatCtx.pointee.pb = pb.getContext()
         }
         var result = avformat_open_input(&self.formatCtx, urlString, nil, &avOptions)
         av_dict_free(&avOptions)

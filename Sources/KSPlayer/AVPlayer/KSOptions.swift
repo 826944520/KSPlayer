@@ -5,6 +5,7 @@ import AVFoundation
 #if os(tvOS) || os(xrOS)
 import DisplayCriteria
 #endif
+import Libavformat
 import OSLog
 
 #if canImport(UIKit)
@@ -30,6 +31,11 @@ open class KSOptions {
     public var seekFlags = Int32(1)
 
     public var cache = false
+
+    /// Directory where the `cache:` protocol (Stage 1.3) spools progressive
+    /// downloads. iOS can't write to FFmpeg's default /tmp, so this must point
+    /// at an app-writable directory (e.g. NSTemporaryDirectory()).
+    public var cacheDirectory: URL = FileManager.default.temporaryDirectory
 
     public var outputURL: URL?
     public var avOptions = [String: Any]()
@@ -428,6 +434,15 @@ public extension KSOptions {
     static var preferredFrame = true
     static var useSystemHTTPProxy = true
 
+    /// Whether the linked FFmpeg build registers the `cache` URL protocol
+    /// (libavformat cache.c). Determined at runtime because it depends on the
+    /// binary's build configuration, which can't be inspected statically.
+    public static let isCacheProtocolAvailable: Bool = avio_find_protocol_name("cache:test") != nil
+
+    /// Optional AVAudioSession preferred I/O buffer duration (seconds). Set it
+    /// (e.g. 0.01–0.02) for low-latency audio; nil leaves the session default.
+    public static var preferredIOBufferDuration: TimeInterval? = nil
+
     static var logLevel = LogLevel.warning
     static var logger: LogHandler = OSLog(lable: "KSPlayer")
     internal static func deviceCpuCount() -> Int {
@@ -451,6 +466,9 @@ public extension KSOptions {
         try? AVAudioSession.sharedInstance().setCategory(category, mode: .moviePlayback, policy: .longFormVideo)
         #endif
         try? AVAudioSession.sharedInstance().setActive(true)
+        if let duration = KSOptions.preferredIOBufferDuration {
+            try? AVAudioSession.sharedInstance().setPreferredIOBufferDuration(duration)
+        }
         #endif
     }
 
