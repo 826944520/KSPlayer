@@ -435,12 +435,13 @@ public extension KSOptions {
     static var useSystemHTTPProxy = true
 
     /// Spool progressive (non-HLS) network downloads through FFmpeg's `cache:`
-    /// protocol (Stage 1.3). On by default: the direct HTTP read path is
-    /// blocking and starvation-prone at high bitrates (observed: ~0.5s stutter
-    /// + broken forward-seek on a 30 Mbps panorama stream), whereas the cache
-    /// protocol decouples the network fill from decode reads and makes seeks
-    /// hit the local file. Set false to read straight from the network.
-    public static var cache = true
+    /// protocol. **Disabled by default**: FFmpeg 6.1.4's `avpriv_tempfile`
+    /// hardcodes `/tmp` and has no iOS fallback (only Windows/Android/DJGPP),
+    /// so `cache:` URLs fail with "Cannot open temporary file" inside the iOS
+    /// sandbox. Re-enable only if the linked FFmpegKit is rebuilt with a
+    /// patched avpriv_tempfile (TMPDIR-aware). Off keeps direct HTTP reads,
+    /// which are starvation-prone at high bitrates but at least play.
+    public static var cache = false
 
     /// Whether the linked FFmpeg build registers the `cache` URL protocol
     /// (libavformat cache.c). Determined at runtime because it depends on the
