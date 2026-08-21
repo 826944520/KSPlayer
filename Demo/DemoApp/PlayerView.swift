@@ -256,8 +256,11 @@ struct PlayerView: View {
     private func scheduleChromeHide() {
         chromeHideTask?.cancel()
         guard isChromeVisible, isPlaying, !isScrubbing else { return }
-        let task = DispatchWorkItem { [weak self] in
-            guard let self, self.isPlaying, !self.isScrubbing else { return }
+        // PlayerView is a struct: capturing it copies the view, but @State
+        // storage is reference-backed, so writes below still land in the live
+        // view.
+        let task = DispatchWorkItem {
+            guard self.isPlaying, !self.isScrubbing else { return }
             withAnimation(.easeInOut(duration: 0.25)) {
                 self.isChromeVisible = false
             }
