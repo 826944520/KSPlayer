@@ -102,6 +102,16 @@ public final class MEPlayerItem: Sendable {
 
     private static var onceInitial: Void = {
         var result = avformat_network_init()
+        // FFmpeg's cache: protocol spools via ff_tempfile(), which honors
+        // getenv("TMPDIR") or falls back to /tmp — neither is writable inside
+        // the iOS sandbox, so avformat_open_input("cache:…") fails with
+        // "Cannot open temporary file /tmp/ffcache…". Point TMPDIR at the
+        // app's writable temporary directory before any URL is opened.
+        #if os(iOS) || os(tvOS) || os(xrOS)
+        if let tmp = FileManager.default.temporaryDirectory.path.cString(using: .utf8) {
+            setenv("TMPDIR", tmp, 1)
+        }
+        #endif
         av_log_set_callback { ptr, level, format, args in
             guard let format else {
                 return
@@ -200,13 +210,13 @@ extension MEPlayerItem {
         if url.isFileURL {
             urlString = url.path
         } else if options.cache, KSOptions.isCacheProtocolAvailable, !isHLSURL(url) {
-            // FFmpeg's cache: protocol spools a progressive download to a local
-            // file (anti-jitter + fast reopen on seek-back). Scoped to
+            // FFmpeg's cache: protocol spools the progressive download to a
+            // local file (anti-jitter + fast reopen on seek-back). Scoped to
             // progressive files: for HLS the prefix would only cache the
-            // playlist — segment requests bypass the parent protocol.
-            // cache_dir must be set BEFORE the avOptions snapshot below —
-            // avformat_open_input reads cache_dir out of that dictionary.
-            options.formatContextOptions["cache_dir"] = options.cacheDirectory.path
+            // playlist — segment requests bypass the parent protocol. The
+            // spool path is the process TMPDIR, pointed at the app's writable
+            // temporary directory in onceInitial (cache.c's ff_tempfile reads
+            // TMPDIR; there is no per-protocol path option in FFmpeg 6.1.4).
             urlString = "cache:" + url.absoluteString
         } else {
             urlString = url.absoluteString
