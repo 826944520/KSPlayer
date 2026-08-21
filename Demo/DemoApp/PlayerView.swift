@@ -25,6 +25,12 @@ struct PlayerView: View {
     @State private var isScrubbing = false
     @State private var showDebug = false
     @State private var showHint = !UserDefaults.standard.bool(forKey: "ksp.doubleTapHintDismissed")
+    // Chrome (title bar + controls) auto-hides while playing so it never
+    // obscures the picture; tap the video to toggle, fullscreen button rotates
+    // the app to landscape.
+    @State private var isChromeVisible = true
+    @State private var isFullscreen = false
+    @State private var chromeHideTask: DispatchWorkItem?
 
     init(urls: [URL], startIndex: Int, display: DisplayEnum, settings: AppSettings) {
         self.urls = urls
@@ -50,6 +56,11 @@ struct PlayerView: View {
                         if state == .playedToTheEnd {
                             next()
                         }
+                        if state.isPlaying || state == .bufferFinished {
+                            scheduleChromeHide()
+                        } else {
+                            cancelChromeHide()
+                        }
                     }
                     .onPlay { current, total in
                         totalTime = total
@@ -60,6 +71,8 @@ struct PlayerView: View {
                         }
                     }
                     .ignoresSafeArea()
+                    .contentShape(Rectangle())
+                    .onTapGesture { toggleChrome() }
                     .onAppear {
                         // Feed the layer the full playlist so
                         // KSPlayerLayer.next()/previous() can advance it. Only
@@ -70,12 +83,18 @@ struct PlayerView: View {
                         if let layer = coordinator.playerLayer, layer.url == urls[currentIndex] {
                             layer.set(urls: urls, options: options)
                         }
+                        scheduleChromeHide()
                     }
+                    .onDisappear { cancelChromeHide() }
             }
 
             chrome
+                .opacity(isChromeVisible ? 1 : 0)
+                .allowsHitTesting(isChromeVisible)
         }
         .preferredColorScheme(.dark)
+        .statusBarHidden(!isChromeVisible)
+        .animation(.easeInOut(duration: 0.25), value: isChromeVisible)
         .sheet(isPresented: $showDebug) {
             DebugSheet(playerLayer: coordinator.playerLayer, stateLabel: stateLabel)
         }
@@ -111,6 +130,11 @@ struct PlayerView: View {
                 Text(titleText)
                     .lineLimit(1)
                 Spacer()
+                Button {
+                    toggleFullscreen()
+                } label: {
+                    Image(systemName: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                }
                 Text(stateLabel)
                     .font(.caption2)
                     .foregroundStyle(.white.opacity(0.7))
@@ -138,6 +162,9 @@ struct PlayerView: View {
                             isScrubbing = editing
                             if !editing {
                                 coordinator.seek(time: currentTime)
+                                scheduleChromeHide()
+                            } else {
+                                cancelChromeHide()
                             }
                         }
                     )
@@ -211,6 +238,45 @@ struct PlayerView: View {
         } else {
             coordinator.playerLayer?.play()
         }
+    }
+
+    /// Toggle the title bar + controls; re-arm the 3s auto-hide while playing.
+    private func toggleChrome() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            isChromeVisible.toggle()
+        }
+        if isChromeVisible {
+            scheduleChromeHide()
+        } else {
+            cancelChromeHide()
+        }
+    }
+
+    /// Hide the chrome after 3s of playback so it never covers the picture.
+    private func scheduleChromeHide() {
+        chromeHideTask?.cancel()
+        guard isChromeVisible, isPlaying, !isScrubbing else { return }
+        let task = DispatchWorkItem { [weak self] in
+            guard let self, self.isPlaying, !self.isScrubbing else { return }
+            withAnimation(.easeInOut(duration: 0.25)) {
+                self.isChromeVisible = false
+            }
+        }
+        chromeHideTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: task)
+    }
+
+    private func cancelChromeHide() {
+        chromeHideTask?.cancel()
+        chromeHideTask = nil
+    }
+
+    /// Rotate the app to landscape (fullscreen) or back to portrait.
+    private func toggleFullscreen() {
+        isFullscreen.toggle()
+        let orientation: UIInterfaceOrientation = isFullscreen ? .landscapeRight : .portrait
+        UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
+        UIViewController.attemptRotationToDeviceOrientation()
     }
 
     private func next() {
