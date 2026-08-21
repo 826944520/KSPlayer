@@ -450,9 +450,17 @@ final class RemoteLogEngine {
 
     private func installSignalHandlers() {
         var action = sigaction()
+        // `sa_sigaction` is only exposed on macOS; iOS/tvOS/xrOS expose the
+        // underlying `__sigaction_u.__sa_sigaction` union member instead.
+        #if os(macOS)
         action.sa_sigaction = { sig, info, _ in
             RemoteLog.engine.handleSignal(sig, info)
         }
+        #else
+        action.__sigaction_u.__sa_sigaction = { sig, info, _ in
+            RemoteLog.engine.handleSignal(sig, info)
+        }
+        #endif
         action.sa_flags = SA_SIGINFO | SA_RESETHAND
         sigemptyset(&action.sa_mask)
         for sig in [SIGABRT, SIGSEGV, SIGBUS, SIGILL, SIGFPE, SIGTRAP, SIGSYS] {
@@ -498,13 +506,13 @@ final class RemoteLogEngine {
     /// Signal path: only async-signal-safe operations. Writes the ring buffer
     /// to the pre-opened fd, then re-raises with the default disposition so the
     /// system produces the canonical crash report.
-    func handleSignal(_ sig: Int32, _ info: UnsafeMutablePointer<__siginfo_t>?) {
+    func handleSignal(_ sig: Int32, _ info: UnsafeMutablePointer<siginfo_t>?) {
         guard crashFd >= 0, let crashHeaderBuf else {
             signal(sig, SIG_DFL)
             raise(sig)
             return
         }
-        let addr = info.map { UInt64(bitPattern: $0.pointee.si_addr) } ?? 0
+        let addr = info.map { UInt64(UInt(bitPattern: $0.pointee.si_addr)) } ?? 0
         let header = crashHeaderBuf.assumingMemoryBound(to: CChar.self)
         _ = snprintf(header, 512, "\n=== KSPlayer CRASH === %s (%d) at 0x%llx\n", Self.signalName(sig).utf8Start, sig, addr)
         write(crashFd, header, Int(strlen(header)))
