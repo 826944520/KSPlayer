@@ -288,7 +288,6 @@ final class RemoteLogEngine {
     }()
 
     private let ring = CrashRingBuffer()
-    private let crashHeaderBuf: UnsafeMutableRawPointer? = calloc(512, 1)
     private var crashFd: Int32 = -1
     private var crashDirPath: String?
     private var timer: DispatchSourceTimer?
@@ -507,15 +506,14 @@ final class RemoteLogEngine {
     /// to the pre-opened fd, then re-raises with the default disposition so the
     /// system produces the canonical crash report.
     func handleSignal(_ sig: Int32, _ info: UnsafeMutablePointer<siginfo_t>?) {
-        guard crashFd >= 0, let crashHeaderBuf else {
+        guard crashFd >= 0 else {
             signal(sig, SIG_DFL)
             raise(sig)
             return
         }
         let addr = info.map { UInt64(UInt(bitPattern: $0.pointee.si_addr)) } ?? 0
-        let header = crashHeaderBuf.assumingMemoryBound(to: CChar.self)
-        _ = snprintf(header, 512, "\n=== KSPlayer CRASH === %s (%d) at 0x%llx\n", Self.signalName(sig).utf8Start, sig, addr)
-        write(crashFd, header, Int(strlen(header)))
+        let header = "\n=== KSPlayer CRASH === \(Self.signalName(sig).description) (\(sig)) at 0x\(String(addr, radix: 16))\n"
+        _ = header.withCString { write(crashFd, $0, strlen($0)) }
         write(crashFd, "--- recent logs ---\n", 21)
         ring.dump(to: crashFd)
         write(crashFd, "--- end ---\n", 12)
