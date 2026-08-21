@@ -143,16 +143,18 @@ class MetalRender {
         display.set(encoder: encoder, ring: matrixBufferRing)
         encoder.popDebugGroup()
         encoder.endEncoding()
-        commandBuffer.present(drawable)
-        commandBuffer.commit()
-        // Retain the CVMetalTexture wrappers (and thus their backing IOSurface)
-        // until the GPU is done sampling them. Previously waitUntilCompleted()
-        // pinned them implicitly; without that barrier the IOSurface could be
-        // recycled mid-draw.
+        // Register the completion handler BEFORE commit (Apple's canonical
+        // order). Registering it after commit races the GPU: a fast command
+        // buffer (e.g. the first frame of a small/8K surface) can complete and
+        // be released before addCompletedHandler runs, and Metal then aborts
+        // with an assert (MTLReportFailure → __assert_rtn → SIGABRT), killing
+        // the app — observed as a crash in readNextFrame() on the first VR frame.
         commandBuffer.addCompletedHandler { [inflightSemaphore, cvTextures] _ in
             _ = cvTextures
             inflightSemaphore.signal()
         }
+        commandBuffer.present(drawable)
+        commandBuffer.commit()
     }
 
     private func setFragmentBuffer(pixelBuffer: PixelBufferProtocol, encoder: MTLRenderCommandEncoder) {
