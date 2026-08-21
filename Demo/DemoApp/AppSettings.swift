@@ -12,7 +12,7 @@ final class AppSettings: ObservableObject {
     @Published var autoSelectEmbedSubtitle = true
     @Published var isSecondOpen = false
     @Published var isLoopPlay = false
-    @Published var cache = false
+    @Published var cache = KSOptions.cache
     @Published var preferredForwardBufferDuration: Double = 3 // KSOptions default
     @Published var maxBufferDuration: Double = 30 // KSOptions default
 

@@ -30,7 +30,7 @@ open class KSOptions {
     
     public var seekFlags = Int32(1)
 
-    public var cache = false
+    public var cache = KSOptions.cache
 
     /// Directory where the `cache:` protocol (Stage 1.3) spools progressive
     /// downloads. iOS can't write to FFmpeg's default /tmp, so this must point
@@ -433,6 +433,14 @@ public extension KSOptions {
     static var canStartPictureInPictureAutomaticallyFromInline = true
     static var preferredFrame = true
     static var useSystemHTTPProxy = true
+
+    /// Spool progressive (non-HLS) network downloads through FFmpeg's `cache:`
+    /// protocol (Stage 1.3). On by default: the direct HTTP read path is
+    /// blocking and starvation-prone at high bitrates (observed: ~0.5s stutter
+    /// + broken forward-seek on a 30 Mbps panorama stream), whereas the cache
+    /// protocol decouples the network fill from decode reads and makes seeks
+    /// hit the local file. Set false to read straight from the network.
+    public static var cache = true
 
     /// Whether the linked FFmpeg build registers the `cache` URL protocol
     /// (libavformat cache.c). Determined at runtime because it depends on the
