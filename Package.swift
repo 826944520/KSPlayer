@@ -53,10 +53,9 @@ let package = Package(
     ]
 )
 
-// kingslay/FFmpegKit is the upstream source of the prebuilt FFmpeg 6.1.4
-// xcframeworks (avcodec/avformat 60, avfilter 9). The binaries live INSIDE the
-// package's committed xcframeworks (ios-arm64 + ios-arm64_x86_64-simulator), so
-// `swift package resolve` is fully offline once the checkout is available.
+// Fork of kingslay/FFmpegKit at tag 6.1.4 with a patched avpriv_tempfile
+// (TMPDIR-aware + iOS fallback) so the `cache:` protocol works inside the iOS
+// sandbox. Rebuilt via .github/workflows/rebuild-ffmpeg.yml on the fork.
 package.dependencies += [
-    .package(url: "https://github.com/kingslay/FFmpegKit.git", from: "6.1.4"),
+    .package(url: "https://github.com/826944520/FFmpegKit.git", branch: "ksplayer-tmpdir-fix"),
 ]
