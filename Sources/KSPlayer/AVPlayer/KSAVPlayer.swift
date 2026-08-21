@@ -89,6 +89,12 @@ public class KSAVPlayer {
     private var itemObservation: NSKeyValueObservation?
     private var loopCountObservation: NSKeyValueObservation?
     private var loopStatusObservation: NSKeyValueObservation?
+    // Jitter telemetry: stall detection (timeControlStatus) + frame pacing
+    // anomalies (periodic time deltas) + access-log drop/stall counters.
+    private var timeControlStatusObservation: NSKeyValueObservation?
+    private var periodicTimeObserver: Any?
+    private var lastPeriodicTime: (media: TimeInterval, wall: TimeInterval)?
+    private var lastAccessLogTime: TimeInterval = 0
     private var mediaPlayerTracks = [AVMediaPlayerTrack]()
     private var error: Error? {
         didSet {
@@ -374,6 +380,22 @@ extension KSAVPlayer {
         bufferEmptyObservation = playerItem.observe(\.isPlaybackBufferEmpty, changeHandler: changeHandler)
         likelyToKeepUpObservation = playerItem.observe(\.isPlaybackLikelyToKeepUp, changeHandler: changeHandler)
         bufferFullObservation = playerItem.observe(\.isPlaybackBufferFull, changeHandler: changeHandler)
+        timeControlStatusObservation?.invalidate()
+        timeControlStatusObservation = player.observe(\.timeControlStatus) { [weak self] player, _ in
+            guard let self else { return }
+            let current = player.currentTime().seconds
+            switch player.timeControlStatus {
+            case .waitingToPlayAtSpecifiedRate:
+                let reason = player.reasonForWaitingToPlay?.rawValue ?? "unknown"
+                KSLog(level: .warning, "[av] timeControlStatus waitingToPlay reason=\(reason) t=\(String(format: "%.3f", current))")
+            case .paused:
+                KSLog(level: .info, "[av] timeControlStatus paused t=\(String(format: "%.3f", current))")
+            case .playing:
+                KSLog(level: .info, "[av] timeControlStatus playing t=\(String(format: "%.3f", current))")
+            @unknown default:
+                break
+            }
+        }
     }
 }
 
@@ -442,6 +464,30 @@ extension KSAVPlayer: MediaPlayerProtocol {
             self.replaceCurrentItem(playerItem: playerItem)
             self.player.actionAtItemEnd = .pause
             self.player.volume = self.playbackVolume
+            if let periodicTimeObserver {
+                self.player.removeTimeObserver(periodicTimeObserver)
+                self.periodicTimeObserver = nil
+            }
+            self.lastPeriodicTime = nil
+            self.lastAccessLogTime = 0
+            self.periodicTimeObserver = self.player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 1000), queue: .main) { [weak self] time in
+                guard let self, self.player.timeControlStatus == .playing else { return }
+                let media = time.seconds
+                let wall = CACurrentMediaTime()
+                if let last = self.lastPeriodicTime {
+                    let mediaDelta = media - last.media
+                    let wallDelta = wall - last.wall
+                    let drift = mediaDelta - wallDelta
+                    if abs(drift) > 0.4 {
+                        KSLog(level: .warning, "[av] pacing anomaly mediaDelta=\(String(format: "%.3f", mediaDelta)) wallDelta=\(String(format: "%.3f", wallDelta)) drift=\(String(format: "%.3f", drift)) t=\(String(format: "%.3f", media))")
+                    }
+                    if wall - self.lastAccessLogTime > 5, let accessLog = self.player.currentItem?.accessLog(), let event = accessLog.events.last {
+                        KSLog(level: .info, "[av] stats droppedFrames=\(event.numberOfDroppedVideoFrames) stalls=\(event.numberOfStalls) bitrate=\(Int(event.observedBitrate)) t=\(String(format: "%.3f", media))")
+                        self.lastAccessLogTime = wall
+                    }
+                }
+                self.lastPeriodicTime = (media, wall)
+            }
         }
     }
 
@@ -457,6 +503,13 @@ extension KSAVPlayer: MediaPlayerProtocol {
 
     public func shutdown() {
         KSLog(level: .info, "[player] shutdown")
+        if let periodicTimeObserver {
+            player.removeTimeObserver(periodicTimeObserver)
+            periodicTimeObserver = nil
+        }
+        timeControlStatusObservation?.invalidate()
+        timeControlStatusObservation = nil
+        lastPeriodicTime = nil
         isReadyToPlay = false
         playbackState = .stopped
         loadState = .idle

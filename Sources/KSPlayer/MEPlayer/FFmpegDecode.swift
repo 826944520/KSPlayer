@@ -20,7 +20,13 @@ class FFmpegDecode: DecodeProtocol {
             codecContext = try assetTrack.createContext(options: options)
             if let codecContext {
                 let codecName = String(cString: avcodec_get_name(codecContext.pointee.codec_id))
-                KSLog(level: .info, "[codec] FFmpegDecode opened codec=\(codecName) type=\(assetTrack.mediaType.rawValue) track=\(assetTrack.trackID)")
+                let pixFmtName: String
+                if let name = av_get_pix_fmt_name(codecContext.pointee.pix_fmt) {
+                    pixFmtName = String(cString: name)
+                } else {
+                    pixFmtName = "unknown"
+                }
+                KSLog(level: .info, "[codec] FFmpegDecode opened codec=\(codecName) type=\(assetTrack.mediaType.rawValue) track=\(assetTrack.trackID) size=\(codecContext.pointee.width)x\(codecContext.pointee.height) pix_fmt=\(pixFmtName)")
             }
         } catch {
             KSLog(level: .error, "[codec] FFmpegDecode createContext failed: \(error)")

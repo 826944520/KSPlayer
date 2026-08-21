@@ -231,6 +231,7 @@ extension MEPlayerItem {
             return
         }
         options.openTime = CACurrentMediaTime()
+        KSLog(level: .info, "[demux] avformat_open_input ok url=\(urlString)")
         formatCtx.pointee.flags |= AVFMT_FLAG_GENPTS
         if options.nobuffer {
             formatCtx.pointee.flags |= AVFMT_FLAG_NOBUFFER
@@ -250,6 +251,7 @@ extension MEPlayerItem {
         }
 
         formatCtx.pointee.pb?.pointee.eof_reached = 0
+        KSLog(level: .info, "[demux] avformat_find_stream_info ok streams=\(formatCtx.pointee.nb_streams)")
         let flags = formatCtx.pointee.iformat.pointee.flags
         maxFrameDuration = flags & AVFMT_TS_DISCONT == AVFMT_TS_DISCONT ? 10.0 : 3600.0
         options.findTime = CACurrentMediaTime()
@@ -263,6 +265,7 @@ extension MEPlayerItem {
         duration = TimeInterval(max(formatCtx.pointee.duration, 0) / Int64(AV_TIME_BASE))
         fileSize = Double(formatCtx.pointee.bit_rate) * duration / 8
         createCodec(formatCtx: formatCtx)
+        KSLog(level: .info, "[demux] createCodec ok videoTrack=\(videoTrack != nil) audioTrack=\(audioTrack != nil) tracks=\(allPlayerItemTracks.count)")
         if formatCtx.pointee.nb_chapters > 0 {
             chapters.removeAll()
             for i in 0 ..< formatCtx.pointee.nb_chapters {
