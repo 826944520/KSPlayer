@@ -505,6 +505,11 @@ final class RemoteLogEngine {
     /// Signal path: only async-signal-safe operations. Writes the ring buffer
     /// to the pre-opened fd, then re-raises with the default disposition so the
     /// system produces the canonical crash report.
+    ///
+    /// MUST NOT allocate: the crash may have happened inside the heap allocator
+    /// (e.g. a corrupt FFmpeg buffer), in which case a Swift String/Array here
+    /// would crash the handler itself and the dump would be lost. All writers
+    /// below use only stack bytes and write(), and never touch global state.
     func handleSignal(_ sig: Int32, _ info: UnsafeMutablePointer<siginfo_t>?) {
         guard crashFd >= 0 else {
             signal(sig, SIG_DFL)
@@ -512,13 +517,47 @@ final class RemoteLogEngine {
             return
         }
         let addr = info.map { UInt64(UInt(bitPattern: $0.pointee.si_addr)) } ?? 0
-        let header = "\n=== KSPlayer CRASH === \(Self.signalName(sig).description) (\(sig)) at 0x\(String(addr, radix: 16))\n"
-        _ = header.withCString { write(crashFd, $0, strlen($0)) }
-        write(crashFd, "--- recent logs ---\n", 21)
+        writeCrashHeader(sig: sig, addr: addr)
+        writeStr("--- recent logs ---\n")
         ring.dump(to: crashFd)
-        write(crashFd, "--- end ---\n", 12)
+        writeStr("--- end ---\n")
         signal(sig, SIG_DFL)
         raise(sig)
+    }
+
+    private func writeCrashHeader(sig: Int32, addr: UInt64) {
+        writeStr("\n=== KSPlayer CRASH ===")
+        writeCh(0x20) // ' '
+        writeStr(Self.signalName(sig))
+        writeCh(0x28) // '('
+        writeInt(Int(sig))
+        writeStr(") at 0x")
+        writeHex(addr)
+        writeCh(0x0A) // '\n'
+    }
+
+    private func writeStr(_ s: StaticString) {
+        s.withUTF8Buffer { buf in
+            _ = write(crashFd, buf.baseAddress, buf.count)
+        }
+    }
+
+    private func writeCh(_ c: CChar) {
+        var c = c
+        withUnsafePointer(to: &c) { _ = write(crashFd, $0, 1) }
+    }
+
+    private func writeInt(_ v: Int) {
+        if v >= 10 { writeInt(v / 10) }
+        writeCh(CChar(48 + (v % 10)))
+    }
+
+    private func writeHex(_ v: UInt64) {
+        if v >= 0x10 { writeHex(v >> 4) }
+        // No digit-table storage (would need lazy static init = a lock): compute
+        // '0'..'9' / 'a'..'f' directly from the nibble.
+        let nibble = Int(v & 0xF)
+        writeCh(nibble < 10 ? CChar(48 + nibble) : CChar(87 + nibble))
     }
 
     private func writeCrashFile(reason: String, signal: Int32, thread: String, backtrace: [String]?) {
@@ -568,29 +607,33 @@ final class RemoteLogEngine {
     }
 
     /// Upload any crash dump left by a previous run, then clear it.
+    /// Runs synchronously (called from engine init and willEnterForeground):
+    /// in a crash-loop the app may die again within seconds, so the beacon must
+    /// go out before playback resumes, not on a background queue that may never
+    /// get to run.
     private func uploadPendingCrashFiles() {
         guard let crashDirPath else { return }
-        queue.async { [weak self] in
-            guard let self else { return }
-            let fm = FileManager.default
-            let path = (crashDirPath as NSString).appendingPathComponent("crash.log")
-            guard fm.fileExists(atPath: path),
-                  let content = try? String(contentsOfFile: path, encoding: .utf8),
-                  !content.isEmpty
-            else {
-                if fm.fileExists(atPath: path) {
-                    try? fm.removeItem(atPath: path)
-                }
-                return
+        let fm = FileManager.default
+        let path = (crashDirPath as NSString).appendingPathComponent("crash.log")
+        guard fm.fileExists(atPath: path),
+              let content = try? String(contentsOfFile: path, encoding: .utf8),
+              !content.isEmpty
+        else {
+            if fm.fileExists(atPath: path) {
+                try? fm.removeItem(atPath: path)
             }
-            var lines = content.components(separatedBy: "\n").filter { !$0.isEmpty }
-            if let idx = lines.lastIndex(where: { $0.contains("KSPlayer CRASH") }) {
-                lines = Array(lines[idx...])
-            }
-            self.sendCrash(reason: "recovered crash log", signal: 0, thread: "?", backtrace: [], lastLogs: lines, sync: true)
-            try? fm.removeItem(atPath: path)
-            self.log(level: .info, message: "[remoteLog] recovered previous crash (\(lines.count) lines)", file: "RemoteLog.swift", function: "uploadPendingCrashFiles", line: 0)
+            return
         }
+        var lines = content.components(separatedBy: "\n").filter { !$0.isEmpty }
+        if let idx = lines.lastIndex(where: { $0.contains("KSPlayer CRASH") }) {
+            lines = Array(lines[idx...])
+        }
+        sendCrash(reason: "recovered crash log", signal: 0, thread: "?", backtrace: [], lastLogs: lines, sync: true)
+        try? fm.removeItem(atPath: path)
+        // Re-open the crash fd: the file was unlinked, so a later crash would
+        // otherwise write to an orphaned inode nobody can read.
+        crashFd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0o644)
+        log(level: .info, message: "[remoteLog] recovered previous crash (\(lines.count) lines)", file: "RemoteLog.swift", function: "uploadPendingCrashFiles", line: 0)
     }
 
     // MARK: System sampling

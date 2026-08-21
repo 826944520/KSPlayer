@@ -440,6 +440,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
         KSLog(level: .info, "[player] seek(t=\(time)) accurate=\(options.isAccurateSeek)")
         let time = max(time, 0)
         shouldSeekTo = time
+        let wasPlaying = playbackState == .playing
         playbackState = .seeking
         runOnMainThread { [weak self] in
             self?.bufferingProgress = 0
@@ -449,6 +450,12 @@ extension KSAVPlayer: MediaPlayerProtocol {
             [weak self] finished in
             guard let self else { return }
             self.shouldSeekTo = 0
+            // A seek must never leave the player parked in .seeking (paused
+            // forever). Restore the pre-seek state; playOrPause() still gates
+            // on loadState, so an empty buffer keeps waiting before resuming.
+            if self.playbackState == .seeking {
+                self.playbackState = wasPlaying ? .playing : .paused
+            }
             completion(finished)
         }
     }
@@ -505,7 +512,7 @@ extension KSAVPlayer: MediaPlayerProtocol {
         KSLog(level: .info, "[player] shutdown")
         if let periodicTimeObserver {
             player.removeTimeObserver(periodicTimeObserver)
-            periodicTimeObserver = nil
+            self.periodicTimeObserver = nil
         }
         timeControlStatusObservation?.invalidate()
         timeControlStatusObservation = nil
