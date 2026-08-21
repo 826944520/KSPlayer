@@ -102,14 +102,23 @@ public final class MEPlayerItem: Sendable {
 
     private static var onceInitial: Void = {
         var result = avformat_network_init()
-        // FFmpeg's cache: protocol spools via ff_tempfile(), which honors
-        // getenv("TMPDIR") or falls back to /tmp — neither is writable inside
-        // the iOS sandbox, so avformat_open_input("cache:…") fails with
-        // "Cannot open temporary file /tmp/ffcache…". Point TMPDIR at the
-        // app's writable temporary directory before any URL is opened.
+        // FFmpeg's cache: protocol spools via avpriv_tempfile(), which honors
+        // getenv("TMPDIR") (then TEMP/TMP) or falls back to /tmp — none of
+        // which is writable inside the iOS sandbox, so
+        // avformat_open_input("cache:…") fails with "Cannot open temporary
+        // file /tmp/ffcache…". Point every candidate env var at the app's
+        // writable temporary directory before any URL is opened.
         #if os(iOS) || os(tvOS) || os(xrOS)
-        if let tmp = FileManager.default.temporaryDirectory.path.cString(using: .utf8) {
+        let tmpPath = FileManager.default.temporaryDirectory.path
+        if let tmp = tmpPath.cString(using: .utf8) {
             setenv("TMPDIR", tmp, 1)
+            setenv("TEMP", tmp, 1)
+            setenv("TMP", tmp, 1)
+        }
+        if let resolved = getenv("TMPDIR") {
+            KSLog(level: .info, "[demux] TMPDIR=\(String(cString: resolved)) (cache spool dir)")
+        } else {
+            KSLog(level: .error, "[demux] TMPDIR unset — cache: protocol will fall back to /tmp and fail")
         }
         #endif
         av_log_set_callback { ptr, level, format, args in
