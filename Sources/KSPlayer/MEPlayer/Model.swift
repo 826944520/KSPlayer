@@ -76,7 +76,10 @@ protocol MEFrame: ObjectQueueItem {
 public extension KSOptions {
 
     static var enableSensor = false
-    static var stackSize = 65536
+    // FFmpeg read/decode threads need real stack: 64KB caused stack-overflow
+    // crashes (EXC_BAD_ACCESS) on heavy files (8K HEVC parsing). libavcodec
+    // recommends >= 1 MiB for decoding threads.
+    static var stackSize = 1_048_576
     static var isClearVideoWhereReplace = true
     static var audioPlayerType: AudioOutput.Type = AudioEnginePlayer.self
     static var videoPlayerType: (VideoOutput & UIView).Type = MetalPlayView.self

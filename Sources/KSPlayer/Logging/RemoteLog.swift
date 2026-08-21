@@ -30,8 +30,9 @@ public enum RemoteLog {
     public static var crashPath = "/crash"
     /// Master switch. Disabling clears the pending buffer.
     public static private(set) var enabled = true
-    /// Upload cadence while the buffer is non-empty.
-    public static var flushInterval: TimeInterval = 2
+    /// Upload cadence while the buffer is non-empty. 1s keeps pre-crash entries
+    /// from being lost to batch lag when the process dies.
+    public static var flushInterval: TimeInterval = 1
     /// Batch size that triggers an upload.
     public static var batchSize = 50
     /// Hard cap on buffered entries (oldest dropped beyond this).
@@ -289,6 +290,7 @@ final class RemoteLogEngine {
 
     private let ring = CrashRingBuffer()
     private var crashFd: Int32 = -1
+    private var altStackMemory: UnsafeMutableRawPointer?
     private var crashDirPath: String?
     private var timer: DispatchSourceTimer?
     private var observers: [NSObjectProtocol] = []
@@ -297,6 +299,12 @@ final class RemoteLogEngine {
         install()
         startTimer()
         log(level: .info, message: "[remoteLog] session \(sessionID) server \(RemoteLog.endpoint)", file: "RemoteLog.swift", function: "init()", line: 0)
+    }
+
+    deinit {
+        if let altStackMemory {
+            altStackMemory.deallocate()
+        }
     }
 
     // MARK: Enqueue
@@ -448,6 +456,20 @@ final class RemoteLogEngine {
     }
 
     private func installSignalHandlers() {
+        // Run handlers on a dedicated alternate stack: a stack-overflow crash
+        // (deep FFmpeg recursion on a small thread stack) would otherwise
+        // leave the handler with no stack — double fault, no crash dump.
+        let altSize = 64 * 1024
+        altStackMemory = UnsafeMutableRawPointer.allocate(byteCount: altSize, alignment: 16)
+        var stack = stack_t()
+        stack.ss_sp = altStackMemory
+        stack.ss_size = altSize
+        stack.ss_flags = 0
+        if sigaltstack(&stack, nil) != 0 {
+            // Can't use KSLog here: this runs during RemoteLog.engine's own
+            // init, so the logger isn't safe to touch yet.
+            fputs("[remoteLog] sigaltstack failed\n", stderr)
+        }
         var action = sigaction()
         // `sa_sigaction` is only exposed on macOS; iOS/tvOS/xrOS expose the
         // underlying `__sigaction_u.__sa_sigaction` union member instead.
@@ -460,7 +482,7 @@ final class RemoteLogEngine {
             RemoteLog.engine.handleSignal(sig, info)
         }
         #endif
-        action.sa_flags = SA_SIGINFO | SA_RESETHAND
+        action.sa_flags = SA_SIGINFO | SA_RESETHAND | SA_ONSTACK
         sigemptyset(&action.sa_mask)
         for sig in [SIGABRT, SIGSEGV, SIGBUS, SIGILL, SIGFPE, SIGTRAP, SIGSYS] {
             sigaction(sig, &action, nil)
