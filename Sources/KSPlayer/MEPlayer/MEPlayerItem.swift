@@ -2,6 +2,7 @@
 
 
 import AVFoundation
+import CryptoKit
 import FFmpegKit
 import Libavcodec
 import Libavfilter
@@ -12,6 +13,36 @@ import Libavformat
 /// `absoluteString.hasSuffix(".m3u8")`.
 fileprivate func isHLSURL(_ url: URL) -> Bool {
     url.pathExtension.lowercased().hasSuffix("m3u8")
+}
+
+/// Deterministic per-URL play-while-cache file path in `directory`, with a
+/// simple disk budget (oldest files are dropped beyond the cap, newest kept;
+/// the file being opened is never deleted).
+func kscacheFilePath(for url: URL, directory: URL) -> String {
+    let fm = FileManager.default
+    try? fm.createDirectory(at: directory, withIntermediateDirectories: true)
+    let digest = SHA256.hash(data: Data(url.absoluteString.utf8))
+    let name = digest.map { String(format: "%02x", $0) }.joined().prefix(32) + ".kscache"
+    let target = directory.appendingPathComponent(String(name)).path
+    let maxCacheBytes: Int64 = 2 * 1024 * 1024 * 1024 // 2 GB budget
+    if let files = try? fm.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.contentModificationDateKey, .fileSizeKey], options: []) {
+        var total: Int64 = 0
+        var entries: [(url: URL, size: Int64, date: Date)] = []
+        for f in files where f.path != target {
+            let size = (try? f.resourceValues(forKeys: [.fileSizeKey]).fileSize).map(Int64.init) ?? 0
+            let date = (try? f.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+            total += size
+            entries.append((f, size, date))
+        }
+        if total > maxCacheBytes {
+            for e in entries.sorted(by: { $0.date < $1.date }) {
+                try? fm.removeItem(at: e.url)
+                total -= e.size
+                if total <= maxCacheBytes { break }
+            }
+        }
+    }
+    return target
 }
 
 public final class MEPlayerItem: Sendable {
@@ -219,13 +250,13 @@ extension MEPlayerItem {
         if url.isFileURL {
             urlString = url.path
         } else if options.cache, KSOptions.isCacheProtocolAvailable, !isHLSURL(url) {
-            // FFmpeg's cache: protocol spools the progressive download to a
-            // local file (anti-jitter + fast reopen on seek-back). Scoped to
-            // progressive files: for HLS the prefix would only cache the
-            // playlist — segment requests bypass the parent protocol. The
-            // spool path is the process TMPDIR, pointed at the app's writable
-            // temporary directory in onceInitial (cache.c's ff_tempfile reads
-            // TMPDIR; there is no per-protocol path option in FFmpeg 6.1.4).
+            // Play-while-cache (GSYVideoPlayer style): spool the progressive
+            // download to a PERSISTENT file keyed by the URL. The patched
+            // cache.c (cache_file option) resumes from the existing bytes on
+            // reopen, so seek-back hits disk and replay of a cached URL needs
+            // no network. Scoped to progressive files (HLS segments bypass it).
+            let cachePath = kscacheFilePath(for: url, directory: options.cacheDirectory)
+            options.formatContextOptions["cache_file"] = cachePath
             urlString = "cache:" + url.absoluteString
         } else {
             urlString = url.absoluteString
@@ -886,11 +917,15 @@ extension MEPlayerItem: OutputRenderSourceDelegate {
     }
 
     public func setAudio(time: CMTime, position: Int64) {
-        // Called from the real-time audio render callback; write the clock
-        // directly (KSClock is internally synchronized) instead of hopping to
-        // the main thread on every audio buffer.
-        audioClock.time = time
-        audioClock.position = position
+        // Matches main-branch behavior: updating the audio clock on the main
+        // thread (instead of the real-time render thread) keeps the clock
+        // slightly "behind", which the videoClockSync policy expects — a
+        // fresh render-thread clock made video appear ~0.26s behind audio and
+        // triggered constant frame drops (~0.5s stutter) on the ios26 branch.
+        runOnMainThread {
+            self.audioClock.time = time
+            self.audioClock.position = position
+        }
     }
 
     public func getVideoOutputRender(force: Bool) -> VideoVTBFrame? {

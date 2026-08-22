@@ -37,10 +37,6 @@ class MetalRender {
 
     private let renderPassDescriptor = MTLRenderPassDescriptor()
     private let commandQueue = MetalRender.device.makeCommandQueue()
-    // Bounds the number of command buffers in flight to maximumDrawableCount (see
-    // MetalView.init). A slow GPU throttles the CPU via this semaphore instead of
-    // stalling the main thread on waitUntilCompleted() every frame.
-    private let inflightSemaphore = DispatchSemaphore(value: 3)
     // Per-renderer (per-MetalView) vertex-matrix pool, so concurrent renderers
     // never share a ring. 6 slots = max matrices per frame (VRBox: 2) × frames
     // in flight (3). Plane/VR use fewer; unused slots are just idle memory.
@@ -116,12 +112,10 @@ class MetalRender {
         guard let cvPixelBuffer = pixelBuffer.cvPixelBuffer else {
             return
         }
-        inflightSemaphore.wait()
         let (inputTextures, cvTextures) = MetalRender.textures(pixelBuffer: cvPixelBuffer)
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture
         guard !inputTextures.isEmpty, let commandBuffer = commandQueue?.makeCommandBuffer(), let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
             KSLog(level: .error, "[metal] draw(): no inputTextures or commandBuffer/encoder creation failed (textures=\(inputTextures.count))")
-            inflightSemaphore.signal()
             return
         }
         encoder.pushDebugGroup("RenderFrame")
@@ -143,18 +137,14 @@ class MetalRender {
         display.set(encoder: encoder, ring: matrixBufferRing)
         encoder.popDebugGroup()
         encoder.endEncoding()
-        // Register the completion handler BEFORE commit (Apple's canonical
-        // order). Registering it after commit races the GPU: a fast command
-        // buffer (e.g. the first frame of a small/8K surface) can complete and
-        // be released before addCompletedHandler runs, and Metal then aborts
-        // with an assert (MTLReportFailure → __assert_rtn → SIGABRT), killing
-        // the app — observed as a crash in readNextFrame() on the first VR frame.
-        commandBuffer.addCompletedHandler { [inflightSemaphore, cvTextures] _ in
-            _ = cvTextures
-            inflightSemaphore.signal()
-        }
+        // Main-branch behavior: block until the GPU finishes (waitUntilCompleted)
+        // so the display link is naturally throttled to GPU throughput — the
+        // async triple-buffer path let the video clock drift ahead of actual
+        // presentation, contributing to the ~0.5s stutter regression.
         commandBuffer.present(drawable)
         commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
+        _ = cvTextures
     }
 
     private func setFragmentBuffer(pixelBuffer: PixelBufferProtocol, encoder: MTLRenderCommandEncoder) {

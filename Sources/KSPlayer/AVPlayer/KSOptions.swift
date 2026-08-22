@@ -33,9 +33,9 @@ open class KSOptions {
     public var cache = KSOptions.cache
 
     /// Directory where the `cache:` protocol (Stage 1.3) spools progressive
-    /// downloads. iOS can't write to FFmpeg's default /tmp, so this must point
-    /// at an app-writable directory (e.g. NSTemporaryDirectory()).
-    public var cacheDirectory: URL = FileManager.default.temporaryDirectory
+    /// downloads. Defaults to the app Caches dir (persists across launches —
+    /// play-while-cache: a reopened URL resumes from the cached bytes).
+    public var cacheDirectory: URL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
 
     public var outputURL: URL?
     public var avOptions = [String: Any]()
