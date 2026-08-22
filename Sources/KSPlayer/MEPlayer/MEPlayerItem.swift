@@ -514,6 +514,7 @@ extension MEPlayerItem {
     }
 
     private func readThread() {
+        var lastPerfLog = CACurrentMediaTime()
         if state == .opened {
             if options.startPlayTime > 0 {
                 let timestamp = startTime + CMTime(seconds: options.startPlayTime)
@@ -531,6 +532,17 @@ extension MEPlayerItem {
         }
         allPlayerItemTracks.forEach { $0.decode() }
         while [MESourceState.paused, .seeking, .reading].contains(state) {
+            // [perf] heartbeat: 2s cadence — media clock vs wall time, frame
+            // queue, network bytes. One run tells us whether playback is
+            // decode-bound, network-bound, or clock-drift-bound.
+            let now = CACurrentMediaTime()
+            if now - lastPerfLog > 2 {
+                lastPerfLog = now
+                let media = mainClock().getTime()
+                let bytes = formatCtx?.pointee.pb?.pointee.bytes_read ?? 0
+                let videoQ = videoTrack.map { "\($0.frameCount)/\($0.frameMaxCount)" } ?? "no-track"
+                KSLog(level: .info, "[perf] heartbeat media=\(String(format: "%.2f", media)) wall=\(String(format: "%.2f", now)) videoQueue=\(videoQ) readBytes=\(bytes) state=\(state)")
+            }
             if state == .paused {
                 condition.wait()
             }

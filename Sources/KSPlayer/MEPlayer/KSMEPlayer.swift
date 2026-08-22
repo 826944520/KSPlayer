@@ -248,6 +248,7 @@ extension KSMEPlayer: MEPlayerDelegate {
 
             let enterThreshold = min(0.5, bufferTime * 0.5)
             if !loadingState.isEndOfFile, frameTime < enterThreshold, options.preferredForwardBufferDuration != 0 {
+                KSLog(level: .info, "[perf] →loading frameTime=\(String(format: "%.3f", frameTime)) enter=\(String(format: "%.3f", enterThreshold)) queue=\(loadingState.frameCount)/\(loadingState.frameMaxCount) fps=\(loadingState.fps) loaded=\(String(format: "%.2f", loadingState.loadedTime)) clock=\(String(format: "%.2f", playerItem.mainClock().getTime()))")
                 loadState = .loading
                 if playbackState == .playing {
                     runOnMainThread { [weak self] in
@@ -266,6 +267,7 @@ extension KSMEPlayer: MEPlayerDelegate {
 
             let exitThreshold = min(2.0, bufferTime)
             if loadingState.isPlayable, frameTime >= exitThreshold {
+                KSLog(level: .info, "[perf] →playable frameTime=\(String(format: "%.3f", frameTime)) exit=\(String(format: "%.3f", exitThreshold)) queue=\(loadingState.frameCount)/\(loadingState.frameMaxCount) fps=\(loadingState.fps) loaded=\(String(format: "%.2f", loadingState.loadedTime)) clock=\(String(format: "%.2f", playerItem.mainClock().getTime()))")
                 loadState = .playable
                 if playbackState == .playing {
                     runOnMainThread { [weak self] in
