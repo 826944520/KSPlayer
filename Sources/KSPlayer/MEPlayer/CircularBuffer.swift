@@ -40,8 +40,16 @@ public class CircularBuffer<Item: ObjectQueueItem> {
         if destroyed {
             return
         }
-        if _buffer[Int(tailIndex & mask)] != nil {
-            assertionFailure("value is not nil of headIndex: \(headIndex),tailIndex: \(tailIndex), bufferCount: \(_buffer.count), mask: \(mask)")
+        // Fix: check capacity BEFORE writing to avoid overwriting oldest element
+        if _count >= maxCount {
+            if expanding {
+                _doubleCapacity()
+            } else {
+                condition.wait()
+                if destroyed {
+                    return
+                }
+            }
         }
         _buffer[Int(tailIndex & mask)] = value
         if sorted {
@@ -60,18 +68,8 @@ public class CircularBuffer<Item: ObjectQueueItem> {
             }
         }
         tailIndex &+= 1
-        if _count >= maxCount {
-            if expanding {
-
-                _doubleCapacity()
-            } else {
-                condition.wait()
-            }
-        } else {
-
-            if _count == 1 {
-                condition.signal()
-            }
+        if _count == 1 {
+            condition.signal()
         }
     }
 
@@ -140,7 +138,9 @@ public class CircularBuffer<Item: ObjectQueueItem> {
     }
 
     public func shutdown() {
+        condition.lock()
         destroyed = true
+        condition.unlock()
         flush()
     }
 

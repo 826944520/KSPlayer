@@ -51,10 +51,12 @@ extension simd_float4x4 {
         let N = normalize(eye - center)
         let U = normalize(cross(up, N))
         let V = cross(N, U)
-        self.init(rows: [[U.x, V.x, N.x, 0.0],
-                         [U.y, V.y, N.y, 0.0],
-                         [U.z, V.z, N.z, 0.0],
-                         [dot(-U, eye), dot(-V, eye), dot(-N, eye), 1.0]])
+        // Fix: Build standard view matrix with eye offset in last column (not last row)
+        // Column-major: [U.x, U.y, U.z, -dot(U,eye)], [V.x, V.y, V.z, -dot(V,eye)], ...
+        self.init(columns: [[U.x, U.y, U.z, -dot(U, eye)],
+                            [V.x, V.y, V.z, -dot(V, eye)],
+                            [N.x, N.y, N.z, -dot(N, eye)],
+                            [0.0, 0.0, 0.0, 1.0]])
     }
 
     public init(perspective fovyRadians: Float, aspect: Float, nearZ: Float, farZ: Float) {

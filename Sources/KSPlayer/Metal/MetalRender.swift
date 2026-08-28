@@ -18,11 +18,19 @@ class MetalRender {
         return device
     }()
 
-    private static let textureCache: CVMetalTextureCache? = {
+    private static var textureCache: CVMetalTextureCache? = {
         var cache: CVMetalTextureCache?
         CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, MetalRender.device, nil, &cache)
         return cache
     }()
+
+    // Fix: Add method to flush texture cache
+    static func flushTextureCache() {
+        if let cache = textureCache {
+            CVMetalTextureCacheFlush(cache, 0)
+        }
+    }
+
     static let library: MTLLibrary = {
         var library: MTLLibrary!
         library = device.makeDefaultLibrary()
@@ -109,10 +117,18 @@ class MetalRender {
 
     @MainActor
     func draw(pixelBuffer: PixelBufferProtocol, display: DisplayEnum = .plane, drawable: CAMetalDrawable) {
-        guard let cvPixelBuffer = pixelBuffer.cvPixelBuffer else {
+        // Fix: Support both CVPixelBuffer and custom PixelBuffer (e.g., 10-bit planar)
+        let inputTextures: [MTLTexture]
+        var cvTextures: [CVMetalTexture] = []
+
+        if let cvPixelBuffer = pixelBuffer.cvPixelBuffer {
+            (inputTextures, cvTextures) = MetalRender.textures(pixelBuffer: cvPixelBuffer)
+        } else if let customPixelBuffer = pixelBuffer as? PixelBuffer {
+            inputTextures = customPixelBuffer.textures()
+        } else {
             return
         }
-        let (inputTextures, cvTextures) = MetalRender.textures(pixelBuffer: cvPixelBuffer)
+
         renderPassDescriptor.colorAttachments[0].texture = drawable.texture
         guard !inputTextures.isEmpty, let commandBuffer = commandQueue?.makeCommandBuffer(), let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) else {
             KSLog(level: .error, "[metal] draw(): no inputTextures or commandBuffer/encoder creation failed (textures=\(inputTextures.count))")
@@ -144,7 +160,10 @@ class MetalRender {
         commandBuffer.present(drawable)
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
-        _ = cvTextures
+        // Fix: Release CVMetalTextures after rendering (GPU is done after waitUntilCompleted)
+        for cvTexture in cvTextures {
+            CFRelease(cvTexture)
+        }
     }
 
     private func setFragmentBuffer(pixelBuffer: PixelBufferProtocol, encoder: MTLRenderCommandEncoder) {

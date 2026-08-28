@@ -396,6 +396,10 @@ extension KSMEPlayer: MediaPlayerProtocol {
                     }
                 }
             }
+            // Fix: Restore playbackState after seek completion
+            if self.playbackState == .seeking {
+                self.playbackState = .playing
+            }
             completion(result)
         }
     }
