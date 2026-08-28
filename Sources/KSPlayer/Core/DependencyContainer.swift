@@ -173,8 +173,46 @@ final class DependencyContainer {
         return networkMonitor
     }
 
+    func makeRouter() -> KSRouter {
+        return KSRouter()
+    }
+
     func makePermissionChecker() -> PermissionChecker {
         return permissionChecker
+    }
+
+    func makeRouter() -> KSRouter {
+        return KSRouter()
+    }
+
+    // MARK: - UseCase Factory Methods
+
+    func makeLoadMediaUseCase() -> LoadMediaUseCase {
+        return LoadMediaUseCase(
+            repository: makeMediaRepository(),
+            cacheRepository: makeCacheRepository(),
+            logger: makeLogger()
+        )
+    }
+
+    func makePlayUseCase() -> PlayUseCase {
+        return PlayUseCase(
+            playerService: makePlayerService(),
+            historyRepository: makeHistoryRepository(),
+            logger: makeLogger()
+        )
+    }
+
+    func makeCacheUseCase() -> CacheUseCase {
+        return CacheUseCase(
+            cacheRepository: makeCacheRepository()
+        )
+    }
+
+    func makeSeekUseCase() -> SeekUseCase {
+        return SeekUseCase(
+            playerService: makePlayerService()
+        )
     }
 
     // MARK: - Setup

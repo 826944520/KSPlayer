@@ -8,6 +8,51 @@
 
 import Foundation
 import Combine
+import AVFoundation
+
+// MARK: - Domain Entities
+
+/// 媒体项
+struct MediaItem: Identifiable, Equatable {
+    let id: String
+    let url: URL
+    let duration: TimeInterval
+    let title: String?
+    let thumbnail: URL?
+}
+
+/// 历史项
+struct HistoryItem: Identifiable, Equatable {
+    let id: String
+    let mediaItem: MediaItem
+    let progress: TimeInterval
+    let lastPlayed: Date
+}
+
+/// 字幕项
+struct SubtitleItem: Identifiable, Equatable {
+    let id: String
+    let url: URL
+    let language: String?
+    let title: String?
+}
+
+/// 字幕 URL
+struct SubtitleURL: Identifiable {
+    let id: String
+    let url: URL
+    let language: String?
+    let source: String
+}
+
+/// 媒体项视图模型
+struct MediaItemViewModel: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let duration: String
+}
+
+// MARK: - Player Protocols
 
 /// 播放器状态
 enum PlayerState: Equatable {
