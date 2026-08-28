@@ -250,7 +250,7 @@ protocol VideoFrame {
 protocol AudioBuffer {
     var data: UnsafeRawPointer { get }
     var frameCount: UInt32 { get }
-    var format: AudioFormat { get }
+    var format: AVAudioFormat { get }
 }
 
 /// 视频渲染视图协议
@@ -258,4 +258,19 @@ protocol VideoRenderViewProtocol: AnyObject {
     var size: CGSize { get set }
     func display(_ frame: VideoFrame)
     func clear()
+}
+
+/// 缓存仓库协议
+protocol CacheRepositoryProtocol {
+    /// 获取缓存媒体
+    func getCachedMedia(url: URL) async -> MediaItem?
+
+    /// 获取缓存大小
+    func getCacheSize() async throws -> Int64
+
+    /// 清空缓存
+    func clearCache() async throws
+
+    /// 预加载媒体
+    func preloadMedia(url: URL) async throws
 }

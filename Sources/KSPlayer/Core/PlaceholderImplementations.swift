@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import Combine
+import Metal
 
 // MARK: - Media Repository Implementation
 

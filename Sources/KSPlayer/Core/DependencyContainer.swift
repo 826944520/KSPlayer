@@ -181,10 +181,6 @@ final class DependencyContainer {
         return permissionChecker
     }
 
-    func makeRouter() -> KSRouter {
-        return KSRouter()
-    }
-
     // MARK: - UseCase Factory Methods
 
     func makeLoadMediaUseCase() -> LoadMediaUseCase {

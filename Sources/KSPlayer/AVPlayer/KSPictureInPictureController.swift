@@ -22,6 +22,8 @@ public class KSPictureInPictureController: AVPictureInPictureController {
             KSPictureInPictureController.pipController = nil
         }
         guard KSOptions.isPipPopViewController else {
+            return
+        }
         if restoreUserInterface {
             #if canImport(UIKit)
             runOnMainThread { [weak self] in

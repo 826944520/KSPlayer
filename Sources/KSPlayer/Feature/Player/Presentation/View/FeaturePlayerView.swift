@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct PlayerView: View {
+struct FeaturePlayerView: View {
     @StateObject private var viewModel: PlayerViewModel
 
     init(viewModel: PlayerViewModel = .init(

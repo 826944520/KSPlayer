@@ -3,7 +3,8 @@
 //  KSPlayer
 //
 //  Created by Architecture Team on 2026/08/28.
-//  日志系统 - 结构化日�?//
+//  日志系统 - 结构化日志
+//
 
 import Foundation
 import os.log
@@ -59,7 +60,7 @@ protocol LoggerProtocol {
 final class Logger: LoggerProtocol {
     private let osLog: OSLog
     private let consoleLogEnabled: Bool
-    private let minLevel: LogLevel
+    private let minLevel: LoggerLevel
     private var buffer: [String] = []
     private let maxBufferSize = 1000
 
@@ -67,7 +68,7 @@ final class Logger: LoggerProtocol {
         subsystem: String = "com.kingslay.KSPlayer",
         category: String = "Player",
         consoleLogEnabled: Bool = true,
-        minLevel: LogLevel = .debug
+        minLevel: LoggerLevel = .debug
     ) {
         self.osLog = OSLog(subsystem: subsystem, category: category)
         self.consoleLogEnabled = consoleLogEnabled
@@ -102,7 +103,7 @@ final class Logger: LoggerProtocol {
 
     // MARK: - Private Methods
 
-    private func log(_ level: LogLevel, _ message: String, file: String, function: String, line: Int) {
+    private func log(_ level: LoggerLevel, _ message: String, file: String, function: String, line: Int) {
         guard level.rawValue >= minLevel.rawValue else {
             return
         }
