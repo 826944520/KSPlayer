@@ -14,7 +14,7 @@ final class Preloader {
     private let logger: LoggerProtocol
     private var isPreloading = false
 
-    init(logger: LoggerProtocol = DependencyContainer.shared.makeLogger()) {
+    init(logger: LoggerProtocol) {
         self.logger = logger
     }
 

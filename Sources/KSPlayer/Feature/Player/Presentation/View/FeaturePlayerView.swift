@@ -1,5 +1,5 @@
 //
-//  PlayerView.swift
+//  FeaturePlayerView.swift
 //  KSPlayer
 //
 //  Created by Architecture Team on 2026/08/28.
@@ -11,18 +11,12 @@ import SwiftUI
 struct FeaturePlayerView: View {
     @StateObject private var viewModel: PlayerViewModel
 
-    init(viewModel: PlayerViewModel = .init(
-        loadUseCase: DependencyContainer.shared.makeLoadMediaUseCase(),
-        playUseCase: DependencyContainer.shared.makePlayUseCase(),
-        cacheUseCase: DependencyContainer.shared.makeCacheUseCase(),
-        seekUseCase: DependencyContainer.shared.makeSeekUseCase()
-    )) {
+    init(viewModel: PlayerViewModel) {
         self._viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
         ZStack {
-            // 内容层
             switch viewModel.state {
             case .idle:
                 IdleView(onLoad: { url in
@@ -30,10 +24,12 @@ struct FeaturePlayerView: View {
                 })
             case .loading(let progress):
                 LoadingView(progress: progress)
-            case .playing, .paused:
+            case .ready, .playing, .paused:
                 VideoContentView(viewModel: viewModel)
             case .seeking:
                 SeekingView(viewModel: viewModel)
+            case .finished:
+                VideoContentView(viewModel: viewModel)
             case .error:
                 ErrorPlaceholderView(
                     message: viewModel.errorMessage ?? "加载失败",
@@ -41,7 +37,6 @@ struct FeaturePlayerView: View {
                 )
             }
 
-            // 控制层
             if !viewModel.isLoading {
                 ControlsOverlayView(viewModel: viewModel)
             }
@@ -99,27 +94,23 @@ private struct LoadingView: View {
 
 private struct VideoContentView: View {
     @ObservedObject var viewModel: PlayerViewModel
+    @State private var sliderValue: Double = 0
 
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             Color.black
                 .overlay(
                     VStack {
                         Spacer()
 
-                        // 进度条
                         VStack(spacing: 4) {
                             Slider(
-                                value: viewModel.currentTime,
-                                in: 0...viewModel.duration,
+                                value: $sliderValue,
+                                in: 0...max(viewModel.duration, 1),
                                 step: 0.01
                             ) { editing in
-                                viewModel.state = editing ? .seeking : viewModel.state
-                            } onEditingChanged: { editing in
                                 if !editing {
-                                    Task {
-                                        await viewModel.doSeek(to: sliderValue)
-                                    }
+                                    viewModel.seek(to: sliderValue)
                                 }
                             }
 
@@ -149,7 +140,6 @@ private struct ControlsOverlayView: View {
             Spacer()
 
             HStack(spacing: 32) {
-                // 后退 10 秒
                 Button(action: {
                     viewModel.seek(to: viewModel.currentTime - 10)
                 }) {
@@ -157,9 +147,8 @@ private struct ControlsOverlayView: View {
                         .font(.title2)
                         .foregroundColor(.white)
                 }
-                .buttonStyle(.ripple)
+                .buttonStyle(RippleButtonStyle())
 
-                // 播放/暂停
                 Button(action: {
                     if viewModel.isPlaying {
                         viewModel.pause()
@@ -171,9 +160,8 @@ private struct ControlsOverlayView: View {
                         .font(.system(size: 48))
                         .foregroundColor(.white)
                 }
-                .buttonStyle(.ripple)
+                .buttonStyle(RippleButtonStyle())
 
-                // 前进 10 秒
                 Button(action: {
                     viewModel.seek(to: viewModel.currentTime + 10)
                 }) {
@@ -181,7 +169,7 @@ private struct ControlsOverlayView: View {
                         .font(.title2)
                         .foregroundColor(.white)
                 }
-                .buttonStyle(.ripple)
+                .buttonStyle(RippleButtonStyle())
             }
             .padding(.bottom, 50)
         }
@@ -243,8 +231,4 @@ struct RippleButtonStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
-}
-
-extension ButtonStyle where Self == EmptyButtonStyle {
-    static var ripple: RippleButtonStyle { .init() }
 }
