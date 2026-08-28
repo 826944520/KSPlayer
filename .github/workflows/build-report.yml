@@ -1,0 +1,84 @@
+name: Build Report
+
+on:
+  workflow_run:
+    workflows: ["build"]
+    types: [completed]
+
+jobs:
+  report:
+    name: Build Report
+    runs-on: macos-latest
+    if: github.event.workflow_run.conclusion != 'skipped'
+
+    steps:
+      - name: Download build log
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: build.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: build-log
+          path: logs
+        continue-on-error: true
+
+      - name: Parse build errors
+        id: parse_errors
+        run: |
+          if [ -d "logs" ]; then
+            ERROR_COUNT=$(find logs -name "*.log" -exec grep -l "error:" {} \; | wc -l)
+            WARNING_COUNT=$(find logs -name "*.log" -exec grep -l "warning:" {} \; | wc -l)
+
+            echo "error_count=$ERROR_COUNT" >> $GITHUB_OUTPUT
+            echo "warning_count=$WARNING_COUNT" >> $GITHUB_OUTPUT
+
+            echo "## 📊 Build Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **Errors**: $ERROR_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- **Warnings**: $WARNING_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ $ERROR_COUNT -gt 0 ]; then
+              echo "### ❌ Errors Found" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              find logs -name "*.log" -exec grep "error:" {} + | head -20 >> $GITHUB_STEP_SUMMARY
+            fi
+
+            if [ $WARNING_COUNT -gt 0 ]; then
+              echo "### ⚠️  Warnings Found" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              find logs -name "*.log" -exec grep "warning:" {} + | head -20 >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "No logs found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Post build report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conclusion = '${{ github.event.workflow_run.conclusion }}';
+            const runUrl = '${{ github.event.workflow_run.html_url }}';
+
+            let message = `## Build Report: ${conclusion}\n\n`;
+            message += `🔗 [View Details](${runUrl})\n\n`;
+
+            if (conclusion === 'failure') {
+              message += '❌ Build failed. Please check the logs for details.\n\n';
+            } else if (conclusion === 'success') {
+              message += '✅ Build succeeded! All checks passed.\n\n';
+            }
+
+            const errorCount = '${{ steps.parse_errors.outputs.error_count }}';
+            const warningCount = '${{ steps.parse_errors.outputs.warning_count }}';
+
+            if (errorCount && errorCount !== '') {
+              message += `**Errors**: ${errorCount}\n`;
+            }
+            if (warningCount && warningCount !== '') {
+              message += `**Warnings**: ${warningCount}\n`;
+            }
+
+            core.setOutput('report', message);
+            core.summary.addRaw(message);
+            core.summary.write();
