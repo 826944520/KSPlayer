@@ -99,19 +99,46 @@ public final class AudioEngineDynamicsPlayer: AudioEnginePlayer, AudioDynamicsPr
 public class AudioEnginePlayer: AudioOutput {
     public let engine = AVAudioEngine()
     private var sourceNode: AVAudioSourceNode?
-    private var sourceNodeAudioFormat: AVAudioFormat?
+    // Fix: Protect shared state with a lock to prevent data races between audio render thread and main thread
+    private let stateLock = NSLock()
+    private var sourceNodeAudioFormat: AVAudioFormat? {
+        didSet {
+            stateLock.lock()
+            sourceNodeAudioFormatSync = oldValue
+            stateLock.unlock()
+        }
+    }
+    // Synchronized copy for audio render thread
+    private var sourceNodeAudioFormatSync: AVAudioFormat?
 
 
     private let timePitch = AVAudioUnitTimePitch()
-    private var sampleSize = UInt32(MemoryLayout<Float>.size)
-    private var currentRenderReadOffset = UInt32(0)
+    private var sampleSize = UInt32(MemoryLayout<Float>.size) {
+        didSet {
+            stateLock.lock()
+            sampleSizeSync = oldValue
+            stateLock.unlock()
+        }
+    }
+    private var sampleSizeSync = UInt32(MemoryLayout<Float>.size)
+    private var currentRenderReadOffset = UInt32(0) {
+        didSet {
+            stateLock.lock()
+            currentRenderReadOffsetSync = oldValue
+            stateLock.unlock()
+        }
+    }
+    private var currentRenderReadOffsetSync = UInt32(0)
     private var outputLatency = TimeInterval(0)
     public weak var renderSource: OutputRenderSourceDelegate?
     private var currentRender: AudioFrame? {
         didSet {
+            stateLock.lock()
             if currentRender == nil {
                 currentRenderReadOffset = 0
+                currentRenderReadOffsetSync = 0
             }
+            stateLock.unlock()
         }
     }
 
@@ -219,7 +246,11 @@ public class AudioEnginePlayer: AudioOutput {
     }
 
     public func flush() {
+        stateLock.lock()
         currentRender = nil
+        currentRenderReadOffset = 0
+        currentRenderReadOffsetSync = 0
+        stateLock.unlock()
         #if !os(macOS)
 
         outputLatency = AVAudioSession.sharedInstance().outputLatency
@@ -227,35 +258,68 @@ public class AudioEnginePlayer: AudioOutput {
     }
 
     private func addRenderNotify(audioUnit: AudioUnit) {
+        // Fix: Use retain to prevent use-after-free if player is deallocated before callback fires
         AudioUnitAddRenderNotify(audioUnit, { refCon, ioActionFlags, inTimeStamp, _, _, _ in
-            let `self` = Unmanaged<AudioEnginePlayer>.fromOpaque(refCon).takeUnretainedValue()
+            let `self` = Unmanaged<AudioEnginePlayer>.fromOpaque(refCon).takeRetainedValue()
             autoreleasepool {
                 if ioActionFlags.pointee.contains(.unitRenderAction_PostRender) {
                     self.audioPlayerDidRenderSample(sampleTimestamp: inTimeStamp.pointee)
                 }
             }
+            // Release the retain
+            _ = Unmanaged.passRetained(self)
             return noErr
-        }, Unmanaged.passUnretained(self).toOpaque())
+        }, Unmanaged.passRetained(self).toOpaque())
+    }
+
+    deinit {
+        // Remove render notify to prevent callbacks after deallocation
+        if let audioUnit = engine.outputNode.audioUnit {
+            AudioUnitRemoveRenderNotify(audioUnit, { refCon, ioActionFlags, inTimeStamp, _, _, _ in
+                _ = Unmanaged<AudioEnginePlayer>.fromOpaque(refCon).takeRetainedValue()
+                return noErr
+            }, Unmanaged.passUnretained(self).toOpaque())
+        }
     }
 
 
 
     private func audioPlayerShouldInputData(ioData: UnsafeMutableAudioBufferListPointer, numberOfFrames: UInt32) {
+        // Fix: Acquire lock to safely access synchronized state
+        stateLock.lock()
+        let localCurrentRender = currentRender
+        let localCurrentRenderReadOffset = currentRenderReadOffsetSync
+        let localSampleSize = sampleSizeSync
+        let localSourceNodeAudioFormat = sourceNodeAudioFormatSync
+        stateLock.unlock()
+
         var ioDataWriteOffset = 0
         var numberOfSamples = numberOfFrames
         while numberOfSamples > 0 {
-            if currentRender == nil {
-                currentRender = renderSource?.getAudioOutputRender()
+            if localCurrentRender == nil {
+                stateLock.lock()
+                if currentRender == nil {
+                    currentRender = renderSource?.getAudioOutputRender()
+                }
+                stateLock.unlock()
             }
             guard let currentRender else {
                 break
             }
-            let residueLinesize = currentRender.numberOfSamples - currentRenderReadOffset
+            stateLock.lock()
+            let residueLinesize = currentRender.numberOfSamples - currentRenderReadOffsetSync
+            let currentReadOffset = currentRenderReadOffsetSync
+            let currentSampleSize = sampleSizeSync
+            let sourceFormat = sourceNodeAudioFormatSync
+            stateLock.unlock()
             guard residueLinesize > 0 else {
+                stateLock.lock()
                 self.currentRender = nil
+                currentRenderReadOffsetSync = 0
+                stateLock.unlock()
                 continue
             }
-            if sourceNodeAudioFormat != currentRender.audioFormat {
+            if sourceFormat != currentRender.audioFormat {
                 runOnMainThread { [weak self] in
                     guard let self else {
                         return
@@ -265,8 +329,8 @@ public class AudioEnginePlayer: AudioOutput {
                 return
             }
             let framesToCopy = min(numberOfSamples, residueLinesize)
-            let bytesToCopy = Int(framesToCopy * sampleSize)
-            let offset = Int(currentRenderReadOffset * sampleSize)
+            let bytesToCopy = Int(framesToCopy * currentSampleSize)
+            let offset = Int(currentReadOffset * currentSampleSize)
             for i in 0 ..< min(ioData.count, currentRender.data.count) {
                 if let source = currentRender.data[i], let destination = ioData[i].mData {
                     (destination + ioDataWriteOffset).copyMemory(from: source + offset, byteCount: bytesToCopy)
@@ -274,9 +338,12 @@ public class AudioEnginePlayer: AudioOutput {
             }
             numberOfSamples -= framesToCopy
             ioDataWriteOffset += bytesToCopy
-            currentRenderReadOffset += framesToCopy
+            stateLock.lock()
+            currentRenderReadOffsetSync += framesToCopy
+            currentRenderReadOffset = currentRenderReadOffsetSync
+            stateLock.unlock()
         }
-        let sizeCopied = (numberOfFrames - numberOfSamples) * sampleSize
+        let sizeCopied = (numberOfFrames - numberOfSamples) * localSampleSize
         for i in 0 ..< ioData.count {
             let sizeLeft = Int(ioData[i].mDataByteSize - sizeCopied)
             if sizeLeft > 0 {

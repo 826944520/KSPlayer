@@ -219,8 +219,11 @@ final class Packet: ObjectQueueItem {
     }
 
     deinit {
-        av_packet_unref(corePacket)
-        av_packet_free(&corePacket)
+        // Fix: Guard against nil corePacket
+        if let packet = corePacket {
+            av_packet_unref(packet)
+            av_packet_free(&corePacket)
+        }
     }
 }
 
@@ -331,20 +334,25 @@ public final class AudioFrame: MEFrame {
             return nil
         }
         pcmBuffer.frameLength = pcmBuffer.frameCapacity
-        for i in 0 ..< min(Int(pcmBuffer.format.channelCount), data.count) {
+        let isInterleaved = audioFormat.isInterleaved
+        let channelCount = isInterleaved ? 1 : Int(audioFormat.channelCount)
+        // Fix: dataSize is total across all channels for interleaved, or per-channel for planar
+        // For planar audio, dataSize[i] should be per-channel; for interleaved, dataSize is total
+        for i in 0 ..< min(channelCount, data.count) {
             switch audioFormat.commonFormat {
             case .pcmFormatInt16:
-                let capacity = dataSize / MemoryLayout<Int16>.size
+                // Fix: For planar, use per-channel size; for interleaved, dataSize is total
+                let capacity = isInterleaved ? dataSize / MemoryLayout<Int16>.size : dataSize / MemoryLayout<Int16>.size / channelCount
                 data[i]?.withMemoryRebound(to: Int16.self, capacity: capacity) { src in
                     pcmBuffer.int16ChannelData?[i].update(from: src, count: capacity)
                 }
             case .pcmFormatInt32:
-                let capacity = dataSize / MemoryLayout<Int32>.size
+                let capacity = isInterleaved ? dataSize / MemoryLayout<Int32>.size : dataSize / MemoryLayout<Int32>.size / channelCount
                 data[i]?.withMemoryRebound(to: Int32.self, capacity: capacity) { src in
                     pcmBuffer.int32ChannelData?[i].update(from: src, count: capacity)
                 }
             default:
-                let capacity = dataSize / MemoryLayout<Float>.size
+                let capacity = isInterleaved ? dataSize / MemoryLayout<Float>.size : dataSize / MemoryLayout<Float>.size / channelCount
                 data[i]?.withMemoryRebound(to: Float.self, capacity: capacity) { src in
                     pcmBuffer.floatChannelData?[i].update(from: src, count: capacity)
                 }
@@ -426,6 +434,13 @@ public final class VideoVTBFrame: MEFrame {
     init(fps: Float, isDovi: Bool) {
         self.fps = fps
         self.isDovi = isDovi
+    }
+
+    deinit {
+        // Fix: Release CVPixelBuffer when frame is deallocated (for hardware decode path)
+        if let pixelBuffer = corePixelBuffer as? CVPixelBuffer {
+            CFRelease(pixelBuffer)
+        }
     }
 }
 

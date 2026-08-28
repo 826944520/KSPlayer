@@ -56,6 +56,9 @@ open class BrightnessVolume {
 
     deinit {
         brightnessObservation?.invalidate()
+        // Fix: Remove notification observer to prevent memory leak
+        let name = NSNotification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification")
+        NotificationCenter.default.removeObserver(self, name: name, object: nil)
     }
 }
 

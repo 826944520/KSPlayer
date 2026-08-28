@@ -163,5 +163,10 @@ public class TVSlide: UIControl {
             break
         }
     }
+
+    deinit {
+        // Fix: Invalidate timer to prevent memory leak
+        timer.invalidate()
+    }
 }
 #endif

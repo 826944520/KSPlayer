@@ -593,10 +593,20 @@ class BaseBuild {
             if !FileManager.default.fileExists(atPath: prefix.path) {
                 return nil
             }
+            // Fix: Handle both "libxxx.a" and "Libxxx.a" naming conventions from FFmpeg make install
             let libname = framework.hasPrefix("lib") || framework.hasPrefix("Lib") ? framework : "lib" + framework
             var libPath = prefix + ["lib", "\(libname).a"]
             if !FileManager.default.fileExists(atPath: libPath.path) {
+                // Try alternate naming (lowercase for FFmpeg libs)
+                let altLibname = libname.lowercased()
+                libPath = prefix + ["lib", "\(altLibname).a"]
+            }
+            if !FileManager.default.fileExists(atPath: libPath.path) {
                 libPath = prefix + ["lib", "\(libname).dylib"]
+            }
+            if !FileManager.default.fileExists(atPath: libPath.path) {
+                print("Warning: Library not found at \(libPath.path)")
+                continue
             }
             arguments.append(libPath.path)
             var headerURL: URL = prefix + "include" + framework
@@ -604,6 +614,10 @@ class BaseBuild {
                 headerURL = prefix + "include"
             }
             try? FileManager.default.copyItem(at: headerURL, to: frameworkDir + "Headers")
+        }
+        if arguments.count <= 1 {
+            print("Warning: No libraries found to create framework for \(framework)")
+            return nil
         }
         arguments.append("-output")
         var output = (frameworkDir + framework).path
@@ -983,7 +997,14 @@ enum PlatformType: String, CaseIterable {
     }
 
     func xcrunFind(tool: String) -> String {
-        try! Utility.launch(path: "/usr/bin/xcrun", arguments: ["--sdk", sdk.lowercased(), "--find", tool], isOutput: true)
+        // Fix: Correct xcrun invocation -- --find and --show-sdk-path are separate actions
+        if tool == "--show-sdk-path" {
+            let result = try? Utility.launch(path: "/usr/bin/xcrun", arguments: ["--sdk", sdk.lowercased(), tool], isOutput: true)
+            return result ?? ""
+        } else {
+            let result = try? Utility.launch(path: "/usr/bin/xcrun", arguments: ["--sdk", sdk.lowercased(), "--find", tool], isOutput: true)
+            return result ?? ""
+        }
     }
 
     func pkgConfigPath(arch: ArchType) -> String {

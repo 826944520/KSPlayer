@@ -32,6 +32,8 @@ class FFmpegDecode: DecodeProtocol {
 
     func decodeFrame(from packet: Packet, completionHandler: @escaping (Result<MEFrame, Error>) -> Void) {
         guard let codecContext, avcodec_send_packet(codecContext, packet.corePacket) == 0 else {
+            // Fix: Call completionHandler on error return
+            completionHandler(.failure(NSError(errorCode: packet.assetTrack.mediaType == .audio ? .codecAudioSendPacket : .codecVideoSendPacket)))
             return
         }
 
@@ -106,7 +108,8 @@ class FFmpegDecode: DecodeProtocol {
                                     display_primaries_r_y: UInt16(data.display_primaries.0.1.num).bigEndian,
                                     display_primaries_g_x: UInt16(data.display_primaries.1.0.num).bigEndian,
                                     display_primaries_g_y: UInt16(data.display_primaries.1.1.num).bigEndian,
-                                    display_primaries_b_x: UInt16(data.display_primaries.2.1.num).bigEndian,
+                                    // Fix: was .2.1 (蓝 y), should be .2.0 (蓝 x)
+                                    display_primaries_b_x: UInt16(data.display_primaries.2.0.num).bigEndian,
                                     display_primaries_b_y: UInt16(data.display_primaries.2.1.num).bigEndian,
                                     white_point_x: UInt16(data.white_point.0.num).bigEndian,
                                     white_point_y: UInt16(data.white_point.1.num).bigEndian,
@@ -183,8 +186,10 @@ class FFmpegDecode: DecodeProtocol {
 
     func doFlushCodec() {
         bestEffortTimestamp = Int64(0)
-
-        avcodec_flush_buffers(codecContext)
+        // Fix: Guard against nil codecContext
+        if let codecContext {
+            avcodec_flush_buffers(codecContext)
+        }
     }
 
     func shutdown() {
@@ -196,7 +201,7 @@ class FFmpegDecode: DecodeProtocol {
     func decode() {
         bestEffortTimestamp = Int64(0)
         if codecContext != nil {
-            avcodec_flush_buffers(codecContext)
+            avcodec_flush_buffers(codecContext!)
         }
     }
 }

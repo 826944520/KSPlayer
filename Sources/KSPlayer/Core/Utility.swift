@@ -449,7 +449,9 @@ extension Scanner {
     
     func parseM3U() -> (String, URL, [String: String])? {
         if scanString("#EXTINF:") == nil {
+            // Fix: Always advance the scanner to prevent infinite loop
             _ = scanUpToCharacters(from: .newlines)
+            _ = scanCharacters(from: .newlines) // Consume the newline
             return nil
         }
         var extinf = [String: String]()

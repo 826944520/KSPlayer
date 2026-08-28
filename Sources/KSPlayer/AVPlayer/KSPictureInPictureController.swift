@@ -17,10 +17,11 @@ public class KSPictureInPictureController: AVPictureInPictureController {
     func stop(restoreUserInterface: Bool) {
         stopPictureInPicture()
         delegate = nil
-        guard KSOptions.isPipPopViewController else {
-            return
+        // Fix: Always clear static reference to prevent memory leak
+        if KSPictureInPictureController.pipController === self {
+            KSPictureInPictureController.pipController = nil
         }
-        KSPictureInPictureController.pipController = nil
+        guard KSOptions.isPipPopViewController else {
         if restoreUserInterface {
             #if canImport(UIKit)
             runOnMainThread { [weak self] in

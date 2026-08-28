@@ -34,10 +34,18 @@ class VideoSwscale: FrameTransfer {
         if format.osType() != nil {
             sws_freeContext(imgConvertCtx)
             imgConvertCtx = nil
-            outFrame = nil
+            // Fix: Free old outFrame when format changes
+            if let outFrame {
+                av_frame_free(&outFrame)
+                self.outFrame = nil
+            }
         } else {
             let dstFormat = format.bestPixelFormat
             imgConvertCtx = sws_getCachedContext(imgConvertCtx, width, height, self.format, width, height, dstFormat, SWS_BICUBIC, nil, nil, nil)
+            // Fix: Free old outFrame before creating new one
+            if let outFrame {
+                av_frame_free(&outFrame)
+            }
             outFrame = av_frame_alloc()
             outFrame?.pointee.format = dstFormat.rawValue
             outFrame?.pointee.width = width
@@ -57,6 +65,10 @@ class VideoSwscale: FrameTransfer {
     func shutdown() {
         sws_freeContext(imgConvertCtx)
         imgConvertCtx = nil
+        // Fix: Free outFrame on shutdown
+        if let outFrame {
+            av_frame_free(&outFrame)
+        }
     }
 }
 
@@ -82,7 +94,12 @@ class VideoSwresample: FrameChange {
     func change(avframe: UnsafeMutablePointer<AVFrame>) throws -> MEFrame {
         let frame = VideoVTBFrame(fps: fps, isDovi: isDovi)
         if avframe.pointee.format == AV_PIX_FMT_VIDEOTOOLBOX.rawValue {
-            frame.corePixelBuffer = unsafeBitCast(avframe.pointee.data.3, to: CVPixelBuffer.self)
+            // Fix: CVPixelBuffer from hardware decode is already retained by AVFrame's data[3]
+            // We need to CFRetain to keep it alive after AVFrame is freed
+            if let pixelBuffer = unsafeBitCast(avframe.pointee.data.3, to: CVPixelBuffer.self) as? CVPixelBuffer {
+                CFRetain(pixelBuffer)
+                frame.corePixelBuffer = pixelBuffer
+            }
         } else {
             frame.corePixelBuffer = transfer(frame: avframe.pointee)
         }
@@ -105,7 +122,12 @@ class VideoSwresample: FrameChange {
             imgConvertCtx = nil
         } else {
             let dstFormat = dstFormat ?? format.bestPixelFormat
-            pixelFormatType = dstFormat.osType()!
+            // Fix: Use optional binding instead of force unwrap
+            guard let osType = dstFormat.osType() else {
+                KSLog("[resample] Failed to get OSType for dstFormat: \(dstFormat)")
+                return
+            }
+            pixelFormatType = osType
 
             imgConvertCtx = sws_getCachedContext(imgConvertCtx, width, height, self.format, dstWidth, dstHeight, dstFormat, SWS_FAST_BILINEAR, nil, nil, nil)
         }
@@ -254,7 +276,13 @@ class AudioSwresample: FrameChange {
 
         _ = av_samples_get_buffer_size(&bufferSize, channels, outSamples, descriptor.audioFormat.sampleFormat, 1)
         let frame = AudioFrame(dataSize: Int(bufferSize[0]), audioFormat: descriptor.audioFormat)
-        frame.numberOfSamples = UInt32(swr_convert(swrContext, &frame.data, outSamples, &frameBuffer, numberOfSamples))
+        // Fix: Check for negative error code before casting to UInt32 to avoid wraparound
+        let convertResult = swr_convert(swrContext, &frame.data, outSamples, &frameBuffer, numberOfSamples)
+        if convertResult < 0 {
+            KSLog("[resample] swr_convert failed: \(convertResult)")
+            throw NSError(errorCode: .auidoSwrConvert, userInfo: ["error": convertResult])
+        }
+        frame.numberOfSamples = UInt32(convertResult)
         return frame
     }
 

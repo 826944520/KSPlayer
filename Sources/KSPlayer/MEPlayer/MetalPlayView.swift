@@ -151,6 +151,8 @@ public final class MetalPlayView: UIView, VideoOutput {
 
     public func flush() {
         pixelBuffer = nil
+        // Fix: Flush Metal texture cache to free unused textures
+        MetalRender.flushTextureCache()
         if displayView.isHidden {
             metalView.clear()
         } else {
@@ -160,6 +162,8 @@ public final class MetalPlayView: UIView, VideoOutput {
 
     public func invalidate() {
         displayLink.invalidate()
+        // Fix: Flush texture cache on invalidate to prevent memory leak
+        MetalRender.flushTextureCache()
     }
 
     public func readNextFrame() {

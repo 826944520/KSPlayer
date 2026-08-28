@@ -408,6 +408,10 @@ extension KSAVPlayer: MediaPlayerProtocol {
             [weak self] finished in
             guard let self else { return }
             self.shouldSeekTo = 0
+            // Fix: Restore playbackState after seek completion
+            if self.playbackState == .seeking {
+                self.playbackState = .playing
+            }
             completion(finished)
         }
     }

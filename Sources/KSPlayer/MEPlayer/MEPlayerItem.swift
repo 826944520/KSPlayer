@@ -448,7 +448,9 @@ extension MEPlayerItem {
         allPlayerItemTracks.forEach { $0.decode() }
         while [MESourceState.paused, .seeking, .reading].contains(state) {
             if state == .paused {
+                condition.lock()
                 condition.wait()
+                condition.unlock()
             }
             if state == .seeking {
                 let seekToTime = seekTime
@@ -599,15 +601,19 @@ extension MEPlayerItem {
 
     private func pause() {
         if state == .reading {
+            condition.lock()
             state = .paused
+            condition.unlock()
         }
     }
 
     private func resume() {
+        condition.lock()
         if state == .paused {
             state = .reading
             condition.signal()
         }
+        condition.unlock()
     }
 }
 
@@ -674,7 +680,9 @@ extension MEPlayerItem: MediaPlayback {
             closeOperation.addDependency(openOperation)
         }
         operationQueue.addOperation(closeOperation)
+        condition.lock()
         condition.signal()
+        condition.unlock()
         if options.syncDecodeVideo || options.syncDecodeAudio {
             DispatchQueue.global().async { [weak self] in
                 self?.allPlayerItemTracks.forEach { $0.shutdown() }
@@ -690,20 +698,26 @@ extension MEPlayerItem: MediaPlayback {
     }
 
     public func seek(time: TimeInterval, completion: @escaping ((Bool) -> Void)) {
+        condition.lock()
         if state == .reading || state == .paused {
             seekTime = time
             state = .seeking
             seekingCompletionHandler = completion
             condition.broadcast()
+            condition.unlock()
             allPlayerItemTracks.forEach { $0.seek(time: time) }
         } else if state == .finished {
             seekTime = time
             state = .seeking
             seekingCompletionHandler = completion
+            condition.unlock()
             read()
         } else if state == .seeking {
             seekTime = time
             seekingCompletionHandler = completion
+            condition.unlock()
+        } else {
+            condition.unlock()
         }
         isAudioStalled = audioTrack == nil
     }
