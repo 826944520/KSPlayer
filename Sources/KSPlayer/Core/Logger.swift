@@ -3,14 +3,13 @@
 //  KSPlayer
 //
 //  Created by Architecture Team on 2026/08/28.
-//  日志系统 - 结构化日志
-//
+//  日志系统 - 结构化日�?//
 
 import Foundation
 import os.log
 
 /// 日志级别
-enum LogLevel: Int, CaseIterable {
+enum LoggerLevel: Int, CaseIterable {
     case verbose = 0
     case debug = 1
     case info = 2

@@ -1,0 +1,203 @@
+﻿2026-08-28T03:17:15.5218730Z Current runner version: '2.336.0'
+2026-08-28T03:17:15.5232940Z ##[group]Runner Image Provisioner
+2026-08-28T03:17:15.5233460Z Hosted Compute Agent
+2026-08-28T03:17:15.5233820Z Version: 20260707.563
+2026-08-28T03:17:15.5234210Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+2026-08-28T03:17:15.5234670Z Build Date: 2026-07-07T19:33:50Z
+2026-08-28T03:17:15.5235150Z Worker ID: {7785d5ab-256d-4e1a-a824-bfee061db467}
+2026-08-28T03:17:15.5235610Z Azure Region: westus
+2026-08-28T03:17:15.5235980Z ##[endgroup]
+2026-08-28T03:17:15.5236810Z ##[group]Operating System
+2026-08-28T03:17:15.5237190Z macOS
+2026-08-28T03:17:15.5237510Z 26.5.2
+2026-08-28T03:17:15.5237830Z 25F84
+2026-08-28T03:17:15.5238160Z ##[endgroup]
+2026-08-28T03:17:15.5238510Z ##[group]Runner Image
+2026-08-28T03:17:15.5238880Z Image: macos-26-arm64
+2026-08-28T03:17:15.5239250Z Version: 20260728.0273.1
+2026-08-28T03:17:15.5240040Z Included Software: https://github.com/actions/runner-images/blob/macos-26-arm64/20260728.0273/images/macos/macos-26-arm64-Readme.md
+2026-08-28T03:17:15.5241080Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-26-arm64%2F20260728.0273
+2026-08-28T03:17:15.5241740Z ##[endgroup]
+2026-08-28T03:17:15.5242520Z ##[group]GITHUB_TOKEN Permissions
+2026-08-28T03:17:15.5243520Z Contents: read
+2026-08-28T03:17:15.5243900Z Metadata: read
+2026-08-28T03:17:15.5244260Z Packages: read
+2026-08-28T03:17:15.5244610Z ##[endgroup]
+2026-08-28T03:17:15.5245940Z Secret source: Actions
+2026-08-28T03:17:15.5246540Z Prepare workflow directory
+2026-08-28T03:17:15.5466070Z Prepare all required actions
+2026-08-28T03:17:15.5505960Z Getting action download info
+2026-08-28T03:17:15.9373780Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-08-28T03:17:16.2253550Z Complete job name: Build iOS Simulator + FFmpeg version gate
+2026-08-28T03:17:16.2713150Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:17:16.2719620Z ##[group]Run actions/checkout@v4
+2026-08-28T03:17:16.2720110Z with:
+2026-08-28T03:17:16.2720430Z   repository: 826944520/KSPlayer
+2026-08-28T03:17:16.2722990Z   token: ***
+2026-08-28T03:17:16.2723310Z   ssh-strict: true
+2026-08-28T03:17:16.2723640Z   ssh-user: git
+2026-08-28T03:17:16.2723970Z   persist-credentials: true
+2026-08-28T03:17:16.2724330Z   clean: true
+2026-08-28T03:17:16.2724660Z   sparse-checkout-cone-mode: true
+2026-08-28T03:17:16.2725050Z   fetch-depth: 1
+2026-08-28T03:17:16.2725450Z   fetch-tags: false
+2026-08-28T03:17:16.2725820Z   show-progress: true
+2026-08-28T03:17:16.2726160Z   lfs: false
+2026-08-28T03:17:16.2726490Z   submodules: false
+2026-08-28T03:17:16.2726840Z   set-safe-directory: true
+2026-08-28T03:17:16.2727220Z   allow-unsafe-pr-checkout: false
+2026-08-28T03:17:16.2727720Z ##[endgroup]
+2026-08-28T03:17:16.6906720Z Syncing repository: 826944520/KSPlayer
+2026-08-28T03:17:16.6908510Z ##[group]Getting Git version info
+2026-08-28T03:17:16.6909030Z Working directory is '/Users/runner/work/KSPlayer/KSPlayer'
+2026-08-28T03:17:16.6909950Z [command]/opt/homebrew/bin/git version
+2026-08-28T03:17:16.7139940Z git version 2.55.0
+2026-08-28T03:17:16.7159500Z ##[endgroup]
+2026-08-28T03:17:16.7170100Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/66247ac7-f9bd-4cc4-b7e6-c59153ba7612/.gitconfig'
+2026-08-28T03:17:16.7180190Z Temporarily overriding HOME='/Users/runner/work/_temp/66247ac7-f9bd-4cc4-b7e6-c59153ba7612' before making global git config changes
+2026-08-28T03:17:16.7181800Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:17:16.7186040Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T03:17:16.7309020Z Deleting the contents of '/Users/runner/work/KSPlayer/KSPlayer'
+2026-08-28T03:17:16.7311410Z ##[group]Initializing the repository
+2026-08-28T03:17:16.7314850Z [command]/opt/homebrew/bin/git init /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T03:17:16.7529590Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T03:17:16.7530720Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T03:17:16.7531830Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T03:17:16.7532420Z hint: call:
+2026-08-28T03:17:16.7532800Z hint:
+2026-08-28T03:17:16.7533300Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T03:17:16.7533760Z hint:
+2026-08-28T03:17:16.7534240Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T03:17:16.7534950Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T03:17:16.7535520Z hint:
+2026-08-28T03:17:16.7535860Z hint: 	git branch -m <name>
+2026-08-28T03:17:16.7536250Z hint:
+2026-08-28T03:17:16.7536860Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T03:17:16.7537740Z Initialized empty Git repository in /Users/runner/work/KSPlayer/KSPlayer/.git/
+2026-08-28T03:17:16.7539200Z [command]/opt/homebrew/bin/git remote add origin https://github.com/826944520/KSPlayer
+2026-08-28T03:17:16.7614780Z ##[endgroup]
+2026-08-28T03:17:16.7615680Z ##[group]Disabling automatic garbage collection
+2026-08-28T03:17:16.7616620Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-08-28T03:17:16.7691390Z ##[endgroup]
+2026-08-28T03:17:16.7692120Z ##[group]Setting up auth
+2026-08-28T03:17:16.7692720Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:17:16.7757870Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:17:16.8762150Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:17:16.8860310Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:17:16.9671440Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:17:16.9736860Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:17:17.0494660Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T03:17:17.0562960Z ##[endgroup]
+2026-08-28T03:17:17.0563650Z ##[group]Fetching the repository
+2026-08-28T03:17:17.0569460Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +112c21a76ebd0a1bfd3e15961a6e02f73bd71f34:refs/remotes/origin/ios26-ffmpeg-upgrade
+2026-08-28T03:17:17.5843910Z From https://github.com/826944520/KSPlayer
+2026-08-28T03:17:17.5845370Z  * [new ref]         112c21a76ebd0a1bfd3e15961a6e02f73bd71f34 -> origin/ios26-ffmpeg-upgrade
+2026-08-28T03:17:17.5848690Z ##[endgroup]
+2026-08-28T03:17:17.5849570Z ##[group]Determining the checkout info
+2026-08-28T03:17:17.5850660Z ##[endgroup]
+2026-08-28T03:17:17.5853240Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-08-28T03:17:17.5937170Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T03:17:17.6009950Z ##[group]Checking out the ref
+2026-08-28T03:17:17.6012910Z [command]/opt/homebrew/bin/git checkout --progress --force -B ios26-ffmpeg-upgrade refs/remotes/origin/ios26-ffmpeg-upgrade
+2026-08-28T03:17:17.6326220Z Switched to a new branch 'ios26-ffmpeg-upgrade'
+2026-08-28T03:17:17.6331830Z branch 'ios26-ffmpeg-upgrade' set up to track 'origin/ios26-ffmpeg-upgrade'.
+2026-08-28T03:17:17.6337240Z ##[endgroup]
+2026-08-28T03:17:17.6438700Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-08-28T03:17:17.6510820Z 112c21a76ebd0a1bfd3e15961a6e02f73bd71f34
+2026-08-28T03:17:17.6760670Z ##[group]Run XCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)
+2026-08-28T03:17:17.6762500Z [36;1mXCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)[0m
+2026-08-28T03:17:17.6765070Z [36;1mif [ -n "$XCODE_APP" ]; then[0m
+2026-08-28T03:17:17.6766800Z [36;1m  sudo xcode-select -s "/Applications/$XCODE_APP/Contents/Developer"[0m
+2026-08-28T03:17:17.6768080Z [36;1mfi[0m
+2026-08-28T03:17:17.6768720Z [36;1mxcode-select -p[0m
+2026-08-28T03:17:17.6769480Z [36;1mxcodebuild -version[0m
+2026-08-28T03:17:17.6814450Z shell: /bin/bash -e {0}
+2026-08-28T03:17:17.6815320Z ##[endgroup]
+2026-08-28T03:17:17.7631820Z /Applications/Xcode_26.6.0.app/Contents/Developer
+2026-08-28T03:17:18.7387690Z Xcode 26.6
+2026-08-28T03:17:18.7432760Z Build version 17F113
+2026-08-28T03:17:18.7470610Z ##[group]Run swift package resolve
+2026-08-28T03:17:18.7470930Z [36;1mswift package resolve[0m
+2026-08-28T03:17:18.7504110Z shell: /bin/bash -e {0}
+2026-08-28T03:17:18.7504350Z ##[endgroup]
+2026-08-28T03:17:26.7447150Z Fetching https://github.com/826944520/FFmpegKit.git
+2026-08-28T03:17:35.6846360Z [1/9000] Fetching ffmpegkit
+2026-08-28T03:18:12.4670190Z Fetched https://github.com/826944520/FFmpegKit.git from cache (45.69s)
+2026-08-28T03:18:13.4515120Z Creating working copy for https://github.com/826944520/FFmpegKit.git
+2026-08-28T03:18:18.0061790Z Working copy of https://github.com/826944520/FFmpegKit.git resolved at ksplayer-tmpdir-fix (d0b384e)
+2026-08-28T03:18:26.0049570Z ##[group]Run set -e
+2026-08-28T03:18:26.0049900Z [36;1mset -e[0m
+2026-08-28T03:18:26.0050270Z [36;1m# kingslay/FFmpegKit 6.1.4 is resolved under .build/checkouts/FFmpegKit.[0m
+2026-08-28T03:18:26.0050830Z [36;1m# version_major.h lives INSIDE the committed xcframework binary, so this[0m
+2026-08-28T03:18:26.0085530Z [36;1m# checks the actually-linked binary version, not the "n6.1.4" tag label.[0m
+2026-08-28T03:18:26.0086450Z [36;1mAVC_HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavcodec.xcframework -name version_major.h -path '*ios-arm64*' 2>/dev/null | head -1)[0m
+2026-08-28T03:18:26.0087500Z [36;1mAVF_HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavformat.xcframework -name version_major.h -path '*ios-arm64*' 2>/dev/null | head -1)[0m
+2026-08-28T03:18:26.0088480Z [36;1mAVFILTER_HDR=$(find .build/checkouts/FFmpegKit/Sources/Libavfilter.xcframework -name version_major.h -path '*ios-arm64*' 2>/dev/null | head -1)[0m
+2026-08-28T03:18:26.0089610Z [36;1mecho "avcodec header:   $AVC_HDR"[0m
+2026-08-28T03:18:26.0089960Z [36;1mecho "avformat header:  $AVF_HDR"[0m
+2026-08-28T03:18:26.0090280Z [36;1mecho "avfilter header:  $AVFILTER_HDR"[0m
+2026-08-28T03:18:26.0090650Z [36;1mif [ -z "$AVC_HDR" ] || [ -z "$AVF_HDR" ] || [ -z "$AVFILTER_HDR" ]; then[0m
+2026-08-28T03:18:26.0091300Z [36;1m  echo "::error::version_major.h not found — FFmpegKit xcframeworks missing the ios-arm64 slice"[0m
+2026-08-28T03:18:26.0091820Z [36;1m  exit 1[0m
+2026-08-28T03:18:26.0092160Z [36;1mfi[0m
+2026-08-28T03:18:26.0093930Z [36;1mAVC=$(grep -E '^#define LIBAVCODEC_VERSION_MAJOR' "$AVC_HDR" | grep -oE '[0-9]+' | head -1)[0m
+2026-08-28T03:18:26.0094590Z [36;1mAVF=$(grep -E '^#define LIBAVFORMAT_VERSION_MAJOR' "$AVF_HDR" | grep -oE '[0-9]+' | head -1)[0m
+2026-08-28T03:18:26.0095380Z [36;1mAVFILTER=$(grep -E '^#define LIBAVFILTER_VERSION_MAJOR' "$AVFILTER_HDR" | grep -oE '[0-9]+' | head -1)[0m
+2026-08-28T03:18:26.0095980Z [36;1mecho "LIBAVCODEC_VERSION_MAJOR=$AVC  (expect 60)"[0m
+2026-08-28T03:18:26.0096540Z [36;1mecho "LIBAVFORMAT_VERSION_MAJOR=$AVF  (expect 60)"[0m
+2026-08-28T03:18:26.0097010Z [36;1mecho "LIBAVFILTER_VERSION_MAJOR=$AVFILTER  (expect 9)"[0m
+2026-08-28T03:18:26.0097480Z [36;1m[ "$AVC" = "60" ] || { echo "::error::FFmpeg avcodec major != 60 (got $AVC)"; exit 1; }[0m
+2026-08-28T03:18:26.0098720Z [36;1m[ "$AVF" = "60" ] || { echo "::error::FFmpeg avformat major != 60 (got $AVF)"; exit 1; }[0m
+2026-08-28T03:18:26.0099310Z [36;1m[ "$AVFILTER" = "9" ] || { echo "::error::FFmpeg avfilter major != 9 (got $AVFILTER)"; exit 1; }[0m
+2026-08-28T03:18:26.0329680Z shell: /bin/bash -e {0}
+2026-08-28T03:18:26.0330070Z ##[endgroup]
+2026-08-28T03:18:26.1474170Z avcodec header:   .build/checkouts/FFmpegKit/Sources/Libavcodec.xcframework/ios-arm64_x86_64-simulator/Libavcodec.framework/Headers/version_major.h
+2026-08-28T03:18:26.1476050Z avformat header:  .build/checkouts/FFmpegKit/Sources/Libavformat.xcframework/ios-arm64_x86_64-simulator/Libavformat.framework/Headers/version_major.h
+2026-08-28T03:18:26.1479350Z avfilter header:  .build/checkouts/FFmpegKit/Sources/Libavfilter.xcframework/ios-arm64_x86_64-simulator/Libavfilter.framework/Headers/version_major.h
+2026-08-28T03:18:26.1612480Z LIBAVCODEC_VERSION_MAJOR=60  (expect 60)
+2026-08-28T03:18:26.1613250Z LIBAVFORMAT_VERSION_MAJOR=60  (expect 60)
+2026-08-28T03:18:26.1614450Z LIBAVFILTER_VERSION_MAJOR=9  (expect 9)
+2026-08-28T03:18:26.1660050Z ##[group]Run set -o pipefail
+2026-08-28T03:18:26.1660750Z [36;1mset -o pipefail[0m
+2026-08-28T03:18:26.1661330Z [36;1mif ! swift build --sdk `xcrun -sdk iphonesimulator -show-sdk-path` \[0m
+2026-08-28T03:18:26.1661960Z [36;1m  -Xswiftc -target -Xswiftc arm64-apple-ios26.0-simulator 2>&1 | tee /tmp/build.log; then[0m
+2026-08-28T03:18:26.1662690Z [36;1m  echo "::error::=== swift build FAILED — last 120 lines ==="[0m
+2026-08-28T03:18:26.1663310Z [36;1m  tail -120 /tmp/build.log | sed 's/^/::error::/'[0m
+2026-08-28T03:18:26.1663670Z [36;1m  exit 1[0m
+2026-08-28T03:18:26.1664010Z [36;1mfi[0m
+2026-08-28T03:18:26.1723220Z shell: /bin/bash -e {0}
+2026-08-28T03:18:26.1724290Z ##[endgroup]
+2026-08-28T03:18:34.2665660Z warning: you may be able to install sdl2 using your system-packager:
+2026-08-28T03:18:34.2666510Z     brew install sdl2
+2026-08-28T03:18:34.3103620Z warning: you may be able to install sdl2 using your system-packager:
+2026-08-28T03:18:34.3104290Z     brew install sdl2
+2026-08-28T03:18:40.2121910Z [1/1] Compiling plugin BuildFFmpeg
+2026-08-28T03:18:40.2122340Z Building for debugging...
+2026-08-28T03:18:40.2227450Z error: couldn't build /Users/runner/work/KSPlayer/KSPlayer/.build/arm64-apple-macosx/debug/KSPlayer.build/PlayerView.swift.o because of multiple producers: Compiling Swift Module 'KSPlayer' (71 sources), Compiling Swift Module 'KSPlayer' (71 sources)
+2026-08-28T03:18:40.2399750Z ##[error]=== swift build FAILED — last 120 lines ===
+2026-08-28T03:18:40.2433390Z ##[error]warning: you may be able to install sdl2 using your system-packager:
+2026-08-28T03:18:40.2435380Z ##[error]    brew install sdl2
+2026-08-28T03:18:40.2437490Z ##[error]warning: you may be able to install sdl2 using your system-packager:
+2026-08-28T03:18:40.2438740Z ##[error]    brew install sdl2
+2026-08-28T03:18:40.2440690Z ##[error][1/1] Compiling plugin BuildFFmpeg
+2026-08-28T03:18:40.2441950Z ##[error]Building for debugging...
+2026-08-28T03:18:40.2444270Z ##[error]error: couldn't build /Users/runner/work/KSPlayer/KSPlayer/.build/arm64-apple-macosx/debug/KSPlayer.build/PlayerView.swift.o because of multiple producers: Compiling Swift Module 'KSPlayer' (71 sources), Compiling Swift Module 'KSPlayer' (71 sources)
+2026-08-28T03:18:40.2447680Z ##[error]Process completed with exit code 1.
+2026-08-28T03:18:40.2598270Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T03:18:40.2599590Z Post job cleanup.
+2026-08-28T03:18:40.6222250Z [command]/opt/homebrew/bin/git version
+2026-08-28T03:18:40.6359620Z git version 2.55.0
+2026-08-28T03:18:40.6392840Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/48ad18f2-cf54-4316-b6d6-4250d5fb4cec/.gitconfig'
+2026-08-28T03:18:40.6403800Z Temporarily overriding HOME='/Users/runner/work/_temp/48ad18f2-cf54-4316-b6d6-4250d5fb4cec' before making global git config changes
+2026-08-28T03:18:40.6405370Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T03:18:40.6409690Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T03:18:40.6499910Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T03:18:40.6808990Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T03:18:40.8087740Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T03:18:40.8151400Z http.https://github.com/.extraheader
+2026-08-28T03:18:40.8159580Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-08-28T03:18:40.8238020Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T03:18:40.9186210Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T03:18:40.9257540Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T03:18:41.0212030Z Cleaning up orphan processes
+2026-08-28T03:18:41.7000500Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
