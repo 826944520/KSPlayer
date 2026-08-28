@@ -9,6 +9,7 @@
 import Foundation
 
 /// 播放用例
+@MainActor
 final class PlayUseCase {
     private let playerService: PlayerServiceProtocol
     private let historyRepository: HistoryRepositoryProtocol
@@ -38,8 +39,9 @@ final class PlayUseCase {
         try await playerService.load(url: url)
 
         // 3. 记录到历史（异步，不阻塞）
+        let repository = historyRepository
         Task.detached(priority: .utility) {
-            try? await self.historyRepository.addHistory(item, progress: 0)
+            try? await repository.addHistory(item, progress: 0)
         }
 
         // 4. 开始播放

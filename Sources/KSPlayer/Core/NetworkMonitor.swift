@@ -23,7 +23,7 @@ final class NetworkMonitor: ObservableObject {
     private let queue = DispatchQueue(label: "com.ksplayer.network")
     private var subscriptions = Set<AnyCancellable>()
 
-    private init() {
+    init() {
         self.monitor = NWPathMonitor()
     }
 

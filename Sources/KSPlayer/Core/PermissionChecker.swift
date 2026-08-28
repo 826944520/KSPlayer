@@ -22,7 +22,7 @@ final class PermissionChecker: ObservableObject {
     @Published private(set) var notificationPermission: PermissionStatus = .notDetermined
     @Published private(set) var locationPermission: PermissionStatus = .notDetermined
 
-    private init() {}
+    init() {}
 
     // MARK: - Check Availability
 

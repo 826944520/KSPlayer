@@ -16,7 +16,7 @@ final class EventBus {
     private let subject = PassthroughSubject<Any, Never>()
     private var subscriptions: Set<AnyCancellable> = []
 
-    private init() {}
+    init() {}
 
     /// 发送事件
     func send<T>(_ event: T) {
@@ -34,8 +34,8 @@ final class EventBus {
     @discardableResult
     func subscribe<T>(_ subscriber: AnyObject, to eventType: T.Type, handler: @escaping (T) -> Void) -> AnyCancellable where T: Any {
         let cancellable = events(ofType: eventType)
-            .sink { [weak subscriber] _ in
-                handler($0)
+            .sink { [weak subscriber] value in
+                handler(value)
             }
 
         subscriptions.insert(cancellable)

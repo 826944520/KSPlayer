@@ -1,0 +1,642 @@
+﻿2026-08-28T04:02:29.3725200Z Current runner version: '2.336.0'
+2026-08-28T04:02:29.3743520Z ##[group]Runner Image Provisioner
+2026-08-28T04:02:29.3744230Z Hosted Compute Agent
+2026-08-28T04:02:29.3744680Z Version: 20260707.563
+2026-08-28T04:02:29.3745170Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+2026-08-28T04:02:29.3745640Z Build Date: 2026-07-07T19:33:50Z
+2026-08-28T04:02:29.3746120Z Worker ID: {8e648a82-edc7-408d-8be3-c37da559f816}
+2026-08-28T04:02:29.3746640Z Azure Region: westus
+2026-08-28T04:02:29.3747010Z ##[endgroup]
+2026-08-28T04:02:29.3748060Z ##[group]Operating System
+2026-08-28T04:02:29.3748490Z macOS
+2026-08-28T04:02:29.3748830Z 26.5.2
+2026-08-28T04:02:29.3749220Z 25F84
+2026-08-28T04:02:29.3749540Z ##[endgroup]
+2026-08-28T04:02:29.3749890Z ##[group]Runner Image
+2026-08-28T04:02:29.3750320Z Image: macos-26-arm64
+2026-08-28T04:02:29.3750720Z Version: 20260728.0273.1
+2026-08-28T04:02:29.3751640Z Included Software: https://github.com/actions/runner-images/blob/macos-26-arm64/20260728.0273/images/macos/macos-26-arm64-Readme.md
+2026-08-28T04:02:29.3752780Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-26-arm64%2F20260728.0273
+2026-08-28T04:02:29.3753460Z ##[endgroup]
+2026-08-28T04:02:29.3754270Z ##[group]GITHUB_TOKEN Permissions
+2026-08-28T04:02:29.3755540Z Contents: read
+2026-08-28T04:02:29.3755910Z Metadata: read
+2026-08-28T04:02:29.3756280Z Packages: read
+2026-08-28T04:02:29.3756690Z ##[endgroup]
+2026-08-28T04:02:29.3758090Z Secret source: Actions
+2026-08-28T04:02:29.3758750Z Prepare workflow directory
+2026-08-28T04:02:29.4065800Z Prepare all required actions
+2026-08-28T04:02:29.4105230Z Getting action download info
+2026-08-28T04:02:29.6771610Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-08-28T04:02:30.0013020Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-08-28T04:02:30.2113600Z Complete job name: Build unsigned IPA (demo app)
+2026-08-28T04:02:30.2518500Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T04:02:30.2524320Z ##[group]Run actions/checkout@v4
+2026-08-28T04:02:30.2524770Z with:
+2026-08-28T04:02:30.2525060Z   repository: 826944520/KSPlayer
+2026-08-28T04:02:30.2527320Z   token: ***
+2026-08-28T04:02:30.2527610Z   ssh-strict: true
+2026-08-28T04:02:30.2527900Z   ssh-user: git
+2026-08-28T04:02:30.2528210Z   persist-credentials: true
+2026-08-28T04:02:30.2528540Z   clean: true
+2026-08-28T04:02:30.2528840Z   sparse-checkout-cone-mode: true
+2026-08-28T04:02:30.2529190Z   fetch-depth: 1
+2026-08-28T04:02:30.2529490Z   fetch-tags: false
+2026-08-28T04:02:30.2529790Z   show-progress: true
+2026-08-28T04:02:30.2530100Z   lfs: false
+2026-08-28T04:02:30.2530400Z   submodules: false
+2026-08-28T04:02:30.2530710Z   set-safe-directory: true
+2026-08-28T04:02:30.2531060Z   allow-unsafe-pr-checkout: false
+2026-08-28T04:02:30.2531500Z ##[endgroup]
+2026-08-28T04:02:31.0750630Z Syncing repository: 826944520/KSPlayer
+2026-08-28T04:02:31.0752410Z ##[group]Getting Git version info
+2026-08-28T04:02:31.0752970Z Working directory is '/Users/runner/work/KSPlayer/KSPlayer'
+2026-08-28T04:02:31.0753760Z [command]/opt/homebrew/bin/git version
+2026-08-28T04:02:31.1012480Z git version 2.55.0
+2026-08-28T04:02:31.1025380Z ##[endgroup]
+2026-08-28T04:02:31.1034470Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/9dc8313d-0616-44d2-b7f9-3573d6ecaab5/.gitconfig'
+2026-08-28T04:02:31.1041430Z Temporarily overriding HOME='/Users/runner/work/_temp/9dc8313d-0616-44d2-b7f9-3573d6ecaab5' before making global git config changes
+2026-08-28T04:02:31.1042540Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T04:02:31.1048770Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:02:31.1199360Z Deleting the contents of '/Users/runner/work/KSPlayer/KSPlayer'
+2026-08-28T04:02:31.1213340Z ##[group]Initializing the repository
+2026-08-28T04:02:31.1214410Z [command]/opt/homebrew/bin/git init /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:02:31.1418410Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-08-28T04:02:31.1419390Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-08-28T04:02:31.1421270Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-08-28T04:02:31.1422460Z hint: call:
+2026-08-28T04:02:31.1425290Z hint:
+2026-08-28T04:02:31.1425790Z hint: 	git config --global init.defaultBranch <name>
+2026-08-28T04:02:31.1426360Z hint:
+2026-08-28T04:02:31.1426960Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-08-28T04:02:31.1427890Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-08-28T04:02:31.1430290Z hint:
+2026-08-28T04:02:31.1430780Z hint: 	git branch -m <name>
+2026-08-28T04:02:31.1431240Z hint:
+2026-08-28T04:02:31.1431990Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-08-28T04:02:31.1433090Z Initialized empty Git repository in /Users/runner/work/KSPlayer/KSPlayer/.git/
+2026-08-28T04:02:31.1436030Z [command]/opt/homebrew/bin/git remote add origin https://github.com/826944520/KSPlayer
+2026-08-28T04:02:31.1521880Z ##[endgroup]
+2026-08-28T04:02:31.1522650Z ##[group]Disabling automatic garbage collection
+2026-08-28T04:02:31.1524230Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-08-28T04:02:31.1659620Z ##[endgroup]
+2026-08-28T04:02:31.1660920Z ##[group]Setting up auth
+2026-08-28T04:02:31.1662300Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T04:02:31.1690170Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T04:02:31.2599310Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T04:02:31.2690300Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T04:02:31.3401470Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T04:02:31.3460560Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T04:02:31.4184330Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-08-28T04:02:31.4253930Z ##[endgroup]
+2026-08-28T04:02:31.4254840Z ##[group]Fetching the repository
+2026-08-28T04:02:31.4259930Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +883c9989cbee356d24d9d769dd6cb331420bb501:refs/remotes/origin/ios26-ffmpeg-upgrade
+2026-08-28T04:02:31.9850900Z From https://github.com/826944520/KSPlayer
+2026-08-28T04:02:31.9852660Z  * [new ref]         883c9989cbee356d24d9d769dd6cb331420bb501 -> origin/ios26-ffmpeg-upgrade
+2026-08-28T04:02:31.9855950Z ##[endgroup]
+2026-08-28T04:02:31.9856990Z ##[group]Determining the checkout info
+2026-08-28T04:02:31.9859630Z ##[endgroup]
+2026-08-28T04:02:31.9860390Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-08-28T04:02:31.9942460Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-08-28T04:02:32.0005540Z ##[group]Checking out the ref
+2026-08-28T04:02:32.0007610Z [command]/opt/homebrew/bin/git checkout --progress --force -B ios26-ffmpeg-upgrade refs/remotes/origin/ios26-ffmpeg-upgrade
+2026-08-28T04:02:32.0245170Z Switched to a new branch 'ios26-ffmpeg-upgrade'
+2026-08-28T04:02:32.0248460Z branch 'ios26-ffmpeg-upgrade' set up to track 'origin/ios26-ffmpeg-upgrade'.
+2026-08-28T04:02:32.0252700Z ##[endgroup]
+2026-08-28T04:02:32.0334860Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-08-28T04:02:32.0398870Z 883c9989cbee356d24d9d769dd6cb331420bb501
+2026-08-28T04:02:32.0608890Z ##[group]Run XCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)
+2026-08-28T04:02:32.0610410Z [36;1mXCODE_APP=$(ls /Applications | grep '^Xcode_.*\.app$' | sort -V | tail -1)[0m
+2026-08-28T04:02:32.0611430Z [36;1mif [ -n "$XCODE_APP" ]; then[0m
+2026-08-28T04:02:32.0612370Z [36;1m  sudo xcode-select -s "/Applications/$XCODE_APP/Contents/Developer"[0m
+2026-08-28T04:02:32.0613290Z [36;1mfi[0m
+2026-08-28T04:02:32.0613700Z [36;1mxcode-select -p[0m
+2026-08-28T04:02:32.0614200Z [36;1mxcodebuild -version[0m
+2026-08-28T04:02:32.0662330Z shell: /bin/bash -e {0}
+2026-08-28T04:02:32.0662850Z ##[endgroup]
+2026-08-28T04:02:32.1557090Z /Applications/Xcode_26.6.0.app/Contents/Developer
+2026-08-28T04:02:33.3571790Z Xcode 26.6
+2026-08-28T04:02:33.3574240Z Build version 17F113
+2026-08-28T04:02:33.3610280Z ##[group]Run brew install xcodegen
+2026-08-28T04:02:33.3610630Z [36;1mbrew install xcodegen[0m
+2026-08-28T04:02:33.3610910Z [36;1mxcodegen version[0m
+2026-08-28T04:02:33.3639910Z shell: /bin/bash -e {0}
+2026-08-28T04:02:33.3640120Z ##[endgroup]
+2026-08-28T04:02:35.6838010Z ##[warning]The following taps are not trusted:
+  aws/tap
+
+Homebrew is currently ignoring formulae, casks and commands from these taps because tap trust is required.
+
+Untap them with:
+  brew untap aws/tap
+Trust specific formulae, casks and commands with:
+  brew trust --formula <user>/<tap>/<formula>
+  brew trust --cask <user>/<tap>/<cask>
+  brew trust --command <user>/<tap>/<command>
+Whole-tap trust is broader and includes all current and future formulae,
+casks and commands from the listed taps. Trust whole taps with:
+  brew trust aws/tap
+To disable trust checks:
+  export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
+This is not recommended and will be removed in a later release.
+For more information, see:
+  https://docs.brew.sh/Tap-Trust
+2026-08-28T04:02:35.9644010Z [34m==>[0m [1mWould install 1 formula:[0m
+2026-08-28T04:02:35.9644310Z xcodegen
+2026-08-28T04:02:35.9660070Z [34m==>[0m [1mDownloading https://ghcr.io/v2/homebrew/core/xcodegen/manifests/2.46.0-1[0m
+2026-08-28T04:02:36.1912060Z [32m==>[0m [1mFetching downloads for: [32mxcodegen[39m[0m
+2026-08-28T04:02:36.5420510Z ✔︎ Bottle xcodegen (2.46.0)
+2026-08-28T04:02:36.5711470Z [34m==>[0m [1mPouring xcodegen--2.46.0.arm64_tahoe.bottle.1.tar.gz[0m
+2026-08-28T04:02:36.6435210Z 🍺  /opt/homebrew/Cellar/xcodegen/2.46.0: 38 files, 7.4MB
+2026-08-28T04:02:36.6640120Z Version: 2.46.0
+2026-08-28T04:02:36.6679360Z ##[group]Run xcodegen generate
+2026-08-28T04:02:36.6679580Z [36;1mxcodegen generate[0m
+2026-08-28T04:02:36.6708770Z shell: /bin/bash -e {0}
+2026-08-28T04:02:36.6708990Z ##[endgroup]
+2026-08-28T04:02:36.7042830Z ⚙️  Generating plists...
+2026-08-28T04:02:36.7050680Z ⚙️  Generating project...
+2026-08-28T04:02:36.7108540Z ⚙️  Writing project...
+2026-08-28T04:02:36.7168340Z Created project at /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:02:36.7204970Z ##[group]Run xcodebuild -project DemoApp.xcodeproj \
+2026-08-28T04:02:36.7205350Z [36;1mxcodebuild -project DemoApp.xcodeproj \[0m
+2026-08-28T04:02:36.7205650Z [36;1m  -scheme DemoApp \[0m
+2026-08-28T04:02:36.7205870Z [36;1m  -configuration Release \[0m
+2026-08-28T04:02:36.7206090Z [36;1m  -sdk iphoneos \[0m
+2026-08-28T04:02:36.7206320Z [36;1m  -destination 'generic/platform=iOS' \[0m
+2026-08-28T04:02:36.7206580Z [36;1m  -derivedDataPath build \[0m
+2026-08-28T04:02:36.7206810Z [36;1m  CODE_SIGNING_ALLOWED=NO \[0m
+2026-08-28T04:02:36.7207020Z [36;1m  CODE_SIGNING_REQUIRED=NO \[0m
+2026-08-28T04:02:36.7207240Z [36;1m  build[0m
+2026-08-28T04:02:36.7245930Z shell: /bin/bash -e {0}
+2026-08-28T04:02:36.7246210Z ##[endgroup]
+2026-08-28T04:02:38.0684030Z Command line invocation:
+2026-08-28T04:02:38.1294410Z     /Applications/Xcode_26.6.app/Contents/Developer/usr/bin/xcodebuild -project DemoApp.xcodeproj -scheme DemoApp -configuration Release -sdk iphoneos -destination generic/platform=iOS -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+2026-08-28T04:02:38.1295560Z 
+2026-08-28T04:02:38.1295670Z Build settings from command line:
+2026-08-28T04:02:38.1298010Z     CODE_SIGNING_ALLOWED = NO
+2026-08-28T04:02:38.1298340Z     CODE_SIGNING_REQUIRED = NO
+2026-08-28T04:02:38.1298590Z     SDKROOT = iphoneos26.5
+2026-08-28T04:02:38.1298780Z 
+2026-08-28T04:02:41.3441990Z Resolve Package Graph
+2026-08-28T04:02:47.5080580Z 
+2026-08-28T04:02:47.5081440Z Fetching from https://github.com/826944520/FFmpegKit.git
+2026-08-28T04:03:28.1868980Z 
+2026-08-28T04:03:30.9076720Z Creating working copy of package ‘FFmpegKit’
+2026-08-28T04:03:30.9464830Z 
+2026-08-28T04:03:30.9473810Z Checking out ksplayer-tmpdir-fix (d0b384e) of package ‘FFmpegKit’
+2026-08-28T04:03:35.1666370Z 
+2026-08-28T04:03:48.4683260Z you may be able to install sdl2 using your system-packager:
+2026-08-28T04:03:48.4683910Z     brew install sdl2
+2026-08-28T04:03:48.6175820Z Resolve Package Graph
+2026-08-28T04:03:50.0185780Z you may be able to install sdl2 using your system-packager:
+2026-08-28T04:03:50.0186570Z     brew install sdl2
+2026-08-28T04:03:50.0330800Z 
+2026-08-28T04:03:50.0339890Z 
+2026-08-28T04:03:50.0341110Z Resolved source packages:
+2026-08-28T04:03:50.0341720Z   FFmpegKit: https://github.com/826944520/FFmpegKit.git @ ksplayer-tmpdir-fix (d0b384e)
+2026-08-28T04:03:50.0543690Z   KSPlayer: /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:50.0544390Z 
+2026-08-28T04:03:51.2239020Z ComputePackagePrebuildTargetDependencyGraph
+2026-08-28T04:03:51.5343920Z 
+2026-08-28T04:03:51.5360040Z Prepare packages
+2026-08-28T04:03:51.5360920Z 
+2026-08-28T04:03:51.5388010Z CreateBuildRequest
+2026-08-28T04:03:51.5388210Z 
+2026-08-28T04:03:51.5388330Z SendProjectDescription
+2026-08-28T04:03:51.5534150Z 
+2026-08-28T04:03:51.5534490Z CreateBuildOperation
+2026-08-28T04:03:51.5588460Z 
+2026-08-28T04:03:51.5602680Z ComputeTargetDependencyGraph
+2026-08-28T04:03:51.6363990Z note: Building targets in dependency order
+2026-08-28T04:03:51.6370800Z note: Target dependency graph (7 targets)
+2026-08-28T04:03:51.6371290Z     Target 'DemoApp' in project 'DemoApp'
+2026-08-28T04:03:51.6372930Z         ➜ Explicit dependency on target 'KSPlayer' in project 'KSPlayer'
+2026-08-28T04:03:51.6373420Z     Target 'KSPlayer' in project 'KSPlayer'
+2026-08-28T04:03:51.6374940Z         ➜ Explicit dependency on target 'KSPlayer' in project 'KSPlayer'
+2026-08-28T04:03:51.6376590Z         ➜ Explicit dependency on target 'KSPlayer_KSPlayer' in project 'KSPlayer'
+2026-08-28T04:03:51.6377550Z         ➜ Explicit dependency on target 'DisplayCriteria' in project 'KSPlayer'
+2026-08-28T04:03:51.6378280Z         ➜ Explicit dependency on target 'FFmpegKit' in project 'FFmpegKit'
+2026-08-28T04:03:51.6379210Z     Target 'KSPlayer' in project 'KSPlayer'
+2026-08-28T04:03:51.6380530Z         ➜ Explicit dependency on target 'KSPlayer_KSPlayer' in project 'KSPlayer'
+2026-08-28T04:03:51.6383370Z         ➜ Explicit dependency on target 'DisplayCriteria' in project 'KSPlayer'
+2026-08-28T04:03:51.6383880Z         ➜ Explicit dependency on target 'FFmpegKit' in project 'FFmpegKit'
+2026-08-28T04:03:51.6384220Z     Target 'FFmpegKit' in project 'FFmpegKit'
+2026-08-28T04:03:51.6384590Z         ➜ Explicit dependency on target 'FFmpegKit' in project 'FFmpegKit'
+2026-08-28T04:03:51.6385040Z     Target 'FFmpegKit' in project 'FFmpegKit' (no dependencies)
+2026-08-28T04:03:51.6385490Z     Target 'DisplayCriteria' in project 'KSPlayer' (no dependencies)
+2026-08-28T04:03:51.6386020Z     Target 'KSPlayer_KSPlayer' in project 'KSPlayer' (no dependencies)
+2026-08-28T04:03:51.6386280Z 
+2026-08-28T04:03:51.6386360Z GatherProvisioningInputs
+2026-08-28T04:03:51.6386560Z 
+2026-08-28T04:03:51.6476880Z CreateBuildDescription
+2026-08-28T04:03:53.1484470Z 
+2026-08-28T04:03:53.1486740Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -x objective-c -c /dev/null
+2026-08-28T04:03:53.2726380Z 
+2026-08-28T04:03:53.2735850Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -x c -c /dev/null
+2026-08-28T04:03:53.2737360Z 
+2026-08-28T04:03:53.2738000Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+2026-08-28T04:03:53.3963690Z 
+2026-08-28T04:03:53.4217940Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -x c -c /dev/null
+2026-08-28T04:03:53.4321990Z 
+2026-08-28T04:03:53.4348300Z ExecuteExternalTool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+2026-08-28T04:03:53.4374800Z 
+2026-08-28T04:03:53.8200450Z Build description signature: 2dffdca9a89cffc4e395a1c6117c1db4
+2026-08-28T04:03:53.8216600Z Build description path: /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/XCBuildData/2dffdca9a89cffc4e395a1c6117c1db4.xcbuilddata
+2026-08-28T04:03:53.8781330Z ClangStatCache /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache
+2026-08-28T04:03:53.8800200Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:53.8810650Z     /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache
+2026-08-28T04:03:56.0966290Z 
+2026-08-28T04:03:56.1067640Z CreateBuildDirectory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products
+2026-08-28T04:03:56.1197540Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:56.1314650Z     builtin-create-build-directory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products
+2026-08-28T04:03:56.1446810Z 
+2026-08-28T04:03:56.1641690Z CreateBuildDirectory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex
+2026-08-28T04:03:56.1792510Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:56.1904110Z     builtin-create-build-directory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex
+2026-08-28T04:03:56.2017220Z 
+2026-08-28T04:03:56.2200960Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp-bbfd0e71e2497ce1c44b78827f42c0a5-VFS-iphoneos/all-product-headers.yaml
+2026-08-28T04:03:56.2303100Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:56.2406050Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp-bbfd0e71e2497ce1c44b78827f42c0a5-VFS-iphoneos/all-product-headers.yaml
+2026-08-28T04:03:56.2507490Z 
+2026-08-28T04:03:56.2609130Z CreateBuildDirectory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:56.2712950Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:56.2814810Z     builtin-create-build-directory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:56.2917460Z 
+2026-08-28T04:03:56.3019220Z CreateBuildDirectory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+2026-08-28T04:03:56.3119060Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:56.3224290Z     builtin-create-build-directory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+2026-08-28T04:03:56.3328290Z 
+2026-08-28T04:03:56.3429410Z CreateBuildDirectory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+2026-08-28T04:03:56.3531830Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:56.3633520Z     builtin-create-build-directory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/ExplicitPrecompiledModules
+2026-08-28T04:03:56.3734380Z 
+2026-08-28T04:03:56.3842850Z CreateBuildDirectory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+2026-08-28T04:03:56.3944090Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:56.4048890Z     builtin-create-build-directory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos
+2026-08-28T04:03:56.4155930Z 
+2026-08-28T04:03:56.4257190Z CreateBuildDirectory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/PackageFrameworks
+2026-08-28T04:03:56.4382490Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:56.4512250Z     builtin-create-build-directory /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/PackageFrameworks
+2026-08-28T04:03:56.4613950Z 
+2026-08-28T04:03:56.4717740Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/empty-KSPlayer_KSPlayer.plist (in target 'KSPlayer_KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.4821140Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.4929090Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/empty-KSPlayer_KSPlayer.plist
+2026-08-28T04:03:56.5032360Z 
+2026-08-28T04:03:56.5133930Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DisplayCriteria.modulemap (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:56.5251450Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.5362980Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DisplayCriteria.modulemap
+2026-08-28T04:03:56.5465830Z 
+2026-08-28T04:03:56.5573640Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/KSPlayer_KSPlayer.DependencyStaticMetadataFileList (in target 'KSPlayer_KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.5575370Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.5689720Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/KSPlayer_KSPlayer.DependencyStaticMetadataFileList
+2026-08-28T04:03:56.5795540Z 
+2026-08-28T04:03:56.5903840Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/KSPlayer_KSPlayer.DependencyMetadataFileList (in target 'KSPlayer_KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.6006300Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.6107720Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/KSPlayer_KSPlayer.DependencyMetadataFileList
+2026-08-28T04:03:56.6266380Z 
+2026-08-28T04:03:56.6382780Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer_const_extract_protocols.json (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.6486830Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.6589620Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer_const_extract_protocols.json
+2026-08-28T04:03:56.6695040Z 
+2026-08-28T04:03:56.6796490Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer.SwiftFileList (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.6899810Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.7000430Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer.SwiftFileList
+2026-08-28T04:03:56.7104610Z 
+2026-08-28T04:03:56.7206770Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer.SwiftConstValuesFileList (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.7308670Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.7410550Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer.SwiftConstValuesFileList
+2026-08-28T04:03:56.7511860Z 
+2026-08-28T04:03:56.7613190Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer.LinkFileList (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.7715300Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.7816260Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer.LinkFileList
+2026-08-28T04:03:56.7917470Z 
+2026-08-28T04:03:56.8019130Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer-OutputFileMap.json (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.8118780Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.8221670Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer-OutputFileMap.json
+2026-08-28T04:03:56.8324390Z 
+2026-08-28T04:03:56.8426260Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/KSPlayer.modulemap (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.8529450Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.8632950Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/KSPlayer.modulemap
+2026-08-28T04:03:56.8738590Z 
+2026-08-28T04:03:56.8844510Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/KSPlayer.DependencyStaticMetadataFileList (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.8946260Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.9047850Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/KSPlayer.DependencyStaticMetadataFileList
+2026-08-28T04:03:56.9149220Z 
+2026-08-28T04:03:56.9251750Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/KSPlayer.DependencyMetadataFileList (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.9352630Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.9455260Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/KSPlayer.DependencyMetadataFileList
+2026-08-28T04:03:56.9556690Z 
+2026-08-28T04:03:56.9658160Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/DerivedSources/resource_bundle_accessor.swift (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:56.9761030Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:56.9862800Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/DerivedSources/resource_bundle_accessor.swift
+2026-08-28T04:03:56.9962200Z 
+2026-08-28T04:03:57.0064020Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:57.0166520Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:57.0267840Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp
+2026-08-28T04:03:57.0373410Z -fobjc-arc -fmodules -gmodules '-fmodules-cache-path=/Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex' '-fmodule-name=DisplayCriteria' -fpascal-strings -Os -DSWIFT_PACKAGE '-DOBJC_OLD_DISPATCH_PROTOTYPES=1' -g -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/include -I/Users/runner/work/KSPlayer/KSPlayer/Sources/DisplayCriteria/include -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DerivedSources-normal/arm64 -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DerivedSources/arm64 -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DerivedSources -F/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos -iframework /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -iframework /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk/Developer/Library/Frameworks -DXcode
+2026-08-28T04:03:57.0469700Z 
+2026-08-28T04:03:57.0574350Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.LinkFileList (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:57.0672530Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:57.0774170Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.LinkFileList
+2026-08-28T04:03:57.0881470Z 
+2026-08-28T04:03:57.0984030Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DisplayCriteria.DependencyStaticMetadataFileList (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:57.1089800Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:57.1191750Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DisplayCriteria.DependencyStaticMetadataFileList
+2026-08-28T04:03:57.1293920Z 
+2026-08-28T04:03:57.1395360Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DisplayCriteria.DependencyMetadataFileList (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:57.1497030Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:57.1598530Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DisplayCriteria.DependencyMetadataFileList
+2026-08-28T04:03:57.1701240Z 
+2026-08-28T04:03:57.1816790Z MkDir /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle (in target 'KSPlayer_KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:57.1947740Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:57.2052450Z     /bin/mkdir -p /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle
+2026-08-28T04:03:57.2154410Z 
+2026-08-28T04:03:57.2256130Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/MoltenVK.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libMoltenVK.a ios
+2026-08-28T04:03:57.2370570Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.2472440Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/MoltenVK.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.2573990Z 
+2026-08-28T04:03:57.2675910Z Copy /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphoneos/DisplayCriteria.modulemap /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DisplayCriteria.modulemap (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:57.2778530Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:57.2881950Z     builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/DisplayCriteria.modulemap /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphoneos
+2026-08-28T04:03:57.2986310Z 
+2026-08-28T04:03:57.3090170Z Copy /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphoneos/KSPlayer.modulemap /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/KSPlayer.modulemap (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:57.3206930Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:57.3330150Z     builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/KSPlayer.modulemap /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphoneos
+2026-08-28T04:03:57.3439370Z 
+2026-08-28T04:03:57.3546770Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libzvbi.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libzvbi.framework ios
+2026-08-28T04:03:57.3683600Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.3791660Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libzvbi.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.3898590Z 
+2026-08-28T04:03:57.4007070Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/nettle.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/nettle.framework ios
+2026-08-28T04:03:57.4110300Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.4214380Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/nettle.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.4331860Z 
+2026-08-28T04:03:57.4461520Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libsrt.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libsrt.framework ios
+2026-08-28T04:03:57.4567870Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.4670270Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libsrt.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.4777570Z 
+2026-08-28T04:03:57.4882100Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libsmbclient.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libsmbclient.framework ios
+2026-08-28T04:03:57.4986350Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.5088340Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libsmbclient.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.5218860Z 
+2026-08-28T04:03:57.5330590Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libshaderc_combined.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libshaderc_combined.framework ios
+2026-08-28T04:03:57.5439110Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.5543250Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libshaderc_combined.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.5650080Z 
+2026-08-28T04:03:57.5752050Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libplacebo.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libplacebo.framework ios
+2026-08-28T04:03:57.5855820Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.5957870Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libplacebo.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.5959530Z 
+2026-08-28T04:03:57.5960340Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libharfbuzz.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libharfbuzz.framework ios
+2026-08-28T04:03:57.6062180Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.6166220Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libharfbuzz.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.6267620Z 
+2026-08-28T04:03:57.6368940Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libfribidi.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libfribidi.framework ios
+2026-08-28T04:03:57.6470820Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.6572690Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libfribidi.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.6674260Z 
+2026-08-28T04:03:57.6776020Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libfreetype.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libfreetype.framework ios
+2026-08-28T04:03:57.6883660Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.6997040Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libfreetype.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.7102960Z 
+2026-08-28T04:03:57.7210270Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libfontconfig.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libfontconfig.framework ios
+2026-08-28T04:03:57.7321870Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.7425210Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libfontconfig.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.7536990Z 
+2026-08-28T04:03:57.7639190Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libdav1d.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libdav1d.framework ios
+2026-08-28T04:03:57.7743600Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.7867630Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libdav1d.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.7980010Z 
+2026-08-28T04:03:57.8081950Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libass.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/libass.framework ios
+2026-08-28T04:03:57.8194220Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.8297610Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/libass.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.8403910Z 
+2026-08-28T04:03:57.8506830Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/lcms2.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/lcms2.framework ios
+2026-08-28T04:03:57.8608860Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.8711000Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/lcms2.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.8822650Z 
+2026-08-28T04:03:57.8924480Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/hogweed.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/hogweed.framework ios
+2026-08-28T04:03:57.9031090Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.9133510Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/hogweed.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.9238520Z 
+2026-08-28T04:03:57.9343190Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/gnutls.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/gnutls.framework ios
+2026-08-28T04:03:57.9445720Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.9557950Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/gnutls.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.9659880Z 
+2026-08-28T04:03:57.9668170Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/gmp.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/gmp.framework ios
+2026-08-28T04:03:57.9748990Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.9778130Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/gmp.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:57.9801640Z 
+2026-08-28T04:03:57.9868710Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libswscale.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/Libswscale.framework ios
+2026-08-28T04:03:57.9908140Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:57.9966420Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libswscale.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:58.0016040Z 
+2026-08-28T04:03:58.0062380Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libswresample.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/Libswresample.framework ios
+2026-08-28T04:03:58.0166470Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.0271020Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libswresample.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:58.0377500Z 
+2026-08-28T04:03:58.0479260Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavutil.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/Libavutil.framework ios
+2026-08-28T04:03:58.0582130Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.0684220Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavutil.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:58.0785700Z 
+2026-08-28T04:03:58.0887160Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavformat.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/Libavformat.framework ios
+2026-08-28T04:03:58.0988940Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.1091110Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavformat.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:58.1192720Z 
+2026-08-28T04:03:58.1294050Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavfilter.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/Libavfilter.framework ios
+2026-08-28T04:03:58.1396690Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.1498390Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavfilter.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:58.1600240Z /Users/runner/work/KSPlayer/KSPlayer/Sources/KSPlayer/Core/EventBus.swift:38:25: error: anonymous closure arguments cannot be used inside a closure that has explicit arguments
+2026-08-28T04:03:58.1600790Z 
+2026-08-28T04:03:58.1701490Z                 handler($0)
+2026-08-28T04:03:58.1702490Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavdevice.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/Libavdevice.framework ios
+2026-08-28T04:03:58.1803990Z                         ^
+2026-08-28T04:03:58.1804380Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.1894210Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavdevice.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:58.1996720Z 
+2026-08-28T04:03:58.2032690Z ProcessXCFramework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavcodec.xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/Libavcodec.framework ios
+2026-08-28T04:03:58.2074680Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.2079850Z     builtin-process-xcframework --xcframework /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/Libavcodec.xcframework --platform ios --target-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos
+2026-08-28T04:03:58.2080990Z 
+2026-08-28T04:03:58.2082340Z ProcessInfoPlistFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle/Info.plist /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/empty-KSPlayer_KSPlayer.plist (in target 'KSPlayer_KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:58.2085420Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:58.2087160Z     builtin-infoPlistUtility /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/empty-KSPlayer_KSPlayer.plist -producttype com.apple.product-type.bundle -expandbuildsettings -format binary -platform iphoneos -requiredArchitecture arm64 -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle/Info.plist
+2026-08-28T04:03:58.2088740Z 
+2026-08-28T04:03:58.2089470Z CompileMetalFile /Users/runner/work/KSPlayer/KSPlayer/Sources/KSPlayer/Metal/Shaders.metal (in target 'KSPlayer_KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:58.2100660Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:58.2104540Z     /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.6.109.0.lx9okW/Metal.xctoolchain/usr/bin/metal -c -target air64-apple-ios26.0 -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/include -F/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -fmetal-math-mode\=fast -fmetal-math-fp32-functions\=fast -serialize-diagnostics /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/Metal/Shaders.dia -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/Metal/Shaders.air -MMD -MT dependencies -MF /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/Metal/Shaders.dat /Users/runner/work/KSPlayer/KSPlayer/Sources/KSPlayer/Metal/Shaders.metal
+2026-08-28T04:03:58.2108300Z 
+2026-08-28T04:03:58.2109060Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.LinkFileList (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2110070Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit
+2026-08-28T04:03:58.2119210Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.LinkFileList
+2026-08-28T04:03:58.2119840Z 
+2026-08-28T04:03:58.2120670Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2121800Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit
+2026-08-28T04:03:58.2123480Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+2026-08-28T04:03:58.2154740Z -fmodules -gmodules '-fmodules-cache-path=/Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex' '-fmodule-name=FFmpegKit' -fpascal-strings -Os -DSWIFT_PACKAGE -g -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/include -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/FFmpegKit/include -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/DerivedSources-normal/arm64 -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/DerivedSources/arm64 -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/DerivedSources -F/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos -iframework /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -iframework /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk/Developer/Library/Frameworks -DXcode
+2026-08-28T04:03:58.2159650Z 
+2026-08-28T04:03:58.2160350Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/FFmpegKit.modulemap (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2161320Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit
+2026-08-28T04:03:58.2162040Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/FFmpegKit.modulemap
+2026-08-28T04:03:58.2162600Z 
+2026-08-28T04:03:58.2163350Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/FFmpegKit.DependencyStaticMetadataFileList (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2165510Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit
+2026-08-28T04:03:58.2166370Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/FFmpegKit.DependencyStaticMetadataFileList
+2026-08-28T04:03:58.2166980Z 
+2026-08-28T04:03:58.2167620Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/FFmpegKit.DependencyMetadataFileList (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2168710Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit
+2026-08-28T04:03:58.2170800Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/FFmpegKit.DependencyMetadataFileList
+2026-08-28T04:03:58.2171340Z 
+2026-08-28T04:03:58.2173490Z Copy /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphoneos/FFmpegKit.modulemap /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/FFmpegKit.modulemap (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2174840Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit
+2026-08-28T04:03:58.2177070Z     builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -strip-unsigned-binaries -strip-deterministic -strip-tool /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/strip -resolve-src-symlinks /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/FFmpegKit.modulemap /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphoneos
+2026-08-28T04:03:58.2178700Z 
+2026-08-28T04:03:58.2179350Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp_const_extract_protocols.json (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2180320Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2181140Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp_const_extract_protocols.json
+2026-08-28T04:03:58.2181840Z 
+2026-08-28T04:03:58.2182830Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp.SwiftFileList (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2183730Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2184420Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp.SwiftFileList
+2026-08-28T04:03:58.2185040Z 
+2026-08-28T04:03:58.2185770Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp.SwiftConstValuesFileList (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2186700Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2187500Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp.SwiftConstValuesFileList
+2026-08-28T04:03:58.2188460Z 
+2026-08-28T04:03:58.2189120Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp.LinkFileList (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2190310Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2191060Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp.LinkFileList
+2026-08-28T04:03:58.2191640Z 
+2026-08-28T04:03:58.2192450Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp-OutputFileMap.json (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2193490Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2194260Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/Objects-normal/arm64/DemoApp-OutputFileMap.json
+2026-08-28T04:03:58.2194910Z 
+2026-08-28T04:03:58.2195480Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp.hmap (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2196260Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2196990Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp.hmap
+2026-08-28T04:03:58.2197480Z 
+2026-08-28T04:03:58.2198120Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp.DependencyStaticMetadataFileList (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2199110Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2200210Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp.DependencyStaticMetadataFileList
+2026-08-28T04:03:58.2200970Z 
+2026-08-28T04:03:58.2201890Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp.DependencyMetadataFileList (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2203020Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2204030Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp.DependencyMetadataFileList
+2026-08-28T04:03:58.2204580Z 
+2026-08-28T04:03:58.2205180Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-project-headers.hmap (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2206480Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2207130Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-project-headers.hmap
+2026-08-28T04:03:58.2207680Z 
+2026-08-28T04:03:58.2208290Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-own-target-headers.hmap (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2209060Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2209670Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-own-target-headers.hmap
+2026-08-28T04:03:58.2210170Z 
+2026-08-28T04:03:58.2210750Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-generated-files.hmap (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2211480Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2212080Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-generated-files.hmap
+2026-08-28T04:03:58.2212580Z 
+2026-08-28T04:03:58.2213160Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-all-target-headers.hmap (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2213900Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2214500Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-all-target-headers.hmap
+2026-08-28T04:03:58.2215050Z 
+2026-08-28T04:03:58.2215710Z WriteAuxiliaryFile /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-all-non-framework-target-headers.hmap (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2216620Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2217310Z     write-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/DemoApp.build/Release-iphoneos/DemoApp.build/DemoApp-all-non-framework-target-headers.hmap
+2026-08-28T04:03:58.2217930Z 
+2026-08-28T04:03:58.2218320Z MkDir /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/DemoApp.app/Frameworks (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2218880Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2219380Z     /bin/mkdir -p /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/DemoApp.app/Frameworks
+2026-08-28T04:03:58.2219760Z 
+2026-08-28T04:03:58.2220150Z MkDir /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/DemoApp.app (in target 'DemoApp' from project 'DemoApp')
+2026-08-28T04:03:58.2220850Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo
+2026-08-28T04:03:58.2221270Z     /bin/mkdir -p /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/DemoApp.app
+2026-08-28T04:03:58.2221630Z 
+2026-08-28T04:03:58.2221930Z SwiftDriver KSPlayer normal arm64 com.apple.xcode.tools.swift.compiler (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:58.2222440Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.2238440Z     builtin-SwiftDriver -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name KSPlayer -O -whole-module-optimization @/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer.SwiftFileList -DSWIFT_PACKAGE -DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE -Xcc -fmodule-map-file\=/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphoneos/FFmpegKit.modulemap -Xcc -fmodule-map-file\=/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/GeneratedModuleMaps-iphoneos/DisplayCriteria.modulemap -DXcode -plugin-path /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -target arm64-apple-ios26.0 -g -module-cache-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex -Xfrontend -serialize-debugging-options -swift-version 5 -I /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos -Isystem /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib -F /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/PackageFrameworks -F /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/PackageFrameworks -F /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos -F /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -F /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk/Developer/Library/Frameworks -emit-localized-strings -emit-localized-strings-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64 -c -num-threads 3 -Xcc -ivfsstatcache -Xcc /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache -output-file-map /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex -sdk-module-cache-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex/Session.modulevalidation -package-name ksplayer -Xcc -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer_const_extract_protocols.json -Xcc -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/FFmpegKit/include -Xcc -I/Users/runner/work/KSPlayer/KSPlayer/Sources/DisplayCriteria/include -Xcc -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/include -Xcc -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/DerivedSources-normal/arm64 -Xcc -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/DerivedSources/arm64 -Xcc -I/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/DerivedSources -Xcc -DSWIFT_PACKAGE -emit-objc-header -emit-objc-header-path /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer.build/Objects-normal/arm64/KSPlayer-Swift.h -working-directory /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj -no-emit-module-separately-wmo
+2026-08-28T04:03:58.2333550Z /Users/runner/work/KSPlayer/KSPlayer/Sources/KSPlayer/Core/EventBus.swift:38:25: error: Anonymous closure arguments cannot be used inside a closure that has explicit arguments
+2026-08-28T04:03:58.2336940Z                 handler($0)
+2026-08-28T04:03:58.2337670Z                         ^ (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:58.2338570Z 
+2026-08-28T04:03:58.2343200Z ScanDependencies /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/FFmpegKit/FFmpegKit.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2351410Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.2351670Z     
+2026-08-28T04:03:58.2352390Z     Using response file: /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+2026-08-28T04:03:58.2353180Z     
+2026-08-28T04:03:58.2368510Z     builtin-ScanDependencies -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.o.scan -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -ivfsstatcache /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache -target arm64-apple-ios13.0 -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -fmodules-prune-interval\=86400 -fmodules-prune-after\=345600 -fbuild-session-file\=/Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex/Session.modulevalidation -fmodules-validate-once-per-build-session -Wnon-modular-include-in-framework-module -Werror\=non-modular-include-in-framework-module -Wno-trigraphs -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -w -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -Wno-implicit-fallthrough -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -fstrict-aliasing -Wdeprecated-declarations -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body @/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp -MMD -MT dependencies -MF /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.d --serialize-diagnostics /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.dia -c /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/FFmpegKit/FFmpegKit.c -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.o
+2026-08-28T04:03:58.2377530Z 
+2026-08-28T04:03:58.2378730Z ScanDependencies /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.o /Users/runner/work/KSPlayer/KSPlayer/Sources/DisplayCriteria/DisplayCriteria.m normal arm64 objective-c com.apple.compilers.llvm.clang.1_0.compiler (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:58.2380360Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.2380670Z     
+2026-08-28T04:03:58.2381380Z     Using response file: /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp
+2026-08-28T04:03:58.2382720Z     
+2026-08-28T04:03:58.2392020Z     builtin-ScanDependencies -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.o.scan -- /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x objective-c -ivfsstatcache /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache -target arm64-apple-ios26.0 -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -fmodules-prune-interval\=86400 -fmodules-prune-after\=345600 -fbuild-session-file\=/Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex/Session.modulevalidation -fmodules-validate-once-per-build-session -Wnon-modular-include-in-framework-module -Werror\=non-modular-include-in-framework-module -Wno-trigraphs -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-implicit-atomic-properties -Wno-objc-interface-ivars -Wno-arc-repeated-use-of-weak -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -Wno-selector -Wno-strict-selector-match -Wno-undeclared-selector -Wno-deprecated-implementations -Wno-implicit-fallthrough -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -fstrict-aliasing -Wprotocol -Wdeprecated-declarations -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body @/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp -MMD -MT dependencies -MF /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.d --serialize-diagnostics /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.dia -c /Users/runner/work/KSPlayer/KSPlayer/Sources/DisplayCriteria/DisplayCriteria.m -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.o
+2026-08-28T04:03:58.2402120Z 
+2026-08-28T04:03:58.2403570Z CompileC /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/FFmpegKit/FFmpegKit.c normal arm64 c com.apple.compilers.llvm.clang.1_0.compiler (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2405280Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.2405790Z     
+2026-08-28T04:03:58.2412600Z     Using response file: /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+2026-08-28T04:03:58.2413410Z     
+2026-08-28T04:03:58.2434160Z     /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -ivfsstatcache /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache -target arm64-apple-ios13.0 -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -fmodules-prune-interval\=86400 -fmodules-prune-after\=345600 -fbuild-session-file\=/Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex/Session.modulevalidation -fmodules-validate-once-per-build-session -Wnon-modular-include-in-framework-module -Werror\=non-modular-include-in-framework-module -Wno-trigraphs -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -w -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -Wno-implicit-fallthrough -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -fstrict-aliasing -Wdeprecated-declarations -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body @/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/7187679823f38a2a940e0043cdf9d637-common-args.resp -MMD -MT dependencies -MF /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.d --serialize-diagnostics /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.dia -c /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit/Sources/FFmpegKit/FFmpegKit.c -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.o
+2026-08-28T04:03:58.2446600Z 
+2026-08-28T04:03:58.2449230Z CompileC /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.o /Users/runner/work/KSPlayer/KSPlayer/Sources/DisplayCriteria/DisplayCriteria.m normal arm64 objective-c com.apple.compilers.llvm.clang.1_0.compiler (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:58.2451100Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/DemoApp.xcodeproj
+2026-08-28T04:03:58.2451380Z     
+2026-08-28T04:03:58.2452260Z     Using response file: /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp
+2026-08-28T04:03:58.2453500Z     
+2026-08-28T04:03:58.2467410Z     /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x objective-c -ivfsstatcache /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SDKStatCaches.noindex/iphoneos26.5-23F81a-688ef53f1462e2c8f657fdc38a81448fee66e23052a0157c865c76b268046726.sdkstatcache -target arm64-apple-ios26.0 -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -fmodules-prune-interval\=86400 -fmodules-prune-after\=345600 -fbuild-session-file\=/Users/runner/work/KSPlayer/KSPlayer/Demo/build/ModuleCache.noindex/Session.modulevalidation -fmodules-validate-once-per-build-session -Wnon-modular-include-in-framework-module -Werror\=non-modular-include-in-framework-module -Wno-trigraphs -Wno-missing-field-initializers -Wno-missing-prototypes -Wno-return-type -Wno-implicit-atomic-properties -Wno-objc-interface-ivars -Wno-arc-repeated-use-of-weak -Wno-missing-braces -Wparentheses -Wswitch -Wno-unused-function -Wno-unused-label -Wno-unused-parameter -Wno-unused-variable -Wunused-value -Wno-empty-body -Wno-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wno-constant-conversion -Wno-int-conversion -Wno-bool-conversion -Wno-enum-conversion -Wno-float-conversion -Wno-non-literal-null-conversion -Wno-objc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -Wno-selector -Wno-strict-selector-match -Wno-undeclared-selector -Wno-deprecated-implementations -Wno-implicit-fallthrough -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -fstrict-aliasing -Wprotocol -Wdeprecated-declarations -Wno-sign-conversion -Wno-infinite-recursion -Wno-comma -Wno-block-capture-autoreleasing -Wno-strict-prototypes -Wno-semicolon-before-method-body @/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/e6072d4f65d7061329687fe24e3d63a7-common-args.resp -MMD -MT dependencies -MF /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.d --serialize-diagnostics /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.dia -c /Users/runner/work/KSPlayer/KSPlayer/Sources/DisplayCriteria/DisplayCriteria.m -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.o
+2026-08-28T04:03:58.2478850Z 
+2026-08-28T04:03:58.2479280Z Ld /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/FFmpegKit.o normal (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2479980Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit
+2026-08-28T04:03:58.2484930Z     /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios13.0 -r -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -Os -w -F/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos -F/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos -iframework /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -iframework /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk/Developer/Library/Frameworks -filelist /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit.LinkFileList -nostdlib -Xlinker -object_path_lto -Xlinker /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit_lto.o -Xlinker -dependency_info -Xlinker /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/FFmpegKit.build/Release-iphoneos/FFmpegKit.build/Objects-normal/arm64/FFmpegKit_dependency_info.dat -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/FFmpegKit.o
+2026-08-28T04:03:58.2489560Z 
+2026-08-28T04:03:58.2490030Z Ld /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/DisplayCriteria.o normal (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:58.2490680Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:58.2495300Z     /Applications/Xcode_26.6.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-ios26.0 -r -isysroot /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk -Os -F/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/EagerLinkingTBDs/Release-iphoneos -F/Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos -iframework /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/Frameworks -iframework /Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk/Developer/Library/Frameworks -filelist /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria.LinkFileList -nostdlib -Xlinker -object_path_lto -Xlinker /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria_lto.o -Xlinker -dependency_info -Xlinker /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/DisplayCriteria.build/Objects-normal/arm64/DisplayCriteria_dependency_info.dat -fobjc-arc -fobjc-link-runtime -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/DisplayCriteria.o
+2026-08-28T04:03:58.2499940Z 
+2026-08-28T04:03:58.2500890Z RegisterExecutionPolicyException /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/FFmpegKit.o (in target 'FFmpegKit' from project 'FFmpegKit')
+2026-08-28T04:03:58.2501670Z     cd /Users/runner/work/KSPlayer/KSPlayer/Demo/build/SourcePackages/checkouts/FFmpegKit
+2026-08-28T04:03:58.2502340Z     builtin-RegisterExecutionPolicyException /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/FFmpegKit.o
+2026-08-28T04:03:58.2502870Z 
+2026-08-28T04:03:58.2503420Z RegisterExecutionPolicyException /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/DisplayCriteria.o (in target 'DisplayCriteria' from project 'KSPlayer')
+2026-08-28T04:03:58.2504110Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:58.2504840Z     builtin-RegisterExecutionPolicyException /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/DisplayCriteria.o
+2026-08-28T04:03:58.2505330Z 
+2026-08-28T04:03:58.2506050Z MetalLink /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle/default.metallib (in target 'KSPlayer_KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:58.2506770Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:58.2508170Z     /var/run/com.apple.security.cryptexd/mnt/com.apple.MobileAsset.MetalToolchain-v17.6.109.0.lx9okW/Metal.xctoolchain/usr/bin/metal -target air64-apple-ios26.0 -o /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle/default.metallib /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Intermediates.noindex/KSPlayer.build/Release-iphoneos/KSPlayer_KSPlayer.build/Metal/Shaders.air
+2026-08-28T04:03:58.2509480Z 
+2026-08-28T04:03:58.2510010Z RegisterExecutionPolicyException /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle (in target 'KSPlayer_KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:58.2510950Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:58.2511530Z     builtin-RegisterExecutionPolicyException /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle
+2026-08-28T04:03:58.2512100Z 
+2026-08-28T04:03:58.2512560Z Touch /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle (in target 'KSPlayer_KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:58.2513190Z     cd /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:58.2513690Z     /usr/bin/touch -c /Users/runner/work/KSPlayer/KSPlayer/Demo/build/Build/Products/Release-iphoneos/KSPlayer_KSPlayer.bundle
+2026-08-28T04:03:58.2514110Z 
+2026-08-28T04:03:58.2514250Z ** BUILD FAILED **
+2026-08-28T04:03:58.2514370Z 
+2026-08-28T04:03:58.2514380Z 
+2026-08-28T04:03:58.2514450Z The following build commands failed:
+2026-08-28T04:03:58.2515000Z 	SwiftDriver KSPlayer normal arm64 com.apple.xcode.tools.swift.compiler (in target 'KSPlayer' from project 'KSPlayer')
+2026-08-28T04:03:58.2515590Z 	Building project DemoApp with scheme DemoApp and configuration Release
+2026-08-28T04:03:58.2515870Z (2 failures)
+2026-08-28T04:03:58.2678960Z ##[error]Process completed with exit code 65.
+2026-08-28T04:03:58.2858410Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-28T04:03:58.2859980Z Post job cleanup.
+2026-08-28T04:03:58.6815350Z [command]/opt/homebrew/bin/git version
+2026-08-28T04:03:58.7041230Z git version 2.55.0
+2026-08-28T04:03:58.7064350Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/92bdc0f7-8c99-4bb5-85de-7258aed9daa9/.gitconfig'
+2026-08-28T04:03:58.7071590Z Temporarily overriding HOME='/Users/runner/work/_temp/92bdc0f7-8c99-4bb5-85de-7258aed9daa9' before making global git config changes
+2026-08-28T04:03:58.7072420Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-28T04:03:58.7074400Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/KSPlayer/KSPlayer
+2026-08-28T04:03:58.7311590Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-08-28T04:03:58.7408490Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-08-28T04:03:58.8411170Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-28T04:03:58.8471820Z http.https://github.com/.extraheader
+2026-08-28T04:03:58.8479180Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-08-28T04:03:58.8552050Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-08-28T04:03:58.9505730Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-28T04:03:58.9571760Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-08-28T04:03:59.0512610Z Cleaning up orphan processes
+2026-08-28T04:03:59.6059920Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
