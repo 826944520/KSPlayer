@@ -1,0 +1,153 @@
+# SwiftLint Configuration for KSPlayer
+# 遵循公司编码规范
+
+# 禁用的规则
+disabled_rules:
+  - trailing_whitespace          # 允许尾随空格（方便对齐）
+  - line_length                   # 不限制行长度（依赖代码审查）
+
+# 启用的严格规则
+opt_in_rules:
+  - explicit_init                 # 禁止隐式初始化
+  - explicit_type_interface       # 禁止隐式类型推断
+  - fatal_error_message           # fatalError 必须有描述
+  - force_unwrapping              # 禁止强制解包（除非必要）
+  - implicitly_unwrapped_optional # 禁止隐式解包
+  - overridden_super_call         # Override 必须调用 super
+  - prohibited_interface_builder  # 禁止使用 @IB 设计
+  - redundant_nil_coalescing      # 禁止多余的 nil 合并
+  - strict_fileprivate            # 严格使用 private
+  - unneeded_parentheses_in_closure_argument # 禁止不必要的括号
+
+# 规则配置
+line_length:
+  warning: 120
+  error: 200
+  ignores_function_declarations: true
+  ignores_comments: true
+  ignores_urls: true
+
+file_length:
+  warning: 500
+  error: 1000
+  ignore_comment_only_lines: true
+
+type_body_length:
+  warning: 300
+  error: 500
+
+function_body_length:
+  warning: 50
+  error: 100
+
+# 函数参数限制
+large_tuple:
+  warning: 3
+  error: 4
+
+# 复杂度限制
+cyclomatic_complexity:
+  warning: 10
+  error: 15
+
+nesting:
+  type_level:
+    warning: 2
+  statement_level:
+    warning: 5
+
+# 命名规范
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+  max_length:
+    warning: 40
+    error: 50
+  excluded:
+    - id
+    - URL
+    - url
+    - x
+    - y
+    - z
+  validates_start_with_lowercase:
+    - variable
+    - let
+    - var
+
+type_name:
+  min_length:
+    warning: 3
+    error: 2
+  max_length:
+    warning: 40
+    error: 50
+
+# 包含的路径
+included:
+  - Sources
+  - Tests
+
+# 排除的路径
+excluded:
+  - Carthage
+  - Pods
+  - .build
+  - DerivedData
+  - FFmpegBuild
+
+# 自定义规则
+custom_rules:
+  # 禁止魔法值
+  no_magic_numbers:
+    name: "No Magic Numbers"
+    regex: '\b\d{2,}\b'
+    match_kinds:
+      - number
+    message: "Use named constants instead of magic numbers (e.g., let MAX_RETRY = 3)"
+    severity: warning
+
+  # 函数命名必须是动宾结构
+  function_naming:
+    name: "Function Naming Convention"
+    regex: '\s+(func\s+)(?!is|has|get|set|fetch|load|play|pause|seek|save|delete|clear|update|create|remove)[a-z]'
+    message: "Function names should use verb-object pattern (e.g., fetchUser(), loadMedia())"
+    severity: warning
+
+  # 布尔值必须用 is/has 前缀
+  boolean_naming:
+    name: "Boolean Naming Convention"
+    regex: '\s+(let|var)\s+(?!is|has|should|can|will|did)[a-zA-Z]+\s*:\s*Bool'
+    message: "Boolean variables should use is/has/should/can/will/did prefix (e.g., isLoading, hasError)"
+    severity: warning
+
+  # 禁止在业务代码中直接使用 Thread
+  no_direct_thread:
+    name: "No Direct Thread Creation"
+    regex: '\bThread\(.*\)\s*\.start\(\)'
+    message: "Use async/await or Combine instead of creating Thread directly"
+    severity: error
+
+  # 必须有 TODO/FIXME 标记临时方案
+  temporary_solutions:
+    name: "Mark Temporary Solutions"
+    regex: '(//.*hack|//.*workaround|//.*temporary|//.*todo)' # 大小写不敏感
+    match_kinds: comment
+    message: "Use TODO/FIXME with clear explanation for temporary solutions"
+    severity: warning
+
+  # 禁止 TODO 中没有说明
+  empty_todo:
+    name: "TODO Must Have Description"
+    regex: 'TODO:\s*$'
+    message: "TODO must have a description (e.g., TODO: Implement this feature)"
+    severity: warning
+
+# 排除文件
+excluded:
+  - "*/Fixes.md"
+  - "*/CHANGELOG.md"
+
+# Reporter
+reporter: "xcode"
