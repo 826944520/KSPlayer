@@ -404,6 +404,14 @@ public enum VideoInterlacingType: String {
 }
 
 public extension KSOptions {
+    // runtime player selection enum
+    public enum PlayerType {
+        case avPlayer
+        case ffmpeg
+    }
+
+    public static var playerType: PlayerType = .avPlayer
+
     static var firstPlayerType: MediaPlayerProtocol.Type = KSAVPlayer.self
     static var secondPlayerType: MediaPlayerProtocol.Type? = KSMEPlayer.self
 
@@ -429,7 +437,10 @@ public extension KSOptions {
     static var useSystemHTTPProxy = true
 
     static var logLevel = LogLevel.warning
-    static var logger: LogHandler = OSLog(lable: "KSPlayer")
+    static var logger: LogHandler = KSAppLog(label: "KSPlayer")
+    /// audio player runtime selection (metatype)
+    public static var audioPlayerType: AnyClass = AudioEnginePlayer.self
+
     internal static func deviceCpuCount() -> Int {
         var ncpu = UInt(0)
         var len: size_t = MemoryLayout.size(ofValue: ncpu)
@@ -470,7 +481,7 @@ public extension KSOptions {
         let preferredOutputNumberOfChannels = AVAudioChannelCount(AVAudioSession.sharedInstance().preferredOutputNumberOfChannels)
         let isSpatialAudioEnabled = isSpatialAudioEnabled(channelCount: channelCount)
         let isUseAudioRenderer = KSOptions.audioPlayerType == AudioRendererPlayer.self
-        KSLog("[audio] maximumOutputNumberOfChannels: \(maximumOutputNumberOfChannels), preferredOutputNumberOfChannels: \(preferredOutputNumberOfChannels), isSpatialAudioEnabled: \(isSpatialAudioEnabled), isUseAudioRenderer: \(isUseAudioRenderer) ")
+        KSLog("[audio] maximumOutputNumberOfChannels: \(maximumOutputNumberOfChannels), preferredOutputNumberOfChannels: \(preferredOutputNumberOfChannels), isSpatialAudioEnabled: \(isSpatialAudi[...")
         let maxRouteChannelsCount = AVAudioSession.sharedInstance().currentRoute.outputs.compactMap {
             $0.channels?.count
         }.max() ?? 2
@@ -553,10 +564,10 @@ public protocol LogHandler {
     func log(level: LogLevel, message: CustomStringConvertible, file: String, function: String, line: UInt)
 }
 
-public class OSLog: LogHandler {
+public class KSAppLog: LogHandler {
     public let label: String
-    public init(lable: String) {
-        label = lable
+    public init(label: String) {
+        self.label = label
     }
 
     @inlinable
